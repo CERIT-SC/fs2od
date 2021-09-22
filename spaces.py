@@ -37,6 +37,22 @@ def getSpace(space_id):
     if DEBUG: pprint(response.json())
     return response.json()
 
+def getSpaceDetails(space_id):    
+    if DEBUG: print("getSpaceDetails(" + space_id + "): ")
+    # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/get_space_details
+    url = ONEPROVIDER_API_URL + "onepanel/provider/spaces/" + space_id
+    response = requests.get(url, headers=ONEPANEL_AUTH_HEADERS, verify=False)
+    if DEBUG: pprint(response.json())
+    return response.json()
+
+def getAutoStorageImportInfo(space_id):
+    if DEBUG: print("getAutoStorageImportInfo(" + space_id + "): ")
+    # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/get_auto_storage_import_info
+    url = ONEPROVIDER_API_URL + "onepanel/provider/spaces/" + space_id + "/storage-import/auto/info"
+    response = requests.get(url, headers=ONEPANEL_AUTH_HEADERS, verify=False)
+    if DEBUG: pprint(response.json())
+    return response.json()
+
 def downloadFileContent(file_id):
     if DEBUG: print("downloadFileContent(" + file_id + "): ")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/download_file_content
@@ -87,6 +103,18 @@ def supportSpace(token, size, storage_id):
     resp = requests.post(url, headers=my_headers, data=json.dumps(data), verify=False)
     #return resp.json()["id"]
 
+def setNewSizeToSpace(space_id, size):
+    if DEBUG: print("setNewSpaceSize(" + space_id + ", " + str(size) + "): ")
+    # based on https://onedata.org/#/home/api/stable/onepanel?anchor=operation/modify_space
+    url = ONEPANEL_API_URL + "onepanel/provider/spaces/" + space_id
+    data = {
+        'size': size
+    }
+    my_headers = dict(ONEPANEL_AUTH_HEADERS)
+    my_headers['Content-type'] = 'application/json'
+    resp = requests.patch(url, headers=my_headers, data=json.dumps(data), verify=False)
+    return resp
+
 def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
     space_id = createSpaceForGroup(group_id, name)
     token = tokens.createNamedTokenForUser(space_id, name, USER_ID)
@@ -94,3 +122,11 @@ def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
     supportSpace(token, capacity, storage_id)
     tokens.deleteNamedToken(token['tokenId'])
     return space_id
+
+def setSizeOfSpaceByDataSize(space_id):
+    if DEBUG: print("setSizeOfSpaceByDataSize(" + space_id + "): ")
+    sd = getSpaceDetails(space_id)
+    if sd['importedStorage'] == True and getAutoStorageImportInfo(space_id)['status'] == "completed":
+        new_size = sd['spaceOccupancy']
+        setNewSizeToSpace(space_id, new_size)
+        if DEBUG: print("Set up new size", new_size, "for space", space_id)

@@ -55,18 +55,34 @@ from tokens import *
 
 #setSpaceMetadataFromYml("cd8b5b27d9ce42b49f318782daaf1185ch93e6")
 
-# Import subdirs
+## Import subdirs
 # import os
 # base_path="/volumes/cemcof/external/DATA_21/"
 # i = os.scandir(path="./test")
+
+# spaces = list()
+# for space in getSpaces():
+#     spaces.append(space['name'])
+
 # for e in i: 
-#   if e.is_dir(): 
-#     print("Processing: ", e.name)
-#     print(base_path + e.name)
-#     dataset_name = e.name
-#     storage_id = createAndGetStorage(dataset_name, base_path + e.name)
-#     space_id = createAndSupportSpaceForGroup(dataset_name, setting.GROUP_ID, storage_id, 5*2**40) # 10*2**40 = 10 TB
-#     print("space id = " + space_id)
-#     time.sleep(5)
-#     setSpaceMetadataFromYml(space_id)
-#     print("*** *** ***")
+#     if e.is_dir():
+#         print("Processing: ", e.name)
+#         print(base_path + e.name)
+#         if not e.name in spaces:
+#             dataset_name = e.name
+#             storage_id = createAndGetStorage(dataset_name, base_path + e.name)
+#             space_id = createAndSupportSpaceForGroup(dataset_name, setting.GROUP_ID, storage_id, 10*2**40) # 10*2**40 = 10 TB
+#             print("space id = " + space_id)
+#             time.sleep(120)
+#             setSpaceMetadataFromYml(space_id)
+#             print("*** *** ***")
+#             time.sleep(5)
+#         else:
+#             print(e.name, "exists")
+
+# # Set size of space according to data size
+# for s in getSpaces():
+#     space_id = s['spaceId']
+#     if "_" in s['name'] and s['name'] != "keras_call":
+#         setSizeOfSpaceByDataSize(space_id)
+#         time.sleep(2)
