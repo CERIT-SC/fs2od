@@ -77,6 +77,13 @@ def creatingOfSpaces(base_path):
             print("Space for", d.name, "not created.")
         time.sleep(setting.CONFIG['sleepFactor'] * 6)
 
+def removingOfSpaceASpol(space_id):
+    # odstraneni invite tokenu
+    # odstraneni skupiny
+    # odstraneni space
+    # odstraneni storage
+    pass
+
 def setupContinuousImport(base_path):
     sub_dirs = os.scandir(path=base_path)
     for d in sub_dirs:
