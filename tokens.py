@@ -4,7 +4,7 @@ import random
 import setting
 
 def listAllNamedtokens():
-    if setting.DEBUG: print("listAllNamedtokens(): ")
+    if setting.DEBUG >= 2: print("listAllNamedtokens(): ")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/list_all_named_tokens
     url = setting.ONEZONE_API_URL + "onezone/users/" + setting.CONFIG['serviceUserId'] + "/tokens/named"
     headers = dict(setting.ONEZONE_AUTH_HEADERS)
@@ -12,7 +12,7 @@ def listAllNamedtokens():
     return resp.json()['tokens']
 
 def getNamedToken(token_id):
-    if setting.DEBUG: print("getNamedToken(" + token_id + "): ")
+    if setting.DEBUG >= 2: print("getNamedToken(" + token_id + "): ")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_named_token
     url = setting.ONEZONE_API_URL + "onezone/tokens/named/" + token_id
     headers = dict(setting.ONEZONE_AUTH_HEADERS)
@@ -20,7 +20,7 @@ def getNamedToken(token_id):
     return resp.json()
 
 def createNamedTokenForUser(space_id, space_name, user_id):
-    if setting.DEBUG: print("getNamedTokenForSpace(" + space_id + ", " + space_name + ", " + user_id + "): ")
+    if setting.DEBUG >= 2: print("createNamedTokenForUser(" + space_id + ", " + space_name + ", " + user_id + "): ")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_named_token_for_user
     url = setting.ONEZONE_API_URL + "onezone/users/" + user_id + "/tokens/named"
     data = {
@@ -43,7 +43,7 @@ def createNamedTokenForUser(space_id, space_name, user_id):
         raise BaseException("Response for creating new token failed: " + str(resp.content))
 
 def createInviteTokenToGroup(group_id, token_name):
-    if setting.DEBUG: print("createInviteTokenToGroup(" + group_id + ", " + token_name + "): ")
+    if setting.DEBUG >= 2: print("createInviteTokenToGroup(" + group_id + ", " + token_name + "): ")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_named_token_for_user
     url = setting.ONEZONE_API_URL + "onezone/users/" + setting.CONFIG['serviceUserId'] + "/tokens/named"
     data = {
@@ -66,7 +66,7 @@ def createInviteTokenToGroup(group_id, token_name):
         raise BaseException("Response for creating new token failed: " + str(resp.content))
 
 def deleteNamedToken(token_id):
-    if setting.DEBUG: print("deleteNamedToken(" + token_id + "): ")
+    if setting.DEBUG >= 2: print("deleteNamedToken(" + token_id + "): ")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/delete_named_token
     url = setting.ONEZONE_API_URL + "onezone/tokens/named/" + token_id
     headers = dict(setting.ONEZONE_AUTH_HEADERS)

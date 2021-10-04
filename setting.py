@@ -1,6 +1,5 @@
 import yaml
 import os
-import requests
 from pprint import pprint
 
 # Loading configuration from YAML file
@@ -15,7 +14,12 @@ else:
 import urllib3
 urllib3.disable_warnings()
 
-DEBUG = False
+# Allow debug prints
+# 0 - silent mode, only errors printed
+# 1 - print base info, errors and warning are printed
+# 2 - print detailed info, errors, warning and functions calls are printed
+# 3 - print more detailed info, like previous with extensive data
+DEBUG = 2
 
 # Setup the access Onedata variables
 ONEZONE_HOST = CONFIG['onezone']['host']
@@ -32,4 +36,5 @@ ONEPROVIDER_API_URL = ONEPROVIDER_HOST + "/api/v3/"
 ONEPANEL_API_URL = ONEPANEL_HOST + "/api/v3/"
 
 ONEZONE_AUTH_HEADERS = {'x-auth-token' : ONEZONE_API_KEY}
+ONEPROVIDER_AUTH_HEADERS = {'x-auth-token' : ONEPROVIDER_API_KEY}
 ONEPANEL_AUTH_HEADERS = {'x-auth-token' : ONEPANEL_API_KEY}

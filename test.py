@@ -121,3 +121,10 @@ from shares import *
 
 #pprint(getSpace("fd2e9fc98f55c09022ffbd202451e3b7ch99dd")['fileId'])
 #pprint(getSpaceDetails("fd2e9fc98f55c09022ffbd202451e3b7ch99dd"))
+
+#getSpaces()
+#setNewSizeToSpace("25f4c63b04db566006fa83bdbbf4d798cha9f5", 5*2**40)
+#setContinuousImport("25f4c63b04db566006fa83bdbbf4d798cha9f5", False)
+
+#token = createNamedTokenForUser("2ab5ac1f4992c6cfb01ec6616f1a94dfch7125", "test-iii", "83d03b05ab8fdca7430b4fa010933630ch8fdc")
+#supportSpace(token, 10995116277760, "937a4df9daa22ad10eadf12be640d6ecch70fa")

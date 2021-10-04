@@ -95,7 +95,7 @@ def loadYaml(file_path):
     if os.path.exists(file_path):
         with open(file_path, 'r') as stream:
             configuration = yaml.safe_load(stream)
-            if setting.DEBUG: pprint(configuration)
+            if setting.DEBUG >= 3: pprint(configuration)
             return configuration
     else:
         print("File", file_path, "doesn't exists.")

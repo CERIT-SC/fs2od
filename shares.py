@@ -13,8 +13,6 @@ def createShare(name, space_id, description = ""):
         "description": description,
         "fileId": space_id
     }
-    
-    if setting.DEBUG: pprint(data)
     headers = dict(setting.ONEZONE_AUTH_HEADERS)
     headers['Content-type'] = 'application/json'
     resp = requests.post(url, headers=headers, data=json.dumps(data), verify=False)
