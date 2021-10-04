@@ -6,7 +6,7 @@ import setting
 def listAllNamedtokens():
     if setting.DEBUG: print("listAllNamedtokens(): ")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/list_all_named_tokens
-    url = setting.ONEZONE_API_URL + "onezone/users/" + setting.USER_ID + "/tokens/named"
+    url = setting.ONEZONE_API_URL + "onezone/users/" + setting.CONFIG['serviceUserId'] + "/tokens/named"
     headers = dict(setting.ONEZONE_AUTH_HEADERS)
     resp = requests.get(url, headers=headers, verify=False)
     return resp.json()['tokens']
@@ -31,6 +31,29 @@ def createNamedTokenForUser(space_id, space_name, user_id):
                 'spaceId': space_id
             },
         'usageLimit': 1
+        }
+    }
+
+    my_headers = dict(setting.ONEZONE_AUTH_HEADERS)
+    my_headers['Content-type'] = 'application/json'
+    resp = requests.post(url, headers=my_headers, data=json.dumps(data), verify=False)
+    if resp:
+        return resp.json()
+    else:
+        raise BaseException("Response for creating new token failed: " + str(resp.content))
+
+def createInviteTokenToGroup(group_id, token_name):
+    if setting.DEBUG: print("createInviteTokenToGroup(" + group_id + ", " + token_name + "): ")
+    # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_named_token_for_user
+    url = setting.ONEZONE_API_URL + "onezone/users/" + setting.CONFIG['serviceUserId'] + "/tokens/named"
+    data = {
+        'name': token_name,
+        'type': {
+            "inviteToken": {
+                'inviteType': "userJoinGroup",
+                'groupId': group_id
+            },
+        'usageLimit': "infinity"
         }
     }
 

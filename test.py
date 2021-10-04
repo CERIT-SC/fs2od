@@ -6,20 +6,24 @@ from storages import *
 from spaces import *
 from metadata import *
 from tokens import *
+from filesystem import *
+from groups import *
+from shares import *
 
 # #Delete spaces
 # for s in getSpaces():
-#   if "_" in s['name'] and not "keras_call" == s['name']:
+#   if "test" in s['name']:
 #     print(s)
 #     removeSpace(s['spaceId'])
-# time.sleep(5)
+#     time.sleep(2)
 
-# # Delete storages
+# # # Delete storages
 # for s in getStorages()['ids']:
 #   name = getStorageDetails(s)['name']
-#   if "_" in name:
+#   if "test" in name:
 #     print(name)
 #     removeStorage(s)
+#     time.sleep(2)
 
 # #Remove tokens
 # for token_id in listAllNamedtokens():
@@ -86,3 +90,34 @@ from tokens import *
 #     if "_" in s['name'] and s['name'] != "keras_call":
 #         setSizeOfSpaceByDataSize(space_id)
 #         time.sleep(2)
+
+
+# sub_dirs = os.scandir(path="test")
+# for d in sub_dirs:
+#     # write onedata parameters to file
+#     space_id="aabbddcc"
+#     data = {"onedata": {"spaceId": space_id}}
+#     with open(d.path + '/onedata.yml', 'w') as outfile:
+#         json.dump(data, outfile, indent=4)
+
+
+# pprint(getSpaceDetails("bbf8918afa21e6c42c330ec5d03dad37chc1fd"))
+# pprint(getAutoStorageImportInfo("bbf8918afa21e6c42c330ec5d03dad37chc1fd"))
+# pprint(getContinuousImportStatus("bbf8918afa21e6c42c330ec5d03dad37chc1fd"))
+# enableContinuousImport("bbf8918afa21e6c42c330ec5d03dad37chc1fd")
+# time.sleep(5)
+# pprint(getContinuousImportStatus("bbf8918afa21e6c42c330ec5d03dad37chc1fd"))
+# disableContinuousImport("bbf8918afa21e6c42c330ec5d03dad37chc1fd")
+# time.sleep(5)
+# pprint(getContinuousImportStatus("bbf8918afa21e6c42c330ec5d03dad37chc1fd"))
+
+# gid = createChildGroup(CONFIG['spacesParentGroupId'], "Test aaa bbb")
+# print(gid)
+# time.sleep(2)
+# print(createSpaceForGroup(gid, "Neco 1234"))
+
+#pprint(tokens.createInviteTokenToGroup("350bed3b096956a962e67fac9d1e1bebch7c5c", "Invite token for space test"))
+#pprint(createAndGetShare("Jmeno2", "fd2e9fc98f55c09022ffbd202451e3b7ch99dd", description = "Popis"))
+
+#pprint(getSpace("fd2e9fc98f55c09022ffbd202451e3b7ch99dd")['fileId'])
+#pprint(getSpaceDetails("fd2e9fc98f55c09022ffbd202451e3b7ch99dd"))

@@ -117,7 +117,7 @@ def setNewSizeToSpace(space_id, size):
 
 def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
     space_id = createSpaceForGroup(group_id, name)
-    token = tokens.createNamedTokenForUser(space_id, name, USER_ID)
+    token = tokens.createNamedTokenForUser(space_id, name, CONFIG['serviceUserId'])
     time.sleep(1)
     supportSpace(token, capacity, storage_id)
     tokens.deleteNamedToken(token['tokenId'])
@@ -130,3 +130,35 @@ def setSizeOfSpaceByDataSize(space_id):
         new_size = sd['spaceOccupancy']
         setNewSizeToSpace(space_id, new_size)
         if DEBUG: print("Set up new size", new_size, "for space", space_id)
+
+def enableContinuousImport(space_id):
+    if not getContinuousImportStatus(space_id):
+        setContinuousImport(space_id, True)
+
+def disableContinuousImport(space_id):
+    if getContinuousImportStatus(space_id):
+        setContinuousImport(space_id, False)
+
+def getContinuousImportStatus(space_id):
+    space_details = getSpaceDetails(space_id)
+    if space_details['importedStorage']:
+        space_import_info = getAutoStorageImportInfo(space_id)
+        if DEBUG: pprint(space_import_info)
+        return space_import_info['storageImport']['autoStorageImportConfig']['continuousScan']
+    else:
+        print("Space is not imported.")
+        return None
+
+def setContinuousImport(space_id, newValue):
+    if DEBUG: print("setContinuousImport(" + space_id + ", " + str(newValue) + "): ")
+    # https://onedata.org/#/home/api/21.02.0-alpha21/onepanel?anchor=operation/modify_space
+    url = ONEPANEL_API_URL + "onepanel/provider/spaces/" + space_id
+    data = {
+        'autoStorageImportConfig': {
+            'continuousScan': newValue,
+            'scanInterval': CONFIG['importingFiles']['scanInterval'],
+            }
+    }
+    my_headers = dict(ONEPANEL_AUTH_HEADERS)
+    my_headers['Content-type'] = 'application/json'
+    resp = requests.patch(url, headers=my_headers, data=json.dumps(data), verify=False)
