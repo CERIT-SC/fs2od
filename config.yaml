@@ -1,0 +1,23 @@
+# POSIX direcoties to import
+watchedDirectories:
+  - "./test"
+
+yamlFileName: "spa.yml"
+
+# Sleep 
+# 0 = don't sleep (testing without Onedata), 1 = sleep only while (testing on small datasets), 10 = normal production value
+sleepFactor: 0
+
+# set up of automatic import of files from POSIX filesystem for Oneprovider
+importingFiles:
+  # scan interval in seconds
+  scanInterval: 600
+
+# Parent group for spaces' groups
+spacesParentGroupId: "8760912ebecfdf1644fe3fa90cd9df08ch9c08"
+
+# Service user identifier
+serviceUserId: "83d03b05ab8fdca7430b4fa010933630ch8fdc"
+
+# Implicit space size (set to 10 TB = 10*2**40)
+implicitSpaceSize: 10995116277760
