@@ -21,3 +21,14 @@ serviceUserId: "83d03b05ab8fdca7430b4fa010933630ch8fdc"
 
 # Implicit space size (set to 10 TB = 10*2**40)
 implicitSpaceSize: 10995116277760
+
+# REST API access (hostnames and tokens) to Onedata
+onezone:
+  host: 
+  apiToken: 
+oneprovider: 
+  host: 
+  apiToken: 
+onepanel: 
+  host: 
+  apiToken: 
