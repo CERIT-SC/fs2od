@@ -43,6 +43,7 @@ def createNamedTokenForUser(space_id, space_name, user_id):
         raise BaseException("Response for creating new token failed: " + str(resp.content))
 
 def createInviteTokenToGroup(group_id, token_name):
+    if setting.TEST: token_name = setting.TEST_PREFIX + token_name
     if setting.DEBUG >= 2: print("createInviteTokenToGroup(" + group_id + ", " + token_name + "): ")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_named_token_for_user
     url = setting.ONEZONE_API_URL + "onezone/users/" + setting.CONFIG['serviceUserId'] + "/tokens/named"

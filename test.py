@@ -9,9 +9,11 @@ def deleteAllTestInstances(prefix):
     python -c 'from test import deleteAllTestInstances; deleteAllTestInstances("some_prefix")'
     """
     # safety notice
-    if False:
-        print("Dangerous method! You should edit line above to run deleteAllTestInstances(" + prefix + ")")
+    if True:
+        print("Dangerous method! You should edit in source code a line above this print to run deleteAllTestInstances(" + prefix + ")")
         return
+
+    print("Deleting all spaces, groups, tokens and storages with the prefix \"" + prefix + "\".")
 
     # invite tokens
     deleted_tokens = 0
@@ -23,27 +25,29 @@ def deleteAllTestInstances(prefix):
             deleted_tokens += 1
             time.sleep(0.5)
 
-    # spaces
+    # spaces and groups associated to given spaces
     deleted_spaces = 0
+    deleted_groups = 0
     for space in spaces.getSpaces():
         if space['name'].startswith(prefix):
+
+            # remove group 
+            space_groups = spaces.listSpaceGroups(space['spaceId'])
+            for groupId in space_groups:
+                group_name = groups.getGroupDetails(groupId)['name']
+                if group_name.startswith(prefix):
+                    groups.removeGroup(groupId)
+                    print("Group", group_name, "deleted. ")
+                    deleted_groups += 1
+                    time.sleep(0.5)
+
             spaces.removeSpace(space['spaceId'])
             print("Space", space['name'], "deleted. ")
             deleted_spaces += 1
             time.sleep(0.5)
-    
-    # groups
-    deleted_groups = 0
-    # TODO - there is no getGroups()
-    # for group in groups.getGroups():
-    #     pprint(group)
-    #     if group['name'].startwith(prefix):
-    #         groups.removeGroup(group_id)
-    #         print("Group", group['name'], "deleted. ")
-    #         deleted_groups += 1
-    #         time.sleep(0.5)
 
     # storages
+    time.sleep(3) # Removing of spaces have to be propagated to Oneprovider
     deleted_storages = 0
     for storageId in storages.getStorages()['ids']:
         storage = storages.getStorageDetails(storageId)

@@ -82,6 +82,7 @@ def listDirectory(file_id):
     return response.json()
 
 def createSpaceForGroup(group_id, space_name):
+    if TEST: space_name = TEST_PREFIX + space_name
     if DEBUG >= 2: print("createSpaceForGroup(" + group_id + ", " + space_name + "): ")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_space_for_group
     url = ONEZONE_API_URL + "onezone/groups/" + group_id + "/spaces"
@@ -172,3 +173,10 @@ def setContinuousImport(space_id, newValue):
     }
     headers = dict({'Content-type': 'application/json'})
     resp = request.patch(url, headers=headers, data=json.dumps(data))
+
+def listSpaceGroups(space_id):
+    if DEBUG >= 2: print("listSpacegroups(" + space_id + "): ")
+    # https://onedata.org/#/home/api/stable/onezone?anchor=operation/list_space_groups
+    url = "onezone/spaces/"+ space_id + "/groups"
+    response = request.get(url)
+    return response.json()['groups']

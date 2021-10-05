@@ -14,12 +14,18 @@ else:
 import urllib3
 urllib3.disable_warnings()
 
-# Allow debug prints
-# 0 - silent mode, only errors printed
+## Allow output and debug prints
+# 0 - silent mode, only errors are printed
 # 1 - print base info, errors and warning are printed
 # 2 - print detailed info, errors, warning and functions calls are printed
-# 3 - print more detailed info, like previous with extensive data
-DEBUG = 2
+# 3 - print detailed info like previous, processed data values are also printed
+DEBUG = 1
+
+## TODO - Allow test mode
+# All instances (spaces, tokens, groups, ...) are created with test prefix.
+# These instances can be deleted by method test.deleteAllTestInstances(TEST_PREFIX)
+TEST = True
+TEST_PREFIX = "testTS_"
 
 # Setup the access Onedata variables
 ONEZONE_HOST = CONFIG['onezone']['host']

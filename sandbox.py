@@ -128,3 +128,6 @@ from shares import *
 
 #token = createNamedTokenForUser("2ab5ac1f4992c6cfb01ec6616f1a94dfch7125", "test-iii", "83d03b05ab8fdca7430b4fa010933630ch8fdc")
 #supportSpace(token, 10995116277760, "937a4df9daa22ad10eadf12be640d6ecch70fa")
+# pprint(listSpacegroups("7b8a9d23a69cd4173be159feb9add40cch3b6f"))
+# pprint(removeGroup("45e5bd3b97ebb2553b7c0b78e35d3df1chc07a"))
+#pprint(removeStorage("32b9ca76ca07865bfe9e43fa8c7bee2bch3b06"))

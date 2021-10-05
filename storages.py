@@ -42,6 +42,7 @@ def getStorageDetails(id):
     return response.json()
 
 def createAndGetStorage(name, mountpoint):
+    if TEST: name = TEST_PREFIX + name
     resp = addStorage(name, mountpoint)
     if resp.status_code == 204:
         last_id = getLastStorage()

@@ -48,3 +48,10 @@ def post(url, headers=dict(), data=dict()):
     response_print(response)
     debug_print(response)
     return response
+
+def delete(url, headers=dict(), data=dict()):
+    url, headers = process_url(url, headers)    
+    response = requests.delete(url, headers=headers, data=data, verify=False)
+    response_print(response)
+    debug_print(response)
+    return response

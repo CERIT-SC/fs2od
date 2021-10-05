@@ -5,11 +5,12 @@ import time
 import setting
 
 def createShare(name, space_id, description = ""):
+    if setting.TEST: name = setting.TEST_PREFIX + name
     if setting.DEBUG: print("createShare(): ")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/create_share
     url = setting.ONEPROVIDER_API_URL + "oneprovider/shares"
     data = {
-        "name": "Share of " + name,
+        "name": name,
         "description": description,
         "fileId": space_id
     }
