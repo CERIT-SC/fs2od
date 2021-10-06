@@ -16,82 +16,55 @@ def getSpaces():
 def removeSpace(space_id):
     if DEBUG >= 2: print("removeSpace(" + space_id + "): ")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/remove_space
-    url = ONEZONE_API_URL + "onezone/spaces/" + space_id
-    response = requests.delete(url, headers=ONEZONE_AUTH_HEADERS, verify=False)
-    if DEBUG >= 3: 
-        print(response)
-        pprint(response, response.json())
+    url = "onezone/spaces/" + space_id
+    response = request.delete(url)
     return response
 
 def getSpace(space_id):
     if DEBUG >= 2: print("getSpace(" + space_id + "): ")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_space
-    url = ONEPROVIDER_API_URL + "oneprovider/spaces/" + space_id
-    timeout = 3
-    while timeout > 0:
-        response = requests.get(url, headers=ONEZONE_AUTH_HEADERS, verify=False)
-        if response.ok:
-            timeout = 0
-        else:
-            print("Error: timeouted", str(4-timeout), "ouf of 3 times;" )
-            timeout = timeout - 1
-            time.sleep(10)
-    if DEBUG >= 3: 
-        print(response)
-        pprint(response, response.json())
+    url = "oneprovider/spaces/" + space_id
+    response = request.get(url)
     return response.json()
 
 def getSpaceDetails(space_id):    
     if DEBUG >= 2: print("getSpaceDetails(" + space_id + "): ")
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/get_space_details
-    url = ONEPROVIDER_API_URL + "onepanel/provider/spaces/" + space_id
-    response = requests.get(url, headers=ONEPANEL_AUTH_HEADERS, verify=False)
-    if DEBUG >= 3: 
-        print(response)
-        pprint(response.json())
+    url = "onepanel/provider/spaces/" + space_id
+    response = request.get(url)
     return response.json()
 
 def getAutoStorageImportInfo(space_id):
     if DEBUG >= 2: print("getAutoStorageImportInfo(" + space_id + "): ")
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/get_auto_storage_import_info
-    url = ONEPROVIDER_API_URL + "onepanel/provider/spaces/" + space_id + "/storage-import/auto/info"
-    response = requests.get(url, headers=ONEPANEL_AUTH_HEADERS, verify=False)
-    if DEBUG >= 3: 
-        print(response)
-        pprint(response.json())
+    url = "onepanel/provider/spaces/" + space_id + "/storage-import/auto/info"
+    response = request.get(url)
     return response.json()
 
 def downloadFileContent(file_id):
     if DEBUG >= 2: print("downloadFileContent(" + file_id + "): ")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/download_file_content
-    url = ONEPROVIDER_API_URL + "oneprovider/data/" + file_id + "/content"
-    response = requests.get(url, headers=ONEZONE_AUTH_HEADERS, verify=False)
-    if DEBUG >= 3: 
-        print(response)
-        pprint(response, response.json())
+    url = "oneprovider/data/" + file_id + "/content"
+    response = request.get(url)
     return response
 
 def listDirectory(file_id):
     if DEBUG >= 2: print("listDirectory(" + file_id + "): ")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/list_children
-    url = ONEPROVIDER_API_URL + "oneprovider/data/" + file_id + "/children"
-    response = requests.get(url, headers=ONEZONE_AUTH_HEADERS, verify=False)
-    if DEBUG >= 3: 
-        print(response)
-        pprint(response, response.json())
+    url = "oneprovider/data/" + file_id + "/children"
+    response = request.get(url)
     return response.json()
 
 def createSpaceForGroup(group_id, space_name):
     if TEST: space_name = TEST_PREFIX + space_name
     if DEBUG >= 2: print("createSpaceForGroup(" + group_id + ", " + space_name + "): ")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_space_for_group
-    url = ONEZONE_API_URL + "onezone/groups/" + group_id + "/spaces"
+    url = "onezone/groups/" + group_id + "/spaces"
     my_data = {'name': space_name}
-    headers = dict(ONEZONE_AUTH_HEADERS)
-    headers['Content-type'] = 'application/json'
-    resp = requests.post(url, headers=headers, data=json.dumps(my_data), verify=False)
+    headers = dict({'Content-type': 'application/json'})
+    response = request.post(url, headers=headers, data=json.dumps(my_data))
     # Should return space ID in Headers
-    location = resp.headers["Location"]
+    location = response.headers["Location"]
     space_id = location.split("spaces/")[1]
     if space_id:
         if DEBUG >= 1: print("Created space", space_name, "with id", space_id)
@@ -117,8 +90,11 @@ def supportSpace(token, size, storage_id):
     }
     
     headers = dict({'Content-type': 'application/json'})
-    resp = request.post(url, headers=headers, data=json.dumps(data))
-    #return resp.json()["id"]
+    response = request.post(url, headers=headers, data=json.dumps(data))
+    if response.ok:
+        return response.json()["id"]
+    else:
+        if DEBUG >= 0: print("Error: support cannot be set")
 
 def setNewSizeToSpace(space_id, size):
     if DEBUG >= 2: print("setNewSpaceSize(" + space_id + ", " + str(size) + "): ")
@@ -134,7 +110,7 @@ def setNewSizeToSpace(space_id, size):
 def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
     space_id = createSpaceForGroup(group_id, name)
     token = tokens.createNamedTokenForUser(space_id, name, CONFIG['serviceUserId'])
-    time.sleep(1)
+    time.sleep(3)
     supportSpace(token, capacity, storage_id)
     tokens.deleteNamedToken(token['tokenId'])
     return space_id

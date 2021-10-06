@@ -1,35 +1,33 @@
+from pprint import pprint
 import json
 import yaml
-from setting import *
-from spaces import *
+import setting, spaces, request
 
 def setFileJsonMetadata(file_id, data):
-    if DEBUG: print("setFileJsonMetadata(" + file_id + ", data): ")
+    if setting.DEBUG >= 2: print("setFileJsonMetadata(" + file_id + ", data): ")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/set_json_metadata
-    url = ONEPROVIDER_API_URL + "oneprovider/data/" + file_id + "/metadata/json"
-    
-    headers = dict(ONEZONE_AUTH_HEADERS)
-    headers['Content-type'] = 'application/json'
-    resp = requests.put(url, headers=headers, data=json.dumps(data), verify=False)
-    return resp
+    url = "oneprovider/data/" + file_id + "/metadata/json"
+    headers = dict({'Content-type': 'application/json'})
+    response = request.put(url, headers=headers, data=json.dumps(data))
+    return response
 
 def setSpaceMetadataFromYml(space_id):
-    if DEBUG: print("setSpaceMetadataFromYml(" + space_id + "): ")
+    if setting.DEBUG >= 2: print("setSpaceMetadataFromYml(" + space_id + "): ")
     # get file_id of space dir
-    res = getSpace(space_id)
-    file_id = res['fileId']
+    space = spaces.getSpace(space_id)
+    file_id = space['fileId']
 
     # find ymls
-    res = listDirectory(file_id)
-    list_yml_files = list(filter(lambda x: ".yml" in x['name'], res['children']))
+    space_content = spaces.listDirectory(file_id)
+    list_yml_files = list(filter(lambda x: ".yml" in x['name'], space_content['children']))
 
     for yml_file in list_yml_files:
         yml_file_id = yml_file['id']
-        yml_byte_stream = downloadFileContent(yml_file_id).content
+        yml_byte_stream = spaces.downloadFileContent(yml_file_id).content
         
         data = yaml.load(yml_byte_stream.decode(), Loader=yaml.BaseLoader)
         
-        if DEBUG: pprint(data)
+        if setting.DEBUG >= 3: pprint(data)
         # musi se pridat zachovani uz existujiciho pripadneho JSONu
         setFileJsonMetadata(file_id, data)
         
