@@ -48,7 +48,7 @@ def getSpaceDetails(space_id):
     response = requests.get(url, headers=ONEPANEL_AUTH_HEADERS, verify=False)
     if DEBUG >= 3: 
         print(response)
-        pprint(response, response.json())
+        pprint(response.json())
     return response.json()
 
 def getAutoStorageImportInfo(space_id):
@@ -58,7 +58,7 @@ def getAutoStorageImportInfo(space_id):
     response = requests.get(url, headers=ONEPANEL_AUTH_HEADERS, verify=False)
     if DEBUG >= 3: 
         print(response)
-        pprint(response, response.json())
+        pprint(response.json())
     return response.json()
 
 def downloadFileContent(file_id):
@@ -93,8 +93,11 @@ def createSpaceForGroup(group_id, space_name):
     # Should return space ID in Headers
     location = resp.headers["Location"]
     space_id = location.split("spaces/")[1]
-    if DEBUG >= 1: print("Created space", space_name, "with id", space_id)
-    return space_id
+    if space_id:
+        if DEBUG >= 1: print("Created space", space_name, "with id", space_id)
+        return space_id
+    else:
+        if DEBUG >= 0: print("Error: space cannot be created")
 
 def supportSpace(token, size, storage_id):
     if DEBUG >= 2: print("supportSpace(token, " + str(size) + ", " + storage_id + "): ")
@@ -107,7 +110,8 @@ def supportSpace(token, size, storage_id):
         'storageImport': {
             'mode': 'auto',
             'autoStorageImportConfig': {
-                'continuousScan': False,
+                'continuousScan': True,
+                'scanInterval': CONFIG['importingFiles']['scanInterval'],
             }
         }
     }
@@ -154,9 +158,7 @@ def disableContinuousImport(space_id):
 def getContinuousImportStatus(space_id):
     space_details = getSpaceDetails(space_id)
     if space_details['importedStorage']:
-        space_import_info = getAutoStorageImportInfo(space_id)
-        if DEBUG: pprint(space_import_info)
-        return space_import_info['storageImport']['autoStorageImportConfig']['continuousScan']
+        return space_details['storageImport']['autoStorageImportConfig']['continuousScan']
     else:
         if DEBUG >= 1: print("Warning: Value not available, space is not imported.")
         return None

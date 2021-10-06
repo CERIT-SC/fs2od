@@ -2,11 +2,17 @@
 watchedDirectories:
   - "./test"
 
+# Name of YAML file with metadata
 yamlFileName: "spa.yml"
 
-# Sleep 
-# 0 = don't sleep (testing without Onedata), 1 = sleep only while (testing on small datasets), 10 = normal production value
-sleepFactor: 0
+# Name of file indicating that the directory content is modified
+runningFileName: ".running"
+
+## Sleep 
+# 0 = don't sleep (testing without Onedata)
+# 1 = sleep only while (testing on small datasets)
+# 10 = normal production value
+sleepFactor: 1
 
 # set up of automatic import of files from POSIX filesystem for Oneprovider
 importingFiles:

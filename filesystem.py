@@ -8,8 +8,8 @@ import setting, spaces, storages, metadata, groups, tokens, shares
 def scanDirectory(base_path):
     creatingOfSpaces(base_path)
     time.sleep(setting.CONFIG['sleepFactor'])
-    #setupContinuousImport(base_path)
-    
+    setupContinuousImport(base_path)
+
 def creatingOfSpaces(base_path):
     # pokud obsahuje spa.yml a neni jeste zalozen, tak pro nej zalozit space v OneData
 
@@ -19,20 +19,18 @@ def creatingOfSpaces(base_path):
     #     spaces.append(space['name'])
 
     sub_dirs = os.scandir(path=base_path)
-    for d in sub_dirs: 
-        
-        yml_file = d.path + os.sep + setting.CONFIG['yamlFileName']
-        yml_spa_exists = os.path.isfile(yml_file)
-        # if file exists and contains yaml file
-        if d.is_dir() and yml_spa_exists:
+    for directory in sub_dirs:        
+        yml_file = directory.path + os.sep + setting.CONFIG['yamlFileName']
+        # test if directory is directory and contains a yaml file
+        if directory.is_dir() and os.path.isfile(yml_file):
             yml_content = loadYaml(yml_file)
-            yml_spa_space_id = getSpaceIDfromYaml(yml_content)
-            # if space_id isn't in the file
-            if not yml_spa_space_id:
-                print("Processing: ", base_path + os.sep + d.name)
-                dataset_name = d.name
+            # test if yaml contains space_id
+            if not yamlContainsSpaceId(yml_content):
+                print("Processing: ", base_path + os.sep + directory.name)
+                dataset_name = directory.name
+                
                 # Create storage for space
-                storage_id = storages.createAndGetStorage(dataset_name, base_path + d.name)
+                storage_id = storages.createAndGetStorage(dataset_name, os.path.join(base_path, directory.name))
 
                 # Create group for space
                 gid = groups.createChildGroup(setting.CONFIG['spacesParentGroupId'], dataset_name)
@@ -46,7 +44,6 @@ def creatingOfSpaces(base_path):
                 space_id = spaces.createAndSupportSpaceForGroup(dataset_name, gid, storage_id, setting.CONFIG['implicitSpaceSize'])
                 time.sleep(5)
                 if space_id:
-                    print("space id = " + space_id)
                     # Set metadata for the space
                     metadata.setSpaceMetadataFromYml(space_id)
 
@@ -70,33 +67,39 @@ def creatingOfSpaces(base_path):
                     # setValueToYaml(yml_file, yml_content, "inviteToken", token['token'])
                     # setValueToYaml(yml_file, yml_content, "space", space_id)
                 else:
-                    print("Space for", d.name, "not created (error).")
+                    print("Space for", directory.name, "not created (error).")
             else:
-                print("Space for", d.name, "not created (spaceId exists).")
+                print("Space for", directory.name, "not created (spaceId exists).")
         else:
-            print("Space for", d.name, "not created.")
+            print("Space for", directory.name, "not created.")
         time.sleep(setting.CONFIG['sleepFactor'] * 6)
-
-def removingOfSpaceASpol(space_id):
-    # odstraneni invite tokenu
-    # odstraneni skupiny
-    # odstraneni space
-    # odstraneni storage
-    pass
 
 def setupContinuousImport(base_path):
     sub_dirs = os.scandir(path=base_path)
-    for d in sub_dirs:
-        if os.path.isfile(d.path + "/onedata.yml"):
-            with open(d.path + '/onedata.yml', "r") as json_file:
-                space_data = json.load(json_file)
-                space_id = space_data['onedata']['spaceId']
-
+    for directory in sub_dirs:        
+        yml_file = directory.path + os.sep + setting.CONFIG['yamlFileName']
+        # test if directory is directory and contains a yaml file
+        if directory.is_dir() and os.path.isfile(yml_file):
+            yml_content = loadYaml(yml_file)
+            # test if yaml contains space_id
+            space_id = yamlContainsSpaceId(yml_content)
             if space_id:
-                if os.path.isfile(d.path + "/.running"):
+                running_file = directory.path + os.sep + setting.CONFIG['runningFileName']
+                # test if directory contains running file
+                if os.path.isfile(running_file):
                     spaces.enableContinuousImport(space_id)
                 else:
                     spaces.disableContinuousImport(space_id)
+
+def yamlContainsSpaceId(yml_content):
+    """
+    Test if yaml contains space_id.
+    """ 
+    yml_spa_space_id = getSpaceIDfromYaml(yml_content)
+    if not yml_spa_space_id:
+        return False
+    else:
+        return yml_spa_space_id
 
 def loadYaml(file_path):
     if os.path.exists(file_path):
