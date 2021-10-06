@@ -1,4 +1,5 @@
 from pprint import pprint
+import time
 import requests
 import setting
 
@@ -30,7 +31,17 @@ def debug_print(response):
 
 def get(url, headers=dict()):
     url, headers = process_url(url, headers)
-    response = requests.get(url, headers=headers, verify=False)
+    timeout_counter = 3
+    while timeout_counter > 0:
+        response = requests.get(url, headers=headers, verify=False)
+        if response.ok:
+            timeout_counter = 0
+        else:
+            if setting.DEBUG >= 1: print("Warning: request timeouted", str(4-timeout_counter), "ouf of 3 times")
+            if setting.DEBUG >= 1: print("Warning: request url: ", url)
+            timeout_counter = timeout_counter - 1
+            time.sleep(10)
+    
     response_print(response)
     debug_print(response)
     return response
