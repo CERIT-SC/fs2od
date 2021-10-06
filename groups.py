@@ -1,24 +1,21 @@
-import requests
 import json
-import setting
-import request
+import setting, request
 
 def createChildGroup(parent_group_id, group_name):
     if setting.TEST: group_name = setting.TEST_PREFIX + group_name
-    if setting.DEBUG: print("createChildGroup(" + parent_group_id + "): ")
+    if setting.DEBUG >= 2: print("createChildGroup(" + parent_group_id + "): ")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_child_group
-    url = setting.ONEZONE_API_URL + "onezone/groups/" + parent_group_id + "/children"
+    url = "onezone/groups/" + parent_group_id + "/children"
     my_data = {
         "name": group_name,
         "type": "team"
     }
-    headers = dict(setting.ONEZONE_AUTH_HEADERS)
-    headers['Content-type'] = 'application/json'
-    resp = requests.post(url, headers=headers, data=json.dumps(my_data), verify=False)
+    headers = dict({'Content-type': 'application/json'})
+    response = request.post(url, headers=headers, data=json.dumps(my_data))
     # Should return space ID in Headers
-    location = resp.headers["Location"]
+    location = response.headers["Location"]
     group_id = location.split("children/")[1]
-    if setting.DEBUG: print(group_id)
+    if setting.DEBUG >= 2: print("Group was created with id", group_id)
     return group_id
 
 def getGroupDetails(group_id):
