@@ -9,7 +9,7 @@ def deleteAllTestInstances(prefix):
     python -c 'from test import deleteAllTestInstances; deleteAllTestInstances("some_prefix")'
     """
     # safety notice
-    if True:
+    if False:
         print("Dangerous method! You should edit in source code a line above this print to run deleteAllTestInstances(" + prefix + ")")
         return
 

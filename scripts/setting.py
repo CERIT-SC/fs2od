@@ -19,7 +19,7 @@ urllib3.disable_warnings()
 # 1 - print base info, errors and warning are printed
 # 2 - print detailed info, errors, warning and functions calls are printed
 # 3 - print detailed info like previous, processed data values are also printed
-DEBUG = 1
+DEBUG = 2
 
 ## TODO - Allow test mode
 # All instances (spaces, tokens, groups, ...) are created with test prefix.
