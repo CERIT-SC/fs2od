@@ -3,7 +3,7 @@ import os
 from pprint import pprint
 
 # Loading configuration from YAML file
-config_file = "config.yaml"
+config_file = "../config.yaml"
 if os.path.exists(config_file):
     with open(config_file, 'r') as stream:
         CONFIG = yaml.safe_load(stream)
