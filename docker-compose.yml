@@ -1,0 +1,11 @@
+version: "3.9"
+    
+services:
+  cemapi:
+    image: cemapi
+    restart: unless-stopped
+    volumes:
+      - /gpfs/vol1/export/nfs4/home/tomsvo/CryoEM:/root/CryoEM 
+      - /gpfs/vol1/export/nfs4/home/tomsvo/test:/volumes/cemcof/test
+    environment:
+      REPEAT_TIME_PERIOD: 600
