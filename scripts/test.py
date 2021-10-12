@@ -1,5 +1,6 @@
 from pprint import pprint
 import time
+import argparse
 import spaces, storages, groups, tokens
 
 def deleteAllTestInstances(prefix):
@@ -9,7 +10,7 @@ def deleteAllTestInstances(prefix):
     python -c 'from test import deleteAllTestInstances; deleteAllTestInstances("some_prefix")'
     """
     # safety notice
-    if False:
+    if True:
         print("Dangerous method! You should edit in source code a line above this print to run deleteAllTestInstances(" + prefix + ")")
         return
 
@@ -61,3 +62,16 @@ def deleteAllTestInstances(prefix):
     print("Tokens deleted =", deleted_tokens)
     print("Groups deleted =", deleted_groups)
     print("Storages deleted =", deleted_storages)
+
+def main():
+    parser = argparse.ArgumentParser(description='Do given method.')
+    parser._action_groups.pop()
+    optional = parser.add_argument_group('optional arguments')
+    optional.add_argument('--remove_test', required=True, type=str, help='Delete all instances with a given prefix.')
+    args = parser.parse_args()
+
+    if args.remove_test:
+        deleteAllTestInstances(args.remove_test)
+
+if __name__ == "__main__":
+    main()
