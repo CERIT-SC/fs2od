@@ -7,7 +7,7 @@ def deleteAllTestInstances(prefix):
     """
     Delete all instances of a given prefix.
     Should by called from cmd by:
-    python -c 'from test import deleteAllTestInstances; deleteAllTestInstances("some_prefix")'
+    python scripts/test.py --remove_test abc
     """
     # safety notice
     if True:
