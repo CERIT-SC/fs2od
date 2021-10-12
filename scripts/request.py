@@ -53,6 +53,13 @@ def patch(url, headers=dict(), data=dict()):
     debug_print(response)
     return response
 
+def put(url, headers=dict(), data=dict()):
+    url, headers = process_url(url, headers)    
+    response = requests.put(url, headers=headers, data=data, verify=False)
+    response_print(response)
+    debug_print(response)
+    return response
+
 def post(url, headers=dict(), data=dict()):
     url, headers = process_url(url, headers)    
     response = requests.post(url, headers=headers, data=data, verify=False)
