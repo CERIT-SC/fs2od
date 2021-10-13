@@ -1,5 +1,6 @@
 from pprint import pprint
 import yaml
+import ruamel.yaml
 import os
 import time
 import json
@@ -26,7 +27,7 @@ def creatingOfSpaces(base_path):
             yml_content = loadYaml(yml_file)
             # test if yaml contains space_id
             if not yamlContainsSpaceId(yml_content):
-                if setting.DEBUG >= 1: print("Processing: ", base_path + os.sep + directory.name)
+                if setting.DEBUG >= 1: print("Processing:", base_path + os.sep + directory.name)
                 dataset_name = directory.name
                 
                 # Create storage for space
@@ -63,9 +64,8 @@ def creatingOfSpaces(base_path):
                     yaml_onedata_dict['publicURL'] = share['publicUrl']
                     yaml_onedata_dict['inviteToken'] = token['token']
                     setValuesToYaml(yml_file, yml_content, yaml_onedata_dict)
-                    # setValueToYaml(yml_file, yml_content, "publicURL", share['publicUrl'])
-                    # setValueToYaml(yml_file, yml_content, "inviteToken", token['token'])
-                    # setValueToYaml(yml_file, yml_content, "space", space_id)
+                    
+                    if setting.DEBUG >= 1: print("Processing of", base_path + os.sep + directory.name, "done.")
                 else:
                     if setting.DEBUG >= 0: print("Error: Space for", directory.name, "not created.")
             else:
@@ -108,7 +108,7 @@ def loadYaml(file_path):
             if setting.DEBUG >= 3: pprint(configuration)
             return configuration
     else:
-        print("File", file_path, "doesn't exists.")
+        if setting.DEBUG >= 1: print("Error: File", file_path, "doesn't exists.")
 
 def getSpaceIDfromYaml(yaml_dict):
     onedata_part = yaml_dict.get('onedata')
@@ -133,7 +133,7 @@ def setValueToYaml(file_path, yaml_dict, valueType, value):
             # store new yaml file
             yaml.safe_dump(yaml_dict, f, sort_keys=False)
     else:
-        print("File", file_path, "doesn't exists.")
+        if setting.DEBUG >= 1: print("Error: File", file_path, "doesn't exists.")
 
 def setValuesToYaml(file_path, yaml_dict, new_values_dict):
     """
@@ -151,6 +151,11 @@ def setValuesToYaml(file_path, yaml_dict, new_values_dict):
             # store new yaml file
             # Solving bad indentation of list
             # https://stackoverflow.com/questions/25108581/python-yaml-dump-bad-indentation
-            yaml.safe_dump(yaml_dict, f, sort_keys=False)
+            #yaml.safe_dump(yaml_dict, f, sort_keys=False)
+            
+            ryaml = ruamel.yaml.YAML()
+            ryaml.width = 200 # count of characters on a line, if there is more chars, line is breaked
+            ryaml.indent(sequence=4, offset=2)
+            ryaml.dump(yaml_dict, f)
     else:
-        print("File", file_path, "doesn't exists.")
+        if setting.DEBUG >= 1: print("Error: File", file_path, "doesn't exists.")
