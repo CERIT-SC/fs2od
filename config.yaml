@@ -48,11 +48,11 @@ implicitSpaceSize: 10995116277760
 
 # REST API access (hostnames and tokens) to Onedata
 onezone:
-  host: "https://datahub.egi.eu"
-  apiToken: "MDAxY2xvY2F00aW9uIGRhdGFodWIuZWdpLmV1CjAwNmJpZGVudGlmaWVyIDIvbm1kL3Vzci004M2QwM2IwNWFiOGZkY2E3NDMwYjRmYTAxMDkzMzYzMGNoOGZkYy9hY3QvYzBlZjJmNTdhMmZlZDczOTAwNTViN2UzMzdmMmYwZjhjaDIxYzkKMDAxOWNpZCBpbnRlcmZhY2UgPSByZXN00CjAwMmFjaWQgc2VydmljZSA9IG96dy1vbmV6b25lfG9wdy00qfG9wcC00qCjAwMmZzaWduYXR1cmUgOjCpFUxZeC01d27az9I61HcddjvDCjqTQN02B5cnTHpE4K"
+  host: ""
+  apiToken: ""
 oneprovider: 
-  host: "https://muni.datahub.egi.eu"
-  apiToken: "MDAxY2xvY2F00aW9uIGRhdGFodWIuZWdpLmV1CjAwNmJpZGVudGlmaWVyIDIvbm1kL3Vzci004M2QwM2IwNWFiOGZkY2E3NDMwYjRmYTAxMDkzMzYzMGNoOGZkYy9hY3QvYzBlZjJmNTdhMmZlZDczOTAwNTViN2UzMzdmMmYwZjhjaDIxYzkKMDAxOWNpZCBpbnRlcmZhY2UgPSByZXN00CjAwMmFjaWQgc2VydmljZSA9IG96dy1vbmV6b25lfG9wdy00qfG9wcC00qCjAwMmZzaWduYXR1cmUgOjCpFUxZeC01d27az9I61HcddjvDCjqTQN02B5cnTHpE4K"
+  host: ""
+  apiToken: ""
 onepanel: 
-  host: "https://muni.datahub.egi.eu"
-  apiToken: "MDAxY2xvY2F00aW9uIGRhdGFodWIuZWdpLmV1CjAwNmJpZGVudGlmaWVyIDIvbm1kL3Vzci004M2QwM2IwNWFiOGZkY2E3NDMwYjRmYTAxMDkzMzYzMGNoOGZkYy9hY3QvY2E00MTQ3YjAzNjFmZDI00ZGU3YmYwZmIxZjhkMWMyODFjaDkwODcKMDAxOGNpZCBzZXJ2aWNlID00gb3BwLSoKMDAyZnNpZ25hdHVyZSB1yUQswsvu01KXY333hxlOvUfVPV1roTIxG7b9mOqSYUgo"
+  host: ""
+  apiToken: ""
