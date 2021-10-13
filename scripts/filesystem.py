@@ -7,9 +7,11 @@ import json
 import setting, spaces, storages, metadata, groups, tokens, shares
 
 def scanDirectory(base_path):
+    if setting.DEBUG >= 1: print("Processing path", base_path)
     creatingOfSpaces(base_path)
-    time.sleep(setting.CONFIG['sleepFactor'])
+    time.sleep(setting.CONFIG['sleepFactor'])    
     setupContinuousImport(base_path)
+    if setting.DEBUG >= 1: print("Processing path", base_path, "done.")
 
 def creatingOfSpaces(base_path):
     # pokud obsahuje spa.yml a neni jeste zalozen, tak pro nej zalozit space v OneData

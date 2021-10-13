@@ -93,16 +93,26 @@ def supportSpace(token, size, storage_id):
     else:
         if setting.DEBUG >= 0: print("Error: support cannot be set")
 
-def setNewSizeToSpace(space_id, size):
-    if setting.DEBUG >= 2: print("setNewSpaceSize(" + space_id + ", " + str(size) + "): ")
+def setSpaceSize(space_id, size = None):
+    if setting.DEBUG >= 2: print("setSpaceSize(" + space_id + ", " + str(size) + "): ")
+
+    # if size not set, get spaceOccupancy
+    sd = getSpaceDetails(space_id)
+    if sd['importedStorage'] == True and getAutoStorageImportInfo(space_id)['status'] == "completed":
+        size = sd['spaceOccupancy']
+    else:
+        size = setting.CONFIG['implicitSpaceSize']
+
     # based on https://onedata.org/#/home/api/stable/onepanel?anchor=operation/modify_space
     url = "onepanel/provider/spaces/" + space_id
     data = {
         'size': size
     }
     headers = dict({'Content-type': 'application/json'})
-    resp = request.patch(url, headers=headers, data=json.dumps(data))
-    return resp
+    response = request.patch(url, headers=headers, data=json.dumps(data))
+    if response.ok:
+        if setting.DEBUG >= 1: print("Set new size (", size, ") for space with id", space_id)
+    return response
 
 def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
     space_id = createSpaceForGroup(group_id, name)
@@ -112,21 +122,19 @@ def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
     tokens.deleteNamedToken(token['tokenId'])
     return space_id
 
-def setSizeOfSpaceByDataSize(space_id):
-    if setting.DEBUG: print("setSizeOfSpaceByDataSize(" + space_id + "): ")
-    sd = getSpaceDetails(space_id)
-    if sd['importedStorage'] == True and getAutoStorageImportInfo(space_id)['status'] == "completed":
-        new_size = sd['spaceOccupancy']
-        setNewSizeToSpace(space_id, new_size)
-        if setting.DEBUG >= 1: print("Set up new size", new_size, "for space", space_id)
-
 def enableContinuousImport(space_id):
     if not getContinuousImportStatus(space_id):
-        setContinuousImport(space_id, True)
+        result = setContinuousImport(space_id, True)
+        if result:
+            if setting.DEBUG >= 1: print("Continuous import enabled for space with id", space_id)
+            setSpaceSize(space_id, setting.CONFIG['implicitSpaceSize'])
 
 def disableContinuousImport(space_id):
     if getContinuousImportStatus(space_id):
-        setContinuousImport(space_id, False)
+        result = setContinuousImport(space_id, False)
+        if result:
+            if setting.DEBUG >= 1: print("Continuous import disabled for space with id", space_id)
+            setSpaceSize(space_id)
 
 def getContinuousImportStatus(space_id):
     space_details = getSpaceDetails(space_id)
@@ -136,18 +144,25 @@ def getContinuousImportStatus(space_id):
         if setting.DEBUG >= 1: print("Warning: Value not available, space is not imported.")
         return None
 
-def setContinuousImport(space_id, newValue):
-    if setting.DEBUG >= 2: print("setContinuousImport(" + space_id + ", " + str(newValue) + "): ")
-    # https://onedata.org/#/home/api/21.02.0-alpha21/onepanel?anchor=operation/modify_space
-    url = "onepanel/provider/spaces/" + space_id
-    data = {
-        'autoStorageImportConfig': {
-            'continuousScan': newValue,
-            'scanInterval': setting.CONFIG['importingFiles']['scanInterval'],
+def setContinuousImport(space_id, continuousScanEnabled):
+    if setting.DEBUG >= 2: print("setContinuousImport(" + space_id + ", " + str(continuousScanEnabled) + "): ")
+    # test if import was completed
+    if not continuousScanEnabled and getAutoStorageImportInfo(space_id)['status'] == "completed":
+        # https://onedata.org/#/home/api/21.02.0-alpha21/onepanel?anchor=operation/modify_space
+        url = "onepanel/provider/spaces/" + space_id
+        data = {
+            'autoStorageImportConfig': {
+                'continuousScan': continuousScanEnabled,
+                'scanInterval': setting.CONFIG['importingFiles']['scanInterval'],
+            }
         }
-    }
-    headers = dict({'Content-type': 'application/json'})
-    resp = request.patch(url, headers=headers, data=json.dumps(data))
+        headers = dict({'Content-type': 'application/json'})
+        response = request.patch(url, headers=headers, data=json.dumps(data))
+        if response.ok:
+            return True
+    else:
+        if setting.DEBUG >= 1: print("Import in progress, continuous scan can't be disabled for space with id", space_id)
+        return False
 
 def listSpaceGroups(space_id):
     if setting.DEBUG >= 2: print("listSpacegroups(" + space_id + "): ")
