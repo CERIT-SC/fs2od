@@ -64,7 +64,7 @@ def createSpaceForGroup(group_id, space_name):
     location = response.headers["Location"]
     space_id = location.split("spaces/")[1]
     if space_id:
-        if setting.DEBUG >= 1: print("Created space", space_name, "with id", space_id)
+        if setting.DEBUG >= 1: print("Space", space_name, "was created with id", space_id)
         return space_id
     else:
         if setting.DEBUG >= 0: print("Error: space cannot be created")

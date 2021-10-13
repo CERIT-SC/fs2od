@@ -15,18 +15,18 @@ def createChildGroup(parent_group_id, group_name):
     # Should return space ID in Headers
     location = response.headers["Location"]
     group_id = location.split("children/")[1]
-    if setting.DEBUG >= 2: print("Group was created with id", group_id)
+    if setting.DEBUG >= 1: print("Group", group_name, "was created with id", group_id)
     return group_id
 
 def getGroupDetails(group_id):
-    if setting.DEBUG: print("getGroupDetails(" + group_id + "): ")
+    if setting.DEBUG >= 2: print("getGroupDetails(" + group_id + "): ")
     #https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_group
     url = "onezone/groups/" + group_id
     response = request.get(url)
     return response.json()
 
 def removeGroup(group_id):
-    if setting.DEBUG: print("removeGroup(" + group_id + "): ")
+    if setting.DEBUG >= 2: print("removeGroup(" + group_id + "): ")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/remove_group
     url = "onezone/groups/" + group_id
     response = request.delete(url)

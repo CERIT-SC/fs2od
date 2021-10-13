@@ -43,12 +43,12 @@ def createAndGetStorage(name, mountpoint):
         last_id = getLastStorage()
         # porovnat zda se rovnaji jmena
         if getStorageDetails(last_id)['name'] == name:
-            if setting.DEBUG >= 1: print("Storage", name, "created with id", last_id)
+            if setting.DEBUG >= 1: print("Storage", name, "was created with id", last_id)
             return last_id
         else:
-            print("Warning: storage added but id cannot be returned")
+            if setting.DEBUG >= 1: print("Warning: storage added but id cannot be returned")
     else:
-        print("Error: failed while adding storage, response is ", resp)
+        if setting.DEBUG >= 0: print("Error: failed while adding storage, response is ", resp)
 
 def removeStorage(storage_id):
     if setting.DEBUG >= 2: print("removeStorage(" + storage_id + "): ")
