@@ -7,7 +7,7 @@ def deleteAllTestInstances(prefix):
     """
     Delete all instances of a given prefix.
     Should by called from cmd by:
-    python scripts/test.py --remove_test abc
+    python scripts/test.py --remove_instances some_prefix
     """
     # safety notice
     if True:
@@ -67,7 +67,7 @@ def main():
     parser = argparse.ArgumentParser(description='Do given method.')
     parser._action_groups.pop()
     optional = parser.add_argument_group('optional arguments')
-    optional.add_argument('--remove_test', required=True, type=str, help='Delete all instances with a given prefix.')
+    optional.add_argument('--remove_instances', required=True, type=str, help='Delete all instances (storages, spaces, groups, ...) with a given prefix.')
     args = parser.parse_args()
 
     if args.remove_test:

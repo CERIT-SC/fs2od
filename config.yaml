@@ -1,6 +1,7 @@
 # POSIX direcoties to import
 watchedDirectories:
-  - "./test"
+#  - "/home/tomsvo/CryoEM/test"
+  - "/volumes/cemcof/test"
 
 # Name of YAML file with metadata
 yamlFileName: "spa.yml"
@@ -8,9 +9,25 @@ yamlFileName: "spa.yml"
 # Name of file indicating that the directory content is modified
 runningFileName: ".running"
 
-## Sleep 
-# 0 = don't sleep (testing without Onedata)
-# 1 = sleep only while (testing on small datasets)
+## Allow verbose output and debug prints
+# 0 - silent mode, only errors are printed
+# 1 - print base info, errors and warning are printed
+# 2 - print detailed info, errors, warning and functions calls are printed
+# 3 - print detailed info like previous, processed data values are also printed
+debug: 1
+
+## Test mode
+# When test mode is allowed (set to True) all instances (spaces, tokens, groups, ...) are created with a given prefix,
+# which value is set by testModePrefix. These instances with a prefix can be deleted in bulk by command:
+# python scripts/test.py --remove_instances some_prefix
+testMode: True
+testModePrefix: "test123_"
+
+## Waiting
+# It can take a while when Onedata compoments register changes which are made by call of API. 
+# Therefor there are a pauses between some functions. You can set time of waiting.
+# 0 = don't sleep (only testing without Onedata)
+# 1 = wait only a while (testing on small datasets)
 # 10 = normal production value
 sleepFactor: 1
 
@@ -30,11 +47,11 @@ implicitSpaceSize: 10995116277760
 
 # REST API access (hostnames and tokens) to Onedata
 onezone:
-  host: 
-  apiToken: 
+  host: "https://datahub.egi.eu"
+  apiToken: "MDAxY2xvY2F00aW9uIGRhdGFodWIuZWdpLmV1CjAwNmJpZGVudGlmaWVyIDIvbm1kL3Vzci004M2QwM2IwNWFiOGZkY2E3NDMwYjRmYTAxMDkzMzYzMGNoOGZkYy9hY3QvYzBlZjJmNTdhMmZlZDczOTAwNTViN2UzMzdmMmYwZjhjaDIxYzkKMDAxOWNpZCBpbnRlcmZhY2UgPSByZXN00CjAwMmFjaWQgc2VydmljZSA9IG96dy1vbmV6b25lfG9wdy00qfG9wcC00qCjAwMmZzaWduYXR1cmUgOjCpFUxZeC01d27az9I61HcddjvDCjqTQN02B5cnTHpE4K"
 oneprovider: 
-  host: 
-  apiToken: 
+  host: "https://muni.datahub.egi.eu"
+  apiToken: "MDAxY2xvY2F00aW9uIGRhdGFodWIuZWdpLmV1CjAwNmJpZGVudGlmaWVyIDIvbm1kL3Vzci004M2QwM2IwNWFiOGZkY2E3NDMwYjRmYTAxMDkzMzYzMGNoOGZkYy9hY3QvYzBlZjJmNTdhMmZlZDczOTAwNTViN2UzMzdmMmYwZjhjaDIxYzkKMDAxOWNpZCBpbnRlcmZhY2UgPSByZXN00CjAwMmFjaWQgc2VydmljZSA9IG96dy1vbmV6b25lfG9wdy00qfG9wcC00qCjAwMmZzaWduYXR1cmUgOjCpFUxZeC01d27az9I61HcddjvDCjqTQN02B5cnTHpE4K"
 onepanel: 
-  host: 
-  apiToken: 
+  host: "https://muni.datahub.egi.eu"
+  apiToken: "MDAxY2xvY2F00aW9uIGRhdGFodWIuZWdpLmV1CjAwNmJpZGVudGlmaWVyIDIvbm1kL3Vzci004M2QwM2IwNWFiOGZkY2E3NDMwYjRmYTAxMDkzMzYzMGNoOGZkYy9hY3QvY2E00MTQ3YjAzNjFmZDI00ZGU3YmYwZmIxZjhkMWMyODFjaDkwODcKMDAxOGNpZCBzZXJ2aWNlID00gb3BwLSoKMDAyZnNpZ25hdHVyZSB1yUQswsvu01KXY333hxlOvUfVPV1roTIxG7b9mOqSYUgo"
