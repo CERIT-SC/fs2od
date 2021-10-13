@@ -26,7 +26,7 @@ def creatingOfSpaces(base_path):
             yml_content = loadYaml(yml_file)
             # test if yaml contains space_id
             if not yamlContainsSpaceId(yml_content):
-                print("Processing: ", base_path + os.sep + directory.name)
+                if setting.DEBUG >= 1: print("Processing: ", base_path + os.sep + directory.name)
                 dataset_name = directory.name
                 
                 # Create storage for space
@@ -67,11 +67,11 @@ def creatingOfSpaces(base_path):
                     # setValueToYaml(yml_file, yml_content, "inviteToken", token['token'])
                     # setValueToYaml(yml_file, yml_content, "space", space_id)
                 else:
-                    print("Space for", directory.name, "not created (error).")
+                    if setting.DEBUG >= 0: print("Error: Space for", directory.name, "not created.")
             else:
-                print("Space for", directory.name, "not created (spaceId exists).")
+                if setting.DEBUG >= 1: print("Space for", directory.name, "not created (spaceId exists in yaml file).")
         else:
-            print("Space for", directory.name, "not created.")
+            if setting.DEBUG >= 1: print("Space for", directory.name, "not created (not contains yaml or no dir).")
         time.sleep(setting.CONFIG['sleepFactor'] * 6)
 
 def setupContinuousImport(base_path):
