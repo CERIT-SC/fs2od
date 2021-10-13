@@ -1,0 +1,25 @@
+stages:
+  - prepareImage
+
+image: docker:git
+
+variables:
+  DOCKER_HOST: tcp://docker:2375/
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+
+services:
+  - docker:dind
+
+before_script:
+  - docker info
+
+buildImage:
+  stage: prepareImage
+  script:
+    - docker login -u "gitlab-ci-token" -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker build -t camapi -f Dockerfile .
+    - docker tag cemapi registry.gitlab.ics.muni.cz:443/cryoem-dc/cemapi:latest
+    - docker push registry.gitlab.ics.muni.cz:443/cryoem-dc/cemapi:latest
+  only:
+    - master
