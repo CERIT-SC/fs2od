@@ -1,6 +1,26 @@
 import json
 import setting, request
 
+def createGroup(group_name):
+    if setting.TEST: group_name = setting.TEST_PREFIX + group_name
+    if setting.DEBUG >= 2: print("createGroup(" + group_name + "): ")
+    # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_group
+    url = "onezone/groups"
+    my_data = {
+        "name": group_name,
+        "type": "team"
+    }
+    headers = dict({'Content-type': 'application/json'})
+    response = request.post(url, headers=headers, data=json.dumps(my_data))
+    if response.ok:
+        # Should return space ID in Headers
+        location = response.headers["Location"]
+        group_id = location.split("groups/")[1]
+        if setting.DEBUG >= 1: print("Group", group_name, "was created with id", group_id)
+        return group_id
+    else:
+        if setting.DEBUG >= 0: print("Error: group", group_name, "can't be created")
+
 def createChildGroup(parent_group_id, group_name):
     if setting.TEST: group_name = setting.TEST_PREFIX + group_name
     if setting.DEBUG >= 2: print("createChildGroup(" + parent_group_id + "): ")

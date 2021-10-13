@@ -36,7 +36,7 @@ def creatingOfSpaces(base_path):
                 storage_id = storages.createAndGetStorage(dataset_name, os.path.join(base_path, directory.name))
 
                 # Create group for space
-                gid = groups.createChildGroup(setting.CONFIG['spacesParentGroupId'], dataset_name)
+                gid = groups.createGroup(dataset_name)
                 time.sleep(2)
 
                 # Create invite token for the group
