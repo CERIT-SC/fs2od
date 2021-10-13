@@ -2,10 +2,11 @@ version: "3.9"
     
 services:
   cemapi:
-    image: cemapi
+    image: registry.gitlab.ics.muni.cz:443/cryoem-dc/cemapi:latest
     restart: unless-stopped
     volumes:
       - /gpfs/vol1/export/nfs4/home/tomsvo/CryoEM:/root/CryoEM 
       - /gpfs/vol1/export/nfs4/home/tomsvo/test:/volumes/cemcof/test
     environment:
+      # Container will be started periodically
       REPEAT_TIME_PERIOD: 600

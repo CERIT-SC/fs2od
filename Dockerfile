@@ -5,7 +5,7 @@ RUN apt-get update && apt-get -y upgrade \
 
 WORKDIR /opt/CryoEM
 
-COPY requirements.txt scripts/* /opt/CryoEM/
+COPY requirements.txt init.sh scripts/* /opt/CryoEM/
 
 RUN pip3 install -r requirements.txt
 
