@@ -11,7 +11,7 @@ COPY requirements.txt /opt/fs2od/
 
 RUN pip3 install --no-cache -r requirements.txt
 
-COPY init.sh scripts/* /opt/fs2od/
+COPY init.sh app/* /opt/fs2od/
 
 RUN chmod u+x run-dirs-check.py test.py
 

@@ -9,7 +9,7 @@ def deleteAllTestInstances(prefix):
     """
     Delete all instances of a given prefix.
     Should by called from cmd by:
-    python scripts/test.py --remove_instances some_prefix
+    python3 test.py --remove_instances some_prefix
     """
     # safety notice
     if True:

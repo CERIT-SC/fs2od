@@ -19,7 +19,7 @@ debug: 1
 ## Test mode
 # When test mode is allowed (set to True) all instances (spaces, tokens, groups, ...) are created with a given prefix,
 # which value is set by testModePrefix. These instances with a prefix can be deleted in bulk by command:
-# python scripts/test.py --remove_instances some_prefix
+# python3 test.py --remove_instances some_prefix
 testMode: True
 testModePrefix: "test123_"
 
