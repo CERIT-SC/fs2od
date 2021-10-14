@@ -36,7 +36,6 @@ importingFiles:
   # scan interval in seconds
   scanInterval: 600
 
-# NOT USED
 # Parent group for all groups, which are created for spaces.
 spacesParentGroupId: ""
 
