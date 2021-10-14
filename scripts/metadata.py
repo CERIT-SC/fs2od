@@ -26,6 +26,8 @@ def setSpaceMetadataFromYml(space_id):
         yml_byte_stream = spaces.downloadFileContent(yml_file_id).content
         
         data = yaml.load(yml_byte_stream.decode(), Loader=yaml.BaseLoader)
+        #yaml = ruamel.yaml.YAML(pure=True) # ruamel
+        #data = yaml.load(yml_byte_stream.decode()) # ruamel
         
         if setting.DEBUG >= 3: pprint(data)
         # musi se pridat zachovani uz existujiciho pripadneho JSONu

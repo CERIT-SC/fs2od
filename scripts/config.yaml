@@ -1,7 +1,7 @@
-# POSIX direcoties to import
+# Directories which will be imported
 watchedDirectories:
-#  - "/home/tomsvo/CryoEM/test"
-  - "/volumes/cemcof/test"
+  - "/home/tomsvo/CryoEM/test"
+#  - "/volumes/cemcof/test"
 
 # Name of YAML file with metadata
 yamlFileName: "spa.yml"

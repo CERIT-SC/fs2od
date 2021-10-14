@@ -1,14 +1,19 @@
-import yaml
 import os
+import sys
 from pprint import pprint
+import ruamel.yaml
 
 # Loading configuration from YAML file
 config_file = "./config.yaml"
 if os.path.exists(config_file):
     with open(config_file, 'r') as stream:
-        CONFIG = yaml.safe_load(stream)
+        #CONFIG = yaml.safe_load(stream) # pyyaml
+        yaml = ruamel.yaml.YAML(typ='safe')
+        CONFIG = yaml.load(stream)
+        
 else:
     print("File", config_file, "doesn't exists.")
+    sys.exit(-1)
 
 # HACK - disable warnings when curl can't verify the remote server by its certificate. Fix before production.
 import urllib3

@@ -1,12 +1,19 @@
-version: "3.9"
+version: "3.7"
     
 services:
-  cemapi:
-    image: registry.gitlab.ics.muni.cz:443/cryoem-dc/cemapi:latest
+  fs2od:
+    image: registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest
+    # use locally built image
+    # image: fs2od
     restart: unless-stopped
     volumes:
-      - /gpfs/vol1/export/nfs4/home/tomsvo/CryoEM:/root/CryoEM 
+      # path to config file
+      - /gpfs/vol1/export/nfs4/home/tomsvo/CryoEM/config.yaml:/opt/fs2od/config.yaml
+      # path to data directory
       - /gpfs/vol1/export/nfs4/home/tomsvo/test:/volumes/cemcof/test
     environment:
-      # Container will be started periodically
-      REPEAT_TIME_PERIOD: 600
+      # Check dirs periodically and import them to Onedata
+      # Set to "true" or "false"
+      RUN_PERIODICALLY: "true"
+      # Number of seconds between two scans
+      REPEAT_TIME_PERIOD: 600 

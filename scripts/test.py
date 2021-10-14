@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from pprint import pprint
 import time
 import argparse
@@ -70,8 +72,8 @@ def main():
     optional.add_argument('--remove_instances', required=True, type=str, help='Delete all instances (storages, spaces, groups, ...) with a given prefix.')
     args = parser.parse_args()
 
-    if args.remove_test:
-        deleteAllTestInstances(args.remove_test)
+    if args.remove_instances:
+        deleteAllTestInstances(args.remove_instances)
 
 if __name__ == "__main__":
     main()

@@ -1,9 +1,8 @@
 from pprint import pprint
-import yaml
-import ruamel.yaml
 import os
 import time
 import json
+import ruamel.yaml
 import setting, spaces, storages, metadata, groups, tokens, shares
 
 def scanDirectory(base_path):
@@ -36,7 +35,7 @@ def creatingOfSpaces(base_path):
                 storage_id = storages.createAndGetStorage(dataset_name, os.path.join(base_path, directory.name))
 
                 # Create group for space
-                gid = groups.createGroup(dataset_name)
+                gid = groups.createChildGroup(setting.CONFIG['spacesParentGroupId'], dataset_name)
                 time.sleep(2)
 
                 # Create invite token for the group
@@ -106,7 +105,9 @@ def yamlContainsSpaceId(yml_content):
 def loadYaml(file_path):
     if os.path.exists(file_path):
         with open(file_path, 'r') as stream:
-            configuration = yaml.safe_load(stream)
+            #configuration = yaml.safe_load(stream) # pyyaml
+            yaml = ruamel.yaml.YAML(typ='safe')
+            configuration = yaml.load(stream)
             if setting.DEBUG >= 3: pprint(configuration)
             return configuration
     else:
