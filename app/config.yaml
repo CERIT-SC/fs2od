@@ -1,7 +1,7 @@
 # Directories which will be imported
 watchedDirectories:
-  - "/home/tomsvo/CryoEM/test"
-#  - "/volumes/cemcof/test"
+  - "/volumes/volume1/test"
+  #- "/volumes/volumeX/test"
 
 # Name of YAML file with metadata
 yamlFileName: "spa.yml"
@@ -38,10 +38,10 @@ importingFiles:
 
 # NOT USED
 # Parent group for all groups, which are created for spaces.
-spacesParentGroupId: "8760912ebecfdf1644fe3fa90cd9df08ch9c08"
+spacesParentGroupId: ""
 
 # Service user identifier
-serviceUserId: "83d03b05ab8fdca7430b4fa010933630ch8fdc"
+serviceUserId: ""
 
 # Implicit space size (set to 10 TB = 10*2**40)
 implicitSpaceSize: 10995116277760

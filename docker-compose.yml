@@ -8,9 +8,9 @@ services:
     restart: unless-stopped
     volumes:
       # path to config file
-      - /gpfs/vol1/export/nfs4/home/tomsvo/CryoEM/config.yaml:/opt/fs2od/config.yaml
+      - /home/someuser/fs2od/config.yaml:/opt/fs2od/config.yaml
       # path to data directory
-      - /gpfs/vol1/export/nfs4/home/tomsvo/test:/volumes/cemcof/test
+      - /gpfs/volume1/test:/volumes/volume1/test
     environment:
       # Check dirs periodically and import them to Onedata
       # Set to "true" or "false"
