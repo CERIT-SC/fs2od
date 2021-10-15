@@ -37,12 +37,13 @@ def creatingOfSpaces(base_path):
                 storage_id = storages.createAndGetStorage(dataset_name, os.path.join(base_path, directory.name))
 
                 # Create group for space
-                gid = groups.createChildGroup(setting.CONFIG['spacesParentGroupId'], dataset_name)
-                time.sleep(2)
+                #gid = groups.createChildGroup(setting.CONFIG['spacesParentGroupId'], dataset_name)
+                gid = groups.createParentGroup(setting.CONFIG['initialGroupId'], dataset_name)
+                time.sleep(1)
 
                 # Create invite token for the group
                 token = tokens.createInviteTokenToGroup(gid, "Invite token for " + dataset_name)
-                time.sleep(2)
+                time.sleep(1)
 
                 # Create space
                 space_id = spaces.createAndSupportSpaceForGroup(dataset_name, gid, storage_id, setting.CONFIG['implicitSpaceSize'])
@@ -53,12 +54,7 @@ def creatingOfSpaces(base_path):
 
                     # Create public share
                     file_id = spaces.getSpace(space_id)['fileId']
-                    description = """
-                    = Lorem
-                    Lorem ipsum dolor sit amet, consectetur adipiscing
-                    * Click on Files
-                    * You will see files
-                    """
+                    description = ""
                     share = shares.createAndGetShare(dataset_name, file_id, description)
 
                     # write onedata parameters to file

@@ -50,8 +50,8 @@ continousFileImport:
   # If set to True file deletions are detected. If set to False, files deletions aren't detected.
   detectDeletions: True
 
-# Parent group for all groups, which are created for spaces.
-spacesParentGroupId: ""
+# Initial child group for all groups, which will be created for spaces.
+initialGroupId: ""
 
 # Implicit space size. It is size of space on Oneprovider after its creation. 
 # Is should be set to great value (bigger than expected size of the bigest dataset directory). E.g. 10 TB = 10*2**40 = 10995116277760

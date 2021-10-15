@@ -38,6 +38,23 @@ def createChildGroup(parent_group_id, group_name):
     if setting.DEBUG >= 1: print("Group", group_name, "was created with id", group_id)
     return group_id
 
+def createParentGroup(child_group_id, group_name):
+    if setting.TEST: group_name = setting.TEST_PREFIX + group_name
+    if setting.DEBUG >= 2: print("createParentGroup(" + child_group_id + "): ")
+    # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_parent_group
+    url = "onezone/groups/" + child_group_id + "/parents"
+    my_data = {
+        "name": group_name,
+        "type": "team"
+    }
+    headers = dict({'Content-type': 'application/json'})
+    response = request.post(url, headers=headers, data=json.dumps(my_data))
+    # Should return space ID in Headers
+    location = response.headers["Location"]
+    group_id = location.split("groups/")[1].split("/parents")[0]
+    if setting.DEBUG >= 1: print("Group", group_name, "was created with id", group_id)
+    return group_id
+
 def getGroupDetails(group_id):
     if setting.DEBUG >= 2: print("getGroupDetails(" + group_id + "): ")
     #https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_group
