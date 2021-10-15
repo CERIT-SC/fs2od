@@ -18,7 +18,7 @@ buildImage:
   stage: prepareImage
   script:
     - docker login -u "gitlab-ci-token" -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build -t fs2od -f Dockerfile-alpine .
+    - docker build -t fs2od -f Dockerfile .
     - docker tag fs2od registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest
     - docker push registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest
   only:

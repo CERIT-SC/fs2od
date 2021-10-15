@@ -1,17 +1,16 @@
-# Directories which will be imported
+# Directories which will be watched by this application. These directories are periodically (or manulay) checked
+# and in case of subdirectory is detected its processing are started. 
 watchedDirectories:
   - "/volumes/volume1/test"
   #- "/volumes/volumeX/test"
 
-# Name of YAML file with metadata
+# Name of YAML file with metadata. Only if subdirectory contains specifed YAML file, it is proccesed by the application.
+# To these file will be included attributes to acces the directory by Onedata service.
 yamlFileName: "spa.yml"
-
-# Name of file indicating that the directory content is modified
-runningFileName: ".running"
 
 ## Allow verbose output and debug prints
 # 0 - silent mode, only errors are printed
-# 1 - print base info, errors and warning are printed
+# 1 - print base info, errors and warning are printed (recommended for normal usage)
 # 2 - print detailed info, errors, warning and functions calls are printed
 # 3 - print detailed info like previous, processed data values are also printed
 debug: 1
@@ -20,32 +19,49 @@ debug: 1
 # When test mode is allowed (set to True) all instances (spaces, tokens, groups, ...) are created with a given prefix,
 # which value is set by testModePrefix. These instances with a prefix can be deleted in bulk by command:
 # python3 test.py --remove_instances some_prefix
+# In production set it to False.
 testMode: True
 testModePrefix: "test123_"
 
 ## Waiting
-# It can take a while when Onedata compoments register changes which are made by call of API. 
-# Therefor there are a pauses between some functions. You can set time of waiting.
+# It can take a while when Onedata compoments register changes which are made by calls of API. 
+# Because of Onezone and Oneprovider in some case must exchange some information. E.g. if application do some changes 
+# in Onezone, it must wait a while until it can manipulate with these changes on Oneprovider and vice versa. 
+# Therefor there are a pauses between some function calls. You can set duration of waiting.
 # 0 = don't sleep (only testing without Onedata)
 # 1 = wait only a while (testing on small datasets)
 # 10 = normal production value
 sleepFactor: 1
 
-# set up of automatic import of files from POSIX filesystem for Oneprovider
-importingFiles:
-  # scan interval in seconds
+## Setting of automatic continous import of files from POSIX filesystem to Onedata service
+continousFileImport:
+  # You can disable continous import of subdirectories. In this case content of direcotry is loaded only once at the time
+  # when application come across the direcotry for the first time. If set to False, following atrributes aren't relevant.
+  enabled: True
+  # Name of file indicating that the subdirectory content can be modified. If directory contains this file (regardless to its content) ,
+  # there will be set up a continous import of files from filesystem to Onedata service. If this file was removed, continous import 
+  # is stopped. 
+  runningFileName: ".running"
+  # Time between two scans of filesystem by Oneprovider in seconds
   scanInterval: 600
+  # If set to True file modifications are detected. If set to False, only creations and deletions of files on
+  # will be detected (files are treated as immutable).
+  detectModifications: True
+  # If set to True file deletions are detected. If set to False, files deletions aren't detected.
+  detectDeletions: True
 
 # Parent group for all groups, which are created for spaces.
 spacesParentGroupId: ""
 
+# Implicit space size. It is size of space on Oneprovider after its creation. 
+# Is should be set to great value (bigger than expected size of the bigest dataset directory). E.g. 10 TB = 10*2**40 = 10995116277760
+implicitSpaceSize: 10995116277760
+
+## AAI section
 # Service user identifier
 serviceUserId: ""
 
-# Implicit space size (set to 10 TB = 10*2**40)
-implicitSpaceSize: 10995116277760
-
-# REST API access (hostnames and tokens) to Onedata
+# REST API access (hostnames and tokens) to Onedata services
 onezone:
   host: ""
   apiToken: ""

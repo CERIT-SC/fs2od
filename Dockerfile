@@ -1,12 +1,9 @@
-FROM debian:11-slim
+FROM alpine:3.14
 
-RUN apt-get update && apt-get -y upgrade && apt-get -y install \
-    python3 \
-    python-is-python3 \
-    python3-pip \
-    nano \
-    && pip3 install --no-cache --upgrade pip \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --update --no-cache python3 nano \
+    && ln -sf python3 /usr/bin/python \
+    && python3 -m ensurepip \
+    && pip3 install --no-cache --upgrade pip
 
 WORKDIR /opt/fs2od
 
@@ -18,4 +15,4 @@ COPY init.sh app/* /opt/fs2od/
 
 RUN chmod u+x run-dirs-check.py test.py
 
-CMD [ "/bin/bash", "init.sh" ]
+CMD [ "/bin/sh", "init.sh" ]

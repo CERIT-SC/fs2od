@@ -80,8 +80,10 @@ def supportSpace(token, size, storage_id):
         'storageImport': {
             'mode': 'auto',
             'autoStorageImportConfig': {
-                'continuousScan': True,
-                'scanInterval': setting.CONFIG['importingFiles']['scanInterval'],
+                'continuousScan': setting.CONFIG['continousFileImport']['enabled'],
+                'scanInterval': setting.CONFIG['continousFileImport']['scanInterval'],
+                'detectModifications': setting.CONFIG['continousFileImport']['detectModifications'],
+                'detectDeletions': setting.CONFIG['continousFileImport']['detectDeletions'],
             }
         }
     }
@@ -146,14 +148,17 @@ def getContinuousImportStatus(space_id):
 
 def setContinuousImport(space_id, continuousScanEnabled):
     if setting.DEBUG >= 2: print("setContinuousImport(" + space_id + ", " + str(continuousScanEnabled) + "): ")
+    autoStorageImportInfo = getAutoStorageImportInfo(space_id)['status']
     # test if import was completed
-    if not continuousScanEnabled and getAutoStorageImportInfo(space_id)['status'] == "completed":
+    if setting.CONFIG['continousFileImport']['enabled'] and not continuousScanEnabled and autoStorageImportInfo == "completed":
         # https://onedata.org/#/home/api/21.02.0-alpha21/onepanel?anchor=operation/modify_space
         url = "onepanel/provider/spaces/" + space_id
         data = {
             'autoStorageImportConfig': {
                 'continuousScan': continuousScanEnabled,
-                'scanInterval': setting.CONFIG['importingFiles']['scanInterval'],
+                'scanInterval': setting.CONFIG['continousFileImport']['scanInterval'],
+                'detectModifications': setting.CONFIG['continousFileImport']['detectModifications'],
+                'detectDeletions': setting.CONFIG['continousFileImport']['detectDeletions'],
             }
         }
         headers = dict({'Content-type': 'application/json'})
@@ -161,7 +166,9 @@ def setContinuousImport(space_id, continuousScanEnabled):
         if response.ok:
             return True
     else:
-        if setting.DEBUG >= 1: print("Import in progress, continuous scan can't be disabled for space with id", space_id)
+        if setting.DEBUG >= 1: print("Continuous scan can't be changed for space with id", space_id)
+        if autoStorageImportInfo != "completed":
+            if setting.DEBUG >= 1: print("Import of files is not done yet")
         return False
 
 def listSpaceGroups(space_id):

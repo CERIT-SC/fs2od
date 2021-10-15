@@ -8,8 +8,10 @@ import setting, spaces, storages, metadata, groups, tokens, shares
 def scanDirectory(base_path):
     if setting.DEBUG >= 1: print("Processing path", base_path)
     creatingOfSpaces(base_path)
-    time.sleep(setting.CONFIG['sleepFactor'])    
-    setupContinuousImport(base_path)
+    
+    if setting.CONFIG['continousFileImport']['enabled']:
+        time.sleep(setting.CONFIG['sleepFactor'])
+        setupContinuousImport(base_path)
     if setting.DEBUG >= 1: print("Processing path", base_path, "done.")
 
 def creatingOfSpaces(base_path):
@@ -85,7 +87,7 @@ def setupContinuousImport(base_path):
             # test if yaml contains space_id
             space_id = yamlContainsSpaceId(yml_content)
             if space_id:
-                running_file = directory.path + os.sep + setting.CONFIG['runningFileName']
+                running_file = directory.path + os.sep + setting.CONFIG['continousFileImport']['runningFileName']
                 # test if directory contains running file
                 if os.path.isfile(running_file):
                     spaces.enableContinuousImport(space_id)
