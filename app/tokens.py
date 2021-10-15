@@ -1,5 +1,6 @@
 import json
 import random
+import time
 import setting, request
 
 def listAllNamedtokens():
@@ -28,6 +29,33 @@ def createNamedTokenForUser(space_id, space_name, user_id):
                 'spaceId': space_id
             },
         'usageLimit': 1
+        }
+    }
+
+    headers = dict({'Content-type': 'application/json'})
+    resp = request.post(url, headers=headers, data=json.dumps(data))
+    if resp:
+        return resp.json()
+    else:
+        raise BaseException("Response for creating new token failed: " + str(resp.content))
+
+# not used
+def createTemporaryTokenForUser(space_id, space_name, user_id):
+    if setting.DEBUG >= 2: print("createTemporaryTokenForUser(" + space_id + ", " + space_name + ", " + user_id + "): ")
+    # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_temporary_token_for_user
+    url = "onezone/users/" + user_id + "/tokens/temporary"
+    data = {
+        'name': "Token_for_"+space_name+"_"+str(random.randint(0,10000)),
+        'type': {
+            "inviteToken": {
+                'inviteType': "supportSpace",
+                'spaceId': space_id
+            },
+        'caveats': {
+            'type': "time",
+            # valid for 6 hours (6*60*60)
+            'validUntil': int(time.time()) + 21600,
+        }
         }
     }
 
