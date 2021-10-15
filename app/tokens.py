@@ -51,11 +51,11 @@ def createTemporaryTokenForUser(space_id, space_name, user_id):
                 'inviteType': "supportSpace",
                 'spaceId': space_id
             },
-        'caveats': {
-            'type': "time",
-            # valid for 6 hours (6*60*60)
-            'validUntil': int(time.time()) + 21600,
-        }
+            'caveats': {
+                'type': "time",
+                # valid for 6 hours (6*60*60)
+                'validUntil': int(time.time()) + 21600,
+            }
         }
     }
 
