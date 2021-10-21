@@ -12,8 +12,9 @@ def deleteAllTestInstances(prefix):
     python3 test.py --remove_instances some_prefix
     """
     # safety notice
-    if True:
-        print("Dangerous method! You should edit in source code a line above this print to run deleteAllTestInstances(" + prefix + ")")
+    print("Possibly dangerous action!")
+    if input("If you yould like continue, write 'yes': ") != "yes":
+        print("Exiting.")
         return
 
     print("Deleting all spaces, groups, tokens and storages with the prefix \"" + prefix + "\".")
