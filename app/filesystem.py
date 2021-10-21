@@ -144,7 +144,10 @@ def setValueToYaml(file_path, yaml_dict, valueType, value):
         # open yaml file
         with open(file_path, 'w') as f:    
             # store new yaml file
-            yaml.safe_dump(yaml_dict, f, sort_keys=False)
+            ryaml = ruamel.yaml.YAML()
+            ryaml.width = 200 # count of characters on a line, if there is more chars, line is breaked
+            ryaml.indent(sequence=4, offset=2)
+            ryaml.dump(yaml_dict, f)
     else:
         if setting.DEBUG >= 1: print("Error: File", file_path, "doesn't exists.")
 
