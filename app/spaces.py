@@ -82,14 +82,15 @@ def supportSpace(token, size, storage_id):
         if setting.DEBUG >= 0: print("Error: support cannot be set")
 
 def setSpaceSize(space_id, size = None):
+    """
+    Set a new given size to space with given space_id. 
+    If size is not set, it set up a new size of space to be equal to actuall space occupancy. 
+    """
     if setting.DEBUG >= 2: print("setSpaceSize(" + space_id + ", " + str(size) + "): ")
-
     # if size not set, get spaceOccupancy
-    sd = getSpaceDetails(space_id)
-    if sd['importedStorage'] == True and getAutoStorageImportInfo(space_id)['status'] == "completed":
+    if not size:
+        sd = getSpaceDetails(space_id)
         size = sd['spaceOccupancy']
-    else:
-        size = setting.CONFIG['implicitSpaceSize']
 
     # based on https://onedata.org/#/home/api/stable/onepanel?anchor=operation/modify_space
     url = "onepanel/provider/spaces/" + space_id
@@ -99,7 +100,9 @@ def setSpaceSize(space_id, size = None):
     headers = dict({'Content-type': 'application/json'})
     response = request.patch(url, headers=headers, data=json.dumps(data))
     if response.ok:
-        if setting.DEBUG >= 1: print("Set new size (", size, ") for space with id", space_id)
+        if setting.DEBUG >= 1: print("Sew size (", size, ") set for space with id", space_id)
+    else:
+        if setting.DEBUG >= 1: print("New size (", size, ") can't be set for space with id", space_id)
     return response
 
 def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
@@ -112,16 +115,18 @@ def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
 
 def enableContinuousImport(space_id):
     if not getContinuousImportStatus(space_id):
+        setSpaceSize(space_id, setting.CONFIG['implicitSpaceSize'])
+        time.sleep(1)
         result = setContinuousImport(space_id, True)
         if result:
             if setting.DEBUG >= 1: print("Continuous import enabled for space with id", space_id)
-            setSpaceSize(space_id, setting.CONFIG['implicitSpaceSize'])
 
 def disableContinuousImport(space_id):
     if getContinuousImportStatus(space_id):
         result = setContinuousImport(space_id, False)
         if result:
             if setting.DEBUG >= 1: print("Continuous import disabled for space with id", space_id)
+            time.sleep(1)
             setSpaceSize(space_id)
 
 def getContinuousImportStatus(space_id):
@@ -136,7 +141,7 @@ def setContinuousImport(space_id, continuousScanEnabled):
     if setting.DEBUG >= 2: print("setContinuousImport(" + space_id + ", " + str(continuousScanEnabled) + "): ")
     autoStorageImportInfo = getAutoStorageImportInfo(space_id)['status']
     # test if import was completed
-    if setting.CONFIG['continousFileImport']['enabled'] and not continuousScanEnabled and autoStorageImportInfo == "completed":
+    if setting.CONFIG['continousFileImport']['enabled'] and autoStorageImportInfo == "completed":
         # https://onedata.org/#/home/api/21.02.0-alpha21/onepanel?anchor=operation/modify_space
         url = "onepanel/provider/spaces/" + space_id
         data = {
@@ -152,9 +157,9 @@ def setContinuousImport(space_id, continuousScanEnabled):
         if response.ok:
             return True
     else:
-        if setting.DEBUG >= 1: print("Continuous scan can't be changed for space with id", space_id)
+        if setting.DEBUG >= 1: print("Warning: Continuous scan can't be changed for the space with id", space_id)
         if autoStorageImportInfo != "completed":
-            if setting.DEBUG >= 1: print("Import of files is not done yet")
+            if setting.DEBUG >= 1: print("Import of files is not completed yet")
         return False
 
 def listSpaceGroups(space_id):
