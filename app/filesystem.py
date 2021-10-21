@@ -45,24 +45,36 @@ def creatingOfSpaces(base_path):
                 token = tokens.createInviteTokenToGroup(gid, "Invite token for " + dataset_name)
                 time.sleep(1)
 
-                # Create space
-                space_id = spaces.createAndSupportSpaceForGroup(dataset_name, gid, storage_id, setting.CONFIG['implicitSpaceSize'])
-                time.sleep(5)
-                if space_id:
-                    # Set metadata for the space
-                    metadata.setSpaceMetadataFromYml(space_id)
+                # Create a new space
+                space_id = spaces.createSpaceForGroup(gid, dataset_name)
+                support_token = tokens.createNamedTokenForUser(space_id, dataset_name, setting.CONFIG['serviceUserId'])
+                time.sleep(3)
+                if space_id and support_token:
+                    # write onedata parameters (space_id, invite_token) to file
+                    yaml_onedata_dict = dict()
+                    yaml_onedata_dict['space'] = space_id
+                    yaml_onedata_dict['inviteToken'] = token['token']
+                    setValuesToYaml(yml_file, yml_content, yaml_onedata_dict)
+
+                    # set up space support on the provider
+                    spaces.supportSpace(support_token, setting.CONFIG['implicitSpaceSize'], storage_id)
+                    tokens.deleteNamedToken(support_token['tokenId'])
+                    time.sleep(3)
 
                     # Create public share
                     file_id = spaces.getSpace(space_id)['fileId']
                     description = ""
                     share = shares.createAndGetShare(dataset_name, file_id, description)
 
-                    # write onedata parameters to file
-                    yaml_onedata_dict = dict()
-                    yaml_onedata_dict['space'] = space_id
-                    yaml_onedata_dict['publicURL'] = share['publicUrl']
-                    yaml_onedata_dict['inviteToken'] = token['token']
-                    setValuesToYaml(yml_file, yml_content, yaml_onedata_dict)
+                    # write onedata parameter (publicURL) to file
+                    setValueToYaml(yml_file, yml_content, "publicURL", share['publicUrl'])
+                    time.sleep(1)
+
+                    # Set metadata for the space
+                    metadata.setSpaceMetadataFromYaml(space_id)
+
+                    # set up permissions
+                    files.setFileAttributeRecursive(file_id, setting.CONFIG['initialPOSIXlikePermissions'])
                     
                     if setting.DEBUG >= 1: print("Processing of", base_path + os.sep + directory.name, "done.")
                 else:

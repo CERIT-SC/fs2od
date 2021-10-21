@@ -1,7 +1,7 @@
 import json
 import sys
 import time
-import setting, request, tokens
+import setting, request, tokens, files, metadata
 
 def getSpaces():
     if setting.DEBUG >= 2: print("getSpaces(): ")
@@ -114,6 +114,10 @@ def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
     return space_id
 
 def enableContinuousImport(space_id):
+    # running file exists, permissions should be periodically set to new dirs and files have given permissions
+    file_id = getSpace(space_id)['fileId']
+    files.setFileAttributeRecursive(file_id, setting.CONFIG['initialPOSIXlikePermissions'])
+
     if not getContinuousImportStatus(space_id):
         setSpaceSize(space_id, setting.CONFIG['implicitSpaceSize'])
         time.sleep(1)
@@ -127,6 +131,12 @@ def disableContinuousImport(space_id):
         if result:
             if setting.DEBUG >= 1: print("Continuous import disabled for space with id", space_id)
             time.sleep(1)
+            # continous import is disabling now, permissions of all dirs and file should set to given permissions
+            file_id = getSpace(space_id)['fileId']
+            files.setFileAttributeRecursive(file_id, setting.CONFIG['initialPOSIXlikePermissions'])
+            # Set metadata for the space
+            metadata.setSpaceMetadataFromYaml(space_id)
+            # set the space size to space occupancy
             setSpaceSize(space_id)
 
 def getContinuousImportStatus(space_id):
