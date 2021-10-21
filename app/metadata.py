@@ -1,7 +1,7 @@
 from pprint import pprint
 import json
 import yaml
-import setting, spaces, request
+import setting, spaces, files, request
 
 def setFileJsonMetadata(file_id, data):
     if setting.DEBUG >= 2: print("setFileJsonMetadata(" + file_id + ", data): ")
@@ -18,12 +18,12 @@ def setSpaceMetadataFromYml(space_id):
     file_id = space['fileId']
 
     # find ymls
-    space_content = spaces.listDirectory(file_id)
+    space_content = files.listDirectory(file_id)
     list_yml_files = list(filter(lambda x: ".yml" in x['name'], space_content['children']))
 
     for yml_file in list_yml_files:
         yml_file_id = yml_file['id']
-        yml_byte_stream = spaces.downloadFileContent(yml_file_id).content
+        yml_byte_stream = files.downloadFileContent(yml_file_id).content
         
         data = yaml.load(yml_byte_stream.decode(), Loader=yaml.BaseLoader)
         #yaml = ruamel.yaml.YAML(pure=True) # ruamel

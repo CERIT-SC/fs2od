@@ -38,20 +38,6 @@ def getAutoStorageImportInfo(space_id):
     response = request.get(url)
     return response.json()
 
-def downloadFileContent(file_id):
-    if setting.DEBUG >= 2: print("downloadFileContent(" + file_id + "): ")
-    # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/download_file_content
-    url = "oneprovider/data/" + file_id + "/content"
-    response = request.get(url)
-    return response
-
-def listDirectory(file_id):
-    if setting.DEBUG >= 2: print("listDirectory(" + file_id + "): ")
-    # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/list_children
-    url = "oneprovider/data/" + file_id + "/children"
-    response = request.get(url)
-    return response.json()
-
 def createSpaceForGroup(group_id, space_name):
     if setting.TEST: space_name = setting.TEST_PREFIX + space_name
     if setting.DEBUG >= 2: print("createSpaceForGroup(" + group_id + ", " + space_name + "): ")

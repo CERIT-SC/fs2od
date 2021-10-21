@@ -3,7 +3,7 @@ import os
 import time
 import json
 import ruamel.yaml
-import setting, spaces, storages, metadata, groups, tokens, shares
+import setting, spaces, storages, metadata, groups, tokens, shares, files
 
 def scanDirectory(base_path):
     if setting.DEBUG >= 1: print("Processing path", base_path)
