@@ -17,7 +17,7 @@ else:
 
 # HACK - disable warnings when curl can't verify the remote server by its certificate. Fix before production.
 import urllib3
-urllib3.disable_warnings()
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Set debug and test mode
 DEBUG = CONFIG['debug']
