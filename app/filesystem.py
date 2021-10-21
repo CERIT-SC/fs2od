@@ -75,7 +75,7 @@ def creatingOfSpaces(base_path):
 
                     # set up permissions
                     files.setFileAttributeRecursive(file_id, setting.CONFIG['initialPOSIXlikePermissions'])
-                    
+
                     if setting.DEBUG >= 1: print("Processing of", base_path + os.sep + directory.name, "done.")
                 else:
                     if setting.DEBUG >= 0: print("Error: Space for", directory.name, "not created.")
@@ -124,12 +124,14 @@ def loadYaml(file_path):
         if setting.DEBUG >= 1: print("Error: File", file_path, "doesn't exists.")
 
 def getSpaceIDfromYaml(yaml_dict):
-    onedata_part = yaml_dict.get('onedata')
-    if onedata_part:
-        return onedata_part.get('space')
+    if yaml_dict:
+        onedata_part = yaml_dict.get('onedata')
+        if onedata_part:
+            return onedata_part.get('space')
+    if setting.DEBUG >= 1: print("Error: no YAML to parse.")
     return None
 
-def setValueToYaml(file_path, yaml_dict, valueType, value):    
+def setValueToYaml(file_path, yaml_dict, valueType, value):
     if os.path.exists(file_path):
         if yaml_dict.get('onedata') == None:
             yaml_dict['onedata'] = dict()

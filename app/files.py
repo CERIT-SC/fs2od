@@ -22,7 +22,8 @@ def setFileAttribute(file_id, posix_mode):
         'mode': posix_mode
     }
     headers = dict({'Content-type': 'application/json'})
-    request.put(url, headers=headers, data=json.dumps(data))
+    response = request.put(url, headers=headers, data=json.dumps(data))
+    return response.ok
 
 def setFileAttributeRecursive(file_id, posix_mode):
     """
@@ -59,4 +60,4 @@ def downloadFileContent(file_id):
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/download_file_content
     url = "oneprovider/data/" + file_id + "/content"
     response = request.get(url)
-    return response
+    return response.content
