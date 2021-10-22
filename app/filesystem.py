@@ -124,11 +124,15 @@ def loadYaml(file_path):
         if setting.DEBUG >= 1: print("Error: File", file_path, "doesn't exists.")
 
 def getSpaceIDfromYaml(yaml_dict):
+    """
+    Return space_id from YAML file.
+    or None when file doesn't contain it.
+    """
     if yaml_dict:
         onedata_part = yaml_dict.get('onedata')
         if onedata_part:
             return onedata_part.get('space')
-    if setting.DEBUG >= 1: print("Error: no YAML to parse.")
+    # no onedata or space tag in YAML
     return None
 
 def setValueToYaml(file_path, yaml_dict, valueType, value):
