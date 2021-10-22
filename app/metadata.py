@@ -12,6 +12,10 @@ def setSpaceMetadataFromJSON(file_id, data):
     return response.ok
 
 def loadConfigYAML(space_id):
+    """
+    Load configuration YAML file from root directory of space and return its file_id and content.
+    Return None if such file doesn't exist.
+    """
     # get file_id of space dir
     space = spaces.getSpace(space_id)
     file_id = space['fileId']
@@ -20,6 +24,7 @@ def loadConfigYAML(space_id):
     space_content = files.listDirectory(file_id)
     list_yml_files = list(filter(lambda x: setting.CONFIG['yamlFileName'] in x['name'], space_content['children']))
 
+    # in case there are more than one such file (should not happend) it return the first one
     for yml_file in list_yml_files:
         yml_byte_stream = files.downloadFileContent(yml_file['id'])
         
@@ -27,6 +32,9 @@ def loadConfigYAML(space_id):
         #yaml = ruamel.yaml.YAML(pure=True) # ruamel
         #data = yaml.load(yml_byte_stream.decode()) # ruamel
         return file_id, data
+
+    # no config YAML found
+    return None
 
 def setSpaceMetadataFromYaml(space_id):
     if setting.DEBUG >= 2: print("setSpaceMetadataFromYaml(" + space_id + "): ")

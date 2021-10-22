@@ -61,3 +61,19 @@ def downloadFileContent(file_id):
     url = "oneprovider/data/" + file_id + "/content"
     response = request.get(url)
     return response.content
+
+def lookupFileId(path):
+    """
+    Return file_id of file with given path in format e.g. 
+    '/MySpace/dir/readme.txt'
+    Return None if path doesn't exist.
+    """
+    if setting.DEBUG >= 2: print("filePathResolution(" + path + "): ")
+    # https://onedata.org/#/home/api/stable/oneprovider?anchor=tag/File-Path-Resolution
+    url = "oneprovider/lookup-file-id/" + path
+    response = request.post(url)
+    if response.ok:
+        return response.json()
+    else:
+        if setting.DEBUG >= 1: print("Warning: lookupFileId return not ok response - ", response.text)
+        return None
