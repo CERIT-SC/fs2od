@@ -21,7 +21,7 @@ buildImage:
     #- docker tag fs2od registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest
     #- docker push registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest
     - docker pull tomsvo/fs2od:latest || true
-    - docker build --from-cache tomsvo/fs2od:latest -t tomsvo/fs2od:latest -f Dockerfile .
+    - docker build --cache-from tomsvo/fs2od:latest -t tomsvo/fs2od:latest -f Dockerfile .
     #- docker tag fs2od tomsvo/fs2od:latest
     - docker push tomsvo/fs2od:latest
   only:
