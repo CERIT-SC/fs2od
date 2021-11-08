@@ -3,10 +3,11 @@ version: "3.7"
 services:
   fs2od:
     # use image from a remote container registry
-    image: registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest
+    image: tomsvo/fs2od:latest
     # use locally built image
     # docker build -f Dockerfile -t fs2od .
     # image: fs2od
+    # restart policy
     restart: unless-stopped
     volumes:
       # share config.yaml from host to container
