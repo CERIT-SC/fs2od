@@ -1,7 +1,7 @@
 import json
 import re
 import time
-from setting import Settings
+from settings import Settings
 from utils import Logger
 import storages, spaces, metadata, tokens, filesystem, groups, shares, files
 

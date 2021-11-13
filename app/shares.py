@@ -1,7 +1,7 @@
 from pprint import pprint
 import json
 import time
-from setting import Settings
+from settings import Settings
 import request
 
 def createShare(name, file_id, description = ""):

@@ -1,7 +1,7 @@
 import json
 import random
 import time
-from setting import Settings
+from settings import Settings
 import request
 
 def listAllNamedtokens():

@@ -1,6 +1,6 @@
 
 from pprint import pprint
-from setting import Settings
+from settings import Settings
 import filesystem
 
 """

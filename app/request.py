@@ -1,7 +1,7 @@
 from pprint import pprint
 import requests
 import urllib3
-from setting import Settings
+from settings import Settings
 
 # HACK - disable warnings when curl can't verify the remote server by its certificate. Fix before production.
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)

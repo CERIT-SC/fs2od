@@ -1,6 +1,6 @@
 import json
 import request
-from setting import Settings
+from settings import Settings
 
 def getFileAttributes(file_id):
     """

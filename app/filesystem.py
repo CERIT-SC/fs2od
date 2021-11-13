@@ -2,7 +2,7 @@ from pprint import pprint
 import os
 import time
 import ruamel.yaml
-from setting import Settings
+from settings import Settings
 import spaces, storages, metadata, groups, tokens, shares, files
 
 def scanWatchedDirectories():

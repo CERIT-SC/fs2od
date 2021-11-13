@@ -1,7 +1,7 @@
 import os
 import datetime
 import time
-from setting import Settings
+from settings import Settings
 
 # get container start time
 container_start = datetime.datetime.strptime(os.environ.get('START_TIME'), '%Y-%m-%dT%H:%M:%S')

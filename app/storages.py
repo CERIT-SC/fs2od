@@ -1,6 +1,6 @@
 from pprint import pprint
 import json
-from setting import Settings
+from settings import Settings
 import request
 
 def getStorages():

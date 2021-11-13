@@ -1,5 +1,5 @@
 import json
-from setting import Settings
+from settings import Settings
 import request
 
 def createGroup(group_name):

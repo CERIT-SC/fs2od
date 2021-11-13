@@ -1,7 +1,7 @@
 from pprint import pprint
 import json
 import yaml
-from setting import Settings
+from settings import Settings
 import spaces, files, request
 
 def setSpaceMetadataFromJSON(file_id, data):

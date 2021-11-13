@@ -1,7 +1,7 @@
 import json
 import sys
 import time
-from setting import Settings
+from settings import Settings
 import request, tokens, files, metadata
 
 def getSpaces():

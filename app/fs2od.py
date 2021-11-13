@@ -3,7 +3,7 @@
 import argparse
 import sys
 from pprint import pprint
-from setting import Settings
+from settings import Settings
 import filesystem, test, sandbox
 
 def runScan(args):
