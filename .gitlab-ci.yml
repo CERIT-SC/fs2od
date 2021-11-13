@@ -11,18 +11,18 @@ services:
 
 before_script:
   - docker info
+  # - docker login -u "gitlab-ci-token" -p $CI_JOB_TOKEN $CI_REGISTRY
   - docker login -u tomsvo -p $DOCKERHUB_ACCESS_TOKEN
 
 buildImage:
   stage: prepareImage
   script:
-    #- docker login -u "gitlab-ci-token" -p $CI_JOB_TOKEN $CI_REGISTRY
-    #- docker build -t fs2od -f Dockerfile .
-    #- docker tag fs2od registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest
-    #- docker push registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest
+    
+    # - docker pull registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest || true
+    # - docker build --cache-from registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest -t registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest -f Dockerfile .
+    # - docker push registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest
     - docker pull tomsvo/fs2od:latest || true
     - docker build --cache-from tomsvo/fs2od:latest -t tomsvo/fs2od:latest -f Dockerfile .
-    #- docker tag fs2od tomsvo/fs2od:latest
     - docker push tomsvo/fs2od:latest
   only:
     - master
