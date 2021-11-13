@@ -1,10 +1,11 @@
 from pprint import pprint
 import json
 import yaml
-import setting, spaces, files, request
+from setting import Settings
+import spaces, files, request
 
 def setSpaceMetadataFromJSON(file_id, data):
-    if setting.DEBUG >= 2: print("setFileJsonMetadata(" + file_id + ", data): ")
+    if Settings.get().debug >= 2: print("setFileJsonMetadata(" + file_id + ", data): ")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/set_json_metadata
     url = "oneprovider/data/" + file_id + "/metadata/json"
     headers = dict({'Content-type': 'application/json'})
@@ -22,7 +23,7 @@ def loadConfigYAML(space_id):
 
     # find ymls
     space_content = files.listDirectory(file_id)
-    list_yml_files = list(filter(lambda x: setting.CONFIG['yamlFileName'] in x['name'], space_content['children']))
+    list_yml_files = list(filter(lambda x: Settings.get().config['yamlFileName'] in x['name'], space_content['children']))
 
     # in case there are more than one such file (should not happend) it return the first one
     for yml_file in list_yml_files:
@@ -37,6 +38,6 @@ def loadConfigYAML(space_id):
     return None
 
 def setSpaceMetadataFromYaml(space_id):
-    if setting.DEBUG >= 2: print("setSpaceMetadataFromYaml(" + space_id + "): ")
+    if Settings.get().debug >= 2: print("setSpaceMetadataFromYaml(" + space_id + "): ")
     file_id, data = loadConfigYAML(space_id)
     setSpaceMetadataFromJSON(file_id, data)

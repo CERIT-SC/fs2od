@@ -1,11 +1,12 @@
 import json
-import setting, request
+import request
+from setting import Settings
 
 def getFileAttributes(file_id):
     """
     Get attributes of file with given file_id.
     """
-    if setting.DEBUG >= 2: print("getFileAttributes(" + file_id + "): ")
+    if Settings.get().debug >= 2: print("getFileAttributes(" + file_id + "): ")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_attrs
     url = "oneprovider/data/" + file_id
     response = request.get(url)
@@ -15,7 +16,7 @@ def setFileAttribute(file_id, posix_mode):
     """
     Set attributes to directory or file with given file_id. Only POSIX mode can be set up.
     """
-    if setting.DEBUG >= 2: print("setFileAttribute(" + file_id + ", " + posix_mode + "): ")
+    if Settings.get().debug >= 2: print("setFileAttribute(" + file_id + ", " + posix_mode + "): ")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/set_attr
     url = "oneprovider/data/" + file_id
     data = {
@@ -45,7 +46,7 @@ def listDirectory(file_id):
     """
     List directory. Subdirectories and files are accesible in response['children'].
     """
-    if setting.DEBUG >= 2: print("listDirectory(" + file_id + "): ")
+    if Settings.get().debug >= 2: print("listDirectory(" + file_id + "): ")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/list_children
     url = "oneprovider/data/" + file_id + "/children"
     response = request.get(url)
@@ -56,7 +57,7 @@ def downloadFileContent(file_id):
     Download file conntent as binary string (application/octet-stream).
  
     """
-    if setting.DEBUG >= 2: print("downloadFileContent(" + file_id + "): ")
+    if Settings.get().debug >= 2: print("downloadFileContent(" + file_id + "): ")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/download_file_content
     url = "oneprovider/data/" + file_id + "/content"
     response = request.get(url)
@@ -68,12 +69,12 @@ def lookupFileId(path):
     '/MySpace/dir/readme.txt'
     Return None if path doesn't exist.
     """
-    if setting.DEBUG >= 2: print("filePathResolution(" + path + "): ")
+    if Settings.get().debug >= 2: print("filePathResolution(" + path + "): ")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=tag/File-Path-Resolution
     url = "oneprovider/lookup-file-id/" + path
     response = request.post(url)
     if response.ok:
         return response.json()
     else:
-        if setting.DEBUG >= 1: print("Warning: lookupFileId return not ok response - ", response.text)
+        if Settings.get().debug >= 1: print("Warning: lookupFileId return not ok response - ", response.text)
         return None

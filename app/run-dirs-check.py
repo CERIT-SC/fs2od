@@ -1,11 +1,13 @@
-#!/usr/bin/env python3
 
 from pprint import pprint
-import setting
+from setting import Settings
 import filesystem
 
-if setting.DEBUG >= 2: print("Directories to check:")
-if setting.DEBUG >= 2: pprint(setting.CONFIG['watchedDirectories'])
+"""
+Not used
+if Settings.get_instance().debug >= 2: print("Directories to check:")
+if Settings.get_instance().debug >= 2: pprint(setting.CONFIG['watchedDirectories'])
 
 for d in setting.CONFIG['watchedDirectories']:
     filesystem.scanDirectory(d)
+"""

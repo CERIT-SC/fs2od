@@ -1,11 +1,12 @@
 from pprint import pprint
 import json
 import time
-import setting, request
+from setting import Settings
+import request
 
 def createShare(name, file_id, description = ""):
-    if setting.TEST: name = setting.TEST_PREFIX + name
-    if setting.DEBUG >= 2: print("createShare(): ")
+    if Settings.get().TEST: name = Settings.get().TEST_PREFIX + name
+    if Settings.get().debug >= 2: print("createShare(): ")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/create_share
     url = "oneprovider/shares"
     data = {
@@ -18,7 +19,7 @@ def createShare(name, file_id, description = ""):
     return response.json()['shareId']
 
 def getShare(share_id):
-    if setting.DEBUG >= 2: print("getShare(" + share_id + "): ")
+    if Settings.get().debug >= 2: print("getShare(" + share_id + "): ")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_share
     url = "oneprovider/shares/" + share_id
     response = request.get(url)

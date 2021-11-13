@@ -1,18 +1,26 @@
 from pprint import pprint
 import os
 import time
-import json
 import ruamel.yaml
-import setting, spaces, storages, metadata, groups, tokens, shares, files
+from setting import Settings
+import spaces, storages, metadata, groups, tokens, shares, files
+
+def scanWatchedDirectories():
+    if Settings.get().debug >= 2: print("Directories to check:")
+    if Settings.get().debug >= 2: pprint(Settings.get().config['watchedDirectories'])
+
+    for d in Settings.get().config['watchedDirectories']:
+        scanDirectory(d)
 
 def scanDirectory(base_path):
-    if setting.DEBUG >= 1: print("Processing path", base_path)
+    if Settings.get().debug >= 1: print("Processing path", base_path)
     creatingOfSpaces(base_path)
     
-    if setting.CONFIG['continousFileImport']['enabled']:
-        time.sleep(setting.CONFIG['sleepFactor'])
+    # if Settings.get().config['continousFileImport']['enabled']:
+    if Settings.get().config['continousFileImport']['enabled']:  ########################################
+        time.sleep(Settings.get().config['sleepFactor'])
         setupContinuousImport(base_path)
-    if setting.DEBUG >= 1: print("Processing path", base_path, "done.")
+    if Settings.get().debug >= 1: print("Processing path", base_path, "done.")
 
 def creatingOfSpaces(base_path):
     # pokud obsahuje spa.yml a neni jeste zalozen, tak pro nej zalozit space v OneData
@@ -24,21 +32,21 @@ def creatingOfSpaces(base_path):
 
     sub_dirs = os.scandir(path=base_path)
     for directory in sub_dirs:        
-        yml_file = directory.path + os.sep + setting.CONFIG['yamlFileName']
+        yml_file = directory.path + os.sep + Settings.get().config['yamlFileName']
         # test if directory is directory and contains a yaml file
         if directory.is_dir() and os.path.isfile(yml_file):
             yml_content = loadYaml(yml_file)
             # test if yaml contains space_id
             if not yamlContainsSpaceId(yml_content):
-                if setting.DEBUG >= 1: print("Processing:", base_path + os.sep + directory.name)
+                if Settings.get().debug >= 1: print("Processing:", base_path + os.sep + directory.name)
                 dataset_name = directory.name
                 
                 # Create storage for space
                 storage_id = storages.createAndGetStorage(dataset_name, os.path.join(base_path, directory.name))
 
                 # Create group for space
-                #gid = groups.createChildGroup(setting.CONFIG['spacesParentGroupId'], dataset_name)
-                gid = groups.createParentGroup(setting.CONFIG['initialGroupId'], dataset_name)
+                #gid = groups.createChildGroup(Settings.get().config['spacesParentGroupId'], dataset_name)
+                gid = groups.createParentGroup(Settings.get().config['initialGroupId'], dataset_name)
                 time.sleep(1)
 
                 # Create invite token for the group
@@ -47,7 +55,7 @@ def creatingOfSpaces(base_path):
 
                 # Create a new space
                 space_id = spaces.createSpaceForGroup(gid, dataset_name)
-                support_token = tokens.createNamedTokenForUser(space_id, dataset_name, setting.CONFIG['serviceUserId'])
+                support_token = tokens.createNamedTokenForUser(space_id, dataset_name, Settings.get().config['serviceUserId'])
                 time.sleep(3)
                 if space_id and support_token:
                     # write onedata parameters (space_id, invite_token) to file
@@ -57,7 +65,7 @@ def creatingOfSpaces(base_path):
                     setValuesToYaml(yml_file, yml_content, yaml_onedata_dict)
 
                     # set up space support on the provider
-                    spaces.supportSpace(support_token, setting.CONFIG['implicitSpaceSize'], storage_id)
+                    spaces.supportSpace(support_token, Settings.get().config['implicitSpaceSize'], storage_id)
                     tokens.deleteNamedToken(support_token['tokenId'])
                     time.sleep(3)
 
@@ -74,28 +82,28 @@ def creatingOfSpaces(base_path):
                     metadata.setSpaceMetadataFromYaml(space_id)
 
                     # set up permissions
-                    files.setFileAttributeRecursive(file_id, setting.CONFIG['initialPOSIXlikePermissions'])
+                    files.setFileAttributeRecursive(file_id, Settings.get().config['initialPOSIXlikePermissions'])
 
-                    if setting.DEBUG >= 1: print("Processing of", base_path + os.sep + directory.name, "done.")
+                    if Settings.get().debug >= 1: print("Processing of", base_path + os.sep + directory.name, "done.")
                 else:
-                    if setting.DEBUG >= 0: print("Error: Space for", directory.name, "not created.")
+                    if Settings.get().debug >= 0: print("Error: Space for", directory.name, "not created.")
             else:
-                if setting.DEBUG >= 1: print("Space for", directory.name, "not created (spaceId exists in yaml file).")
+                if Settings.get().debug >= 1: print("Space for", directory.name, "not created (spaceId exists in yaml file).")
         else:
-            if setting.DEBUG >= 1: print("Space for", directory.name, "not created (not contains yaml or no dir).")
-        time.sleep(setting.CONFIG['sleepFactor'] * 6)
+            if Settings.get().debug >= 1: print("Space for", directory.name, "not created (not contains yaml or no dir).")
+        time.sleep(Settings.get().config['sleepFactor'] * 6)
 
 def setupContinuousImport(base_path):
     sub_dirs = os.scandir(path=base_path)
     for directory in sub_dirs:        
-        yml_file = directory.path + os.sep + setting.CONFIG['yamlFileName']
+        yml_file = directory.path + os.sep + Settings.get().config['yamlFileName']
         # test if directory is directory and contains a yaml file
         if directory.is_dir() and os.path.isfile(yml_file):
             yml_content = loadYaml(yml_file)
             # test if yaml contains space_id
             space_id = yamlContainsSpaceId(yml_content)
             if space_id:
-                running_file = directory.path + os.sep + setting.CONFIG['continousFileImport']['runningFileName']
+                running_file = directory.path + os.sep + Settings.get().config['continousFileImport']['runningFileName']
                 # test if directory contains running file
                 if os.path.isfile(running_file):
                     spaces.enableContinuousImport(space_id)
@@ -118,10 +126,10 @@ def loadYaml(file_path):
             #configuration = yaml.safe_load(stream) # pyyaml
             yaml = ruamel.yaml.YAML(typ='safe')
             configuration = yaml.load(stream)
-            if setting.DEBUG >= 3: pprint(configuration)
+            if Settings.get().debug >= 3: pprint(configuration)
             return configuration
     else:
-        if setting.DEBUG >= 1: print("Error: File", file_path, "doesn't exists.")
+        if Settings.get().debug >= 1: print("Error: File", file_path, "doesn't exists.")
 
 def getSpaceIDfromYaml(yaml_dict):
     """
@@ -155,7 +163,7 @@ def setValueToYaml(file_path, yaml_dict, valueType, value):
             ryaml.indent(sequence=4, offset=2)
             ryaml.dump(yaml_dict, f)
     else:
-        if setting.DEBUG >= 1: print("Error: File", file_path, "doesn't exists.")
+        if Settings.get().debug >= 1: print("Error: File", file_path, "doesn't exists.")
 
 def setValuesToYaml(file_path, yaml_dict, new_values_dict):
     """
@@ -180,4 +188,4 @@ def setValuesToYaml(file_path, yaml_dict, new_values_dict):
             ryaml.indent(sequence=4, offset=2)
             ryaml.dump(yaml_dict, f)
     else:
-        if setting.DEBUG >= 1: print("Error: File", file_path, "doesn't exists.")
+        if Settings.get().debug >= 1: print("Error: File", file_path, "doesn't exists.")

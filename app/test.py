@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from pprint import pprint
 import time
 import argparse
@@ -65,16 +63,3 @@ def deleteAllTestInstances(prefix):
     print("Tokens deleted =", deleted_tokens)
     print("Groups deleted =", deleted_groups)
     print("Storages deleted =", deleted_storages)
-
-def main():
-    parser = argparse.ArgumentParser(description='Do given method.')
-    parser._action_groups.pop()
-    optional = parser.add_argument_group('optional arguments')
-    optional.add_argument('--remove_instances', required=True, type=str, help='Delete all instances (storages, spaces, groups, ...) with a given prefix.')
-    args = parser.parse_args()
-
-    if args.remove_instances:
-        deleteAllTestInstances(args.remove_instances)
-
-if __name__ == "__main__":
-    main()

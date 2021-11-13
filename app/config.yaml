@@ -50,6 +50,9 @@ continousFileImport:
   # If set to True file deletions are detected. If set to False, files deletions aren't detected.
   detectDeletions: True
 
+# Onedata POSIX like permissions which would be set to all directories and files
+initialPOSIXlikePermissions: "0775"
+
 # Initial child group for all groups, which will be created for spaces.
 initialGroupId: ""
 

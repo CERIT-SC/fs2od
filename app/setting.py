@@ -3,41 +3,69 @@ import sys
 from pprint import pprint
 import ruamel.yaml
 
-# Loading configuration from YAML file
-config_file = "./config.yaml"
-if os.path.exists(config_file):
-    with open(config_file, 'r') as stream:
-        #CONFIG = yaml.safe_load(stream) # pyyaml
-        yaml = ruamel.yaml.YAML(typ='safe')
-        CONFIG = yaml.load(stream)
-        
-else:
-    print("File", config_file, "doesn't exists.")
-    sys.exit(-1)
+class Settings():
+    """
+    Singleton class to serve the global configuration.
+    """
+    __instance = None
+    config=None
 
-# HACK - disable warnings when curl can't verify the remote server by its certificate. Fix before production.
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    debug = 0
+    test = None
+    test_prefix = None
+    
+    onezone_host = None
 
-# Set debug and test mode
-DEBUG = CONFIG['debug']
-TEST = CONFIG['testMode']
-TEST_PREFIX = CONFIG['testModePrefix']
+    def __init__(self, config):
+        """
+        Virtually private constructor.
+        """
+        if Settings.__instance != None:
+            raise Exception("This class is a singleton! Created once, otherwise use Settings.get_instance()")
+        else:
+            self.setup(config)
+            Settings.__instance = self
 
-# Setup the access Onedata variables
-ONEZONE_HOST = CONFIG['onezone']['host']
-ONEZONE_API_KEY = CONFIG['onezone']['apiToken']
+    @staticmethod
+    def get():
+        """
+        Static access method, return instance of Settings or instantiate it. 
+        """
+        if Settings.__instance == None:
+            Settings()
+        return Settings.__instance
 
-ONEPROVIDER_HOST = CONFIG['oneprovider']['host']
-ONEPROVIDER_API_KEY = CONFIG['oneprovider']['apiToken']
+    def setup(self, config_file):
+        """
+        Load configuration from given YAML file.
+        """ 
+        if os.path.exists(config_file):
+            with open(config_file, 'r') as stream:
+                #CONFIG = yaml.safe_load(stream) # pyyaml
+                yaml = ruamel.yaml.YAML(typ='safe')
+                self.config = yaml.load(stream)
+                self.debug = self.config["debug"]
 
-ONEPANEL_HOST = CONFIG['onepanel']['host']
-ONEPANEL_API_KEY = CONFIG['onepanel']['apiToken']
+                self.TEST = self.config['testMode']
+                self.TEST_PREFIX = self.config['testModePrefix']
 
-ONEZONE_API_URL = ONEZONE_HOST + "/api/v3/"
-ONEPROVIDER_API_URL = ONEPROVIDER_HOST + "/api/v3/"
-ONEPANEL_API_URL = ONEPANEL_HOST + "/api/v3/"
+                # Setup the access Onedata variables
+                self.ONEZONE_HOST = self.config['onezone']['host']
+                self.ONEZONE_API_KEY = self.config['onezone']['apiToken']
 
-ONEZONE_AUTH_HEADERS = {'x-auth-token' : ONEZONE_API_KEY}
-ONEPROVIDER_AUTH_HEADERS = {'x-auth-token' : ONEPROVIDER_API_KEY}
-ONEPANEL_AUTH_HEADERS = {'x-auth-token' : ONEPANEL_API_KEY}
+                self.ONEPROVIDER_HOST = self.config['oneprovider']['host']
+                self.ONEPROVIDER_API_KEY = self.config['oneprovider']['apiToken']
+
+                self.ONEPANEL_HOST = self.config['onepanel']['host']
+                self.ONEPANEL_API_KEY = self.config['onepanel']['apiToken']
+
+                self.ONEZONE_API_URL = self.ONEZONE_HOST + "/api/v3/"
+                self.ONEPROVIDER_API_URL = self.ONEPROVIDER_HOST + "/api/v3/"
+                self.ONEPANEL_API_URL = self.ONEPANEL_HOST + "/api/v3/"
+
+                self.ONEZONE_AUTH_HEADERS = {'x-auth-token' : self.ONEZONE_API_KEY}
+                self.ONEPROVIDER_AUTH_HEADERS = {'x-auth-token' : self.ONEPROVIDER_API_KEY}
+                self.ONEPANEL_AUTH_HEADERS = {'x-auth-token' : self.ONEPANEL_API_KEY}
+        else:
+            print("File", config_file, "doesn't exists.")
+            sys.exit(-1)

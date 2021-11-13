@@ -1,22 +1,23 @@
 from pprint import pprint
 import json
-import setting, request
+from setting import Settings
+import request
 
 def getStorages():
-    if setting.DEBUG >= 2: print("getStorages(): ")
+    if Settings.get().debug >= 2: print("getStorages(): ")
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/get_storages
     url = "onepanel/provider/storages"
     response = request.get(url)
     return response.json()
 
 def getLastStorage():
-    if setting.DEBUG >= 2: print("getLastStorage(): ")
+    if Settings.get().debug >= 2: print("getLastStorage(): ")
     storages = getStorages()
-    if setting.DEBUG >= 3: print(storages['ids'][0:1])
+    if Settings.get().debug >= 3: print(storages['ids'][0:1])
     return storages['ids'][0]
 
 def addStorage(name, mountpoint):
-    if setting.DEBUG >= 2: print("addStorage(" + name + ", " + mountpoint + "): ")
+    if Settings.get().debug >= 2: print("addStorage(" + name + ", " + mountpoint + "): ")
     url = "onepanel/provider/storages"
     data = {
         name: {
@@ -31,27 +32,27 @@ def addStorage(name, mountpoint):
     return resp
 
 def getStorageDetails(id):
-    if setting.DEBUG >= 2: print("getStorageDetails(" + id + "): ")
+    if Settings.get().debug >= 2: print("getStorageDetails(" + id + "): ")
     url = "onepanel/provider/storages/" + id
     response = request.get(url)
     return response.json()
 
 def createAndGetStorage(name, mountpoint):
-    if setting.TEST: name = setting.TEST_PREFIX + name
+    if Settings.get().TEST: name = Settings.get().TEST_PREFIX + name
     resp = addStorage(name, mountpoint)
     if resp.status_code == 204:
         last_id = getLastStorage()
         # porovnat zda se rovnaji jmena
         if getStorageDetails(last_id)['name'] == name:
-            if setting.DEBUG >= 1: print("Storage", name, "was created with id", last_id)
+            if Settings.get().debug >= 1: print("Storage", name, "was created with id", last_id)
             return last_id
         else:
-            if setting.DEBUG >= 1: print("Warning: storage added but id cannot be returned")
+            if Settings.get().debug >= 1: print("Warning: storage added but id cannot be returned")
     else:
-        if setting.DEBUG >= 0: print("Error: failed while adding storage, response is ", resp)
+        if Settings.get().debug >= 0: print("Error: failed while adding storage, response is ", resp)
 
 def removeStorage(storage_id):
-    if setting.DEBUG >= 2: print("removeStorage(" + storage_id + "): ")
+    if Settings.get().debug >= 2: print("removeStorage(" + storage_id + "): ")
     url = "onepanel/provider/storages/" + storage_id
     response = request.delete(url)
     return response

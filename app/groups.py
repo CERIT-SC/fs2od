@@ -1,9 +1,10 @@
 import json
-import setting, request
+from setting import Settings
+import request
 
 def createGroup(group_name):
-    if setting.TEST: group_name = setting.TEST_PREFIX + group_name
-    if setting.DEBUG >= 2: print("createGroup(" + group_name + "): ")
+    if Settings.get().TEST: group_name = Settings.get().TEST_PREFIX + group_name
+    if Settings.get().debug >= 2: print("createGroup(" + group_name + "): ")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_group
     url = "onezone/groups"
     my_data = {
@@ -16,14 +17,14 @@ def createGroup(group_name):
         # Should return space ID in Headers
         location = response.headers["Location"]
         group_id = location.split("groups/")[1]
-        if setting.DEBUG >= 1: print("Group", group_name, "was created with id", group_id)
+        if Settings.get().debug >= 1: print("Group", group_name, "was created with id", group_id)
         return group_id
     else:
-        if setting.DEBUG >= 0: print("Error: group", group_name, "can't be created")
+        if Settings.get().debug >= 0: print("Error: group", group_name, "can't be created")
 
 def createChildGroup(parent_group_id, group_name):
-    if setting.TEST: group_name = setting.TEST_PREFIX + group_name
-    if setting.DEBUG >= 2: print("createChildGroup(" + parent_group_id + "): ")
+    if Settings.get().TEST: group_name = Settings.get().TEST_PREFIX + group_name
+    if Settings.get().debug >= 2: print("createChildGroup(" + parent_group_id + "): ")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_child_group
     url = "onezone/groups/" + parent_group_id + "/children"
     my_data = {
@@ -35,12 +36,12 @@ def createChildGroup(parent_group_id, group_name):
     # Should return space ID in Headers
     location = response.headers["Location"]
     group_id = location.split("children/")[1]
-    if setting.DEBUG >= 1: print("Group", group_name, "was created with id", group_id)
+    if Settings.get().debug >= 1: print("Group", group_name, "was created with id", group_id)
     return group_id
 
 def createParentGroup(child_group_id, group_name):
-    if setting.TEST: group_name = setting.TEST_PREFIX + group_name
-    if setting.DEBUG >= 2: print("createParentGroup(" + child_group_id + "): ")
+    if Settings.get().TEST: group_name = Settings.get().TEST_PREFIX + group_name
+    if Settings.get().debug >= 2: print("createParentGroup(" + child_group_id + "): ")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_parent_group
     url = "onezone/groups/" + child_group_id + "/parents"
     my_data = {
@@ -52,27 +53,27 @@ def createParentGroup(child_group_id, group_name):
     # Should return space ID in Headers
     location = response.headers["Location"]
     group_id = location.split("groups/")[1].split("/parents")[0]
-    if setting.DEBUG >= 1: print("Group", group_name, "was created with id", group_id)
+    if Settings.get().debug >= 1: print("Group", group_name, "was created with id", group_id)
     return group_id
 
 def getGroupDetails(group_id):
-    if setting.DEBUG >= 2: print("getGroupDetails(" + group_id + "): ")
+    if Settings.get().debug >= 2: print("getGroupDetails(" + group_id + "): ")
     #https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_group
     url = "onezone/groups/" + group_id
     response = request.get(url)
     return response.json()
 
 def removeGroup(group_id):
-    if setting.DEBUG >= 2: print("removeGroup(" + group_id + "): ")
+    if Settings.get().debug >= 2: print("removeGroup(" + group_id + "): ")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/remove_group
     url = "onezone/groups/" + group_id
     response = request.delete(url)
     return response
 
 # def addUserToGroup(user_id, group_id):
-#     url = setting.ONEPROVIDER_API_URL + "onezone/groups/" + group_id + "/users/" + user_id
+#     url = Settings.get().ONEPROVIDER_API_URL + "onezone/groups/" + group_id + "/users/" + user_id
 #     # NOT DONE
-#     headers = dict(setting.ONEZONE_AUTH_HEADERS)
+#     headers = dict(Settings.get().ONEZONE_AUTH_HEADERS)
 #     #headers['Content-type'] = 'application/json'
 #     resp = requests.put(url, headers=headers,  verify=False)
 #     return resp
