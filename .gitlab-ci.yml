@@ -1,25 +1,28 @@
+image: docker:20.10
+
 stages:
   - prepareImage
 
-image: docker:git
-
 variables:
-  DOCKER_HOST: tcp://docker:2375/
-  DOCKER_DRIVER: overlay2
-  DOCKER_TLS_CERTDIR: ""
+  DOCKER_TLS_CERTDIR: "/certs"
 
 services:
   - docker:dind
 
 before_script:
   - docker info
+  - docker login -u tomsvo -p $DOCKERHUB_ACCESS_TOKEN
 
 buildImage:
   stage: prepareImage
   script:
-    - docker login -u "gitlab-ci-token" -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker build -t fs2od -f Dockerfile .
-    - docker tag fs2od registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest
-    - docker push registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest
+    #- docker login -u "gitlab-ci-token" -p $CI_JOB_TOKEN $CI_REGISTRY
+    #- docker build -t fs2od -f Dockerfile .
+    #- docker tag fs2od registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest
+    #- docker push registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest
+    - docker pull tomsvo/fs2od:latest || true
+    - docker build --cache-from tomsvo/fs2od:latest -t tomsvo/fs2od:latest -f Dockerfile .
+    #- docker tag fs2od tomsvo/fs2od:latest
+    - docker push tomsvo/fs2od:latest
   only:
     - master
