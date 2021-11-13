@@ -13,6 +13,6 @@ RUN pip3 install --no-cache -r requirements.txt
 
 COPY init.sh app/* /opt/fs2od/
 
-RUN chmod u+x run-dirs-check.py test.py
+RUN chmod u+x fs2od.py
 
 CMD [ "/bin/sh", "init.sh" ]
