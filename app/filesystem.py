@@ -60,8 +60,8 @@ def creatingOfSpaces(base_path):
                 if space_id and support_token:
                     # write onedata parameters (space_id, invite_token) to file
                     yaml_onedata_dict = dict()
-                    yaml_onedata_dict['space'] = space_id
-                    yaml_onedata_dict['inviteToken'] = token['token']
+                    yaml_onedata_dict['Space'] = space_id
+                    yaml_onedata_dict['InviteToken'] = token['token']
                     setValuesToYaml(yml_file, yml_content, yaml_onedata_dict)
 
                     # set up space support on the provider
@@ -75,7 +75,7 @@ def creatingOfSpaces(base_path):
                     share = shares.createAndGetShare(dataset_name, file_id, description)
 
                     # write onedata parameter (publicURL) to file
-                    setValueToYaml(yml_file, yml_content, "publicURL", share['publicUrl'])
+                    setValueToYaml(yml_file, yml_content, "PublicURL", share['publicUrl'])
                     time.sleep(1)
 
                     # Set metadata for the space
@@ -137,23 +137,23 @@ def getSpaceIDfromYaml(yaml_dict):
     or None when file doesn't contain it.
     """
     if yaml_dict:
-        onedata_part = yaml_dict.get('onedata')
+        onedata_part = yaml_dict.get('Onedata')
         if onedata_part:
-            return onedata_part.get('space')
+            return onedata_part.get('Space')
     # no onedata or space tag in YAML
     return None
 
 def setValueToYaml(file_path, yaml_dict, valueType, value):
     if os.path.exists(file_path):
-        if yaml_dict.get('onedata') == None:
-            yaml_dict['onedata'] = dict()
+        if yaml_dict.get('Onedata') == None:
+            yaml_dict['Onedata'] = dict()
         # change value in original yaml dict
-        if valueType == "space":
-            yaml_dict['onedata']['space'] = value
-        if valueType == "publicURL":
-            yaml_dict['onedata']['publicURL'] = value
-        if valueType == "inviteToken":
-            yaml_dict['onedata']['inviteToken'] = value
+        if valueType == "Space":
+            yaml_dict['Onedata']['Space'] = value
+        if valueType == "PublicURL":
+            yaml_dict['Onedata']['PublicURL'] = value
+        if valueType == "InviteToken":
+            yaml_dict['Onedata']['InviteToken'] = value
         
         # open yaml file
         with open(file_path, 'w') as f:    
@@ -171,10 +171,10 @@ def setValuesToYaml(file_path, yaml_dict, new_values_dict):
 
     """
     if os.path.exists(file_path):
-        if yaml_dict.get('onedata') == None:
-            yaml_dict['onedata'] = dict()
+        if yaml_dict.get('Onedata') == None:
+            yaml_dict['Onedata'] = dict()
         # change value in original yaml dict
-        yaml_dict['onedata'] = new_values_dict
+        yaml_dict['Onedata'] = new_values_dict
 
         # open yaml file
         with open(file_path, 'w') as f:    
