@@ -1,5 +1,5 @@
-version: "3.7"
-    
+version: "3.3"
+
 services:
   fs2od:
     # use image from a remote container registry
