@@ -12,6 +12,24 @@ def download_file(onezone, file_id, file_name, directory):
     command = "curl --output " + directory + os.sep + file_name + " -sL " + url
     os.popen(command)
 
+def process_directory(onezone, file_id, file_name, directory):
+    """
+    Process directory and recursivlly its content.
+    """
+    # create directory
+    os.mkdir(directory + os.sep + file_name)
+    
+    # get content of new directory
+    url = onezone + "/api/v3/onezone/shares/data/" + file_id + "/children"
+    command = "curl -sL " + url
+    stream = os.popen(command)
+    output = stream.read()
+    js = json.loads(output)
+
+    # process child nodes
+    for child in js['children']:
+        process_node(onezone, child['id'], directory + "/" + file_name)
+
 def process_node(onezone, file_id, directory = "."):
     """
     Process given node (directory or file).
@@ -29,19 +47,7 @@ def process_node(onezone, file_id, directory = "."):
     if node_type == "reg":
         download_file(onezone, file_id, node_name, directory)
     elif node_type == "dir":
-        # create directory
-        os.mkdir(directory + os.sep + node_name)
-        
-        # get content of new directory
-        url = onezone + "/api/v3/onezone/shares/data/" + file_id + "/children"
-        command = "curl -sL " + url
-        stream = os.popen(command)
-        output = stream.read()
-        js = json.loads(output)
-
-        # process child nodes
-        for child in js['children']:
-            process_node(onezone, child['id'], directory + "/" + node_name)
+        process_directory(onezone, file_id, node_name, directory)
     else:
         print("Error: unknown type of file:", node_type)
 
