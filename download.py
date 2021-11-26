@@ -14,7 +14,7 @@ def download_file(onezone, file_id, file_name, directory):
 
 def process_directory(onezone, file_id, file_name, directory):
     """
-    Process directory and recursivlly its content.
+    Process directory and recursively its content.
     """
     # create directory
     os.mkdir(directory + os.sep + file_name)
