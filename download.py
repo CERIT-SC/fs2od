@@ -8,16 +8,25 @@ def download_file(onezone, file_id, file_name, directory):
     """
     Download file with given file_id to given directory.
     """
-    url = onezone + "/api/v3/onezone/shares/data/" + file_id + "/content"
-    command = "curl --output " + directory + os.sep + file_name + " -sL " + url
-    os.popen(command)
+    # don't download the file when it exists
+    if not os.path.exists(directory + os.sep + file_name):
+        print("Downloading file", directory + os.sep + file_name)
+        url = onezone + "/api/v3/onezone/shares/data/" + file_id + "/content"
+        command = "curl --output " + directory + os.sep + file_name + " -sL " + url
+        os.popen(command)
+    else:
+        print("File", directory + os.sep + file_name, "exists, skipping")
 
 def process_directory(onezone, file_id, file_name, directory):
     """
     Process directory and recursively its content.
     """
-    # create directory
-    os.mkdir(directory + os.sep + file_name)
+    # don't create the the directory when it exists
+    if not os.path.exists(directory + os.sep + file_name):
+        print("Creating directory", directory + os.sep + file_name)
+        os.mkdir(directory + os.sep + file_name)
+    else:
+        print("Directory", directory + os.sep + file_name, "exists, skipping")
     
     # get content of new directory
     url = onezone + "/api/v3/onezone/shares/data/" + file_id + "/children"
@@ -28,9 +37,9 @@ def process_directory(onezone, file_id, file_name, directory):
 
     # process child nodes
     for child in js['children']:
-        process_node(onezone, child['id'], directory + "/" + file_name)
+        process_node(onezone, child['id'], directory + os.sep + file_name)
 
-def process_node(onezone, file_id, directory = "."):
+def process_node(onezone, file_id, directory):
     """
     Process given node (directory or file).
     """
@@ -52,12 +61,12 @@ def process_node(onezone, file_id, directory = "."):
         print("Error: unknown type of file:", node_type)
 
 def main():
-    parser = argparse.ArgumentParser(description='Download whole space or folder from Onedata')
-    parser.add_argument("onezone", default="https://datahub.egi.eu", type=str, help="Onezone hostname with protocol")
-    parser.add_argument("file_id", type=str, help="File ID of space, directory or file to download")
+    parser = argparse.ArgumentParser(description='Download whole space, folder or a file from Onedata')
+    parser.add_argument("onezone", default="https://datahub.egi.eu", type=str, help="Onezone hostname with protocol (e.g. https://datahub.egi.eu)")
+    parser.add_argument("file_id", type=str, help="File ID of space, directory or file which should be downloaded")
     args = parser.parse_args()
 
-    process_node(args.onezone, args.file_id)
+    process_node(args.onezone, args.file_id, ".")
 
 if __name__ == "__main__":
     main()
