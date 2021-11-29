@@ -11,10 +11,10 @@ services:
     restart: unless-stopped
     volumes:
       # share config.yaml from host to container
-      - /home/someuser/fs2od/config.yaml:/opt/fs2od/config.yaml
+      - "/home/someuser/fs2od/config.yaml:/opt/fs2od/config.yaml:ro"
       # make data directories accessible from host to container
-      - /gpfs/volume1/test:/volumes/volume1/test
-      #- /gpfs/volumeX/test:/volumes/volumeX/test
+      - "/gpfs/volume1/test:/volumes/volume1/test"
+      #- "/gpfs/volumeX/test:/volumes/volumeX/test"
     environment:
       # If this variable is set to true, application will be periodically checking specifed directories
       # and import new subdirectories the Onedata. Set to "true" or "false" (with quotation marks).
