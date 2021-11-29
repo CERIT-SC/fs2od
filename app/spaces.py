@@ -67,10 +67,10 @@ def supportSpace(token, size, storage_id):
         'storageImport': {
             'mode': 'auto',
             'autoStorageImportConfig': {
-                'continuousScan': Settings.get().CONFIG['continousFileImport']['enabled'],
-                'scanInterval': Settings.get().CONFIG['continousFileImport']['scanInterval'],
-                'detectModifications': Settings.get().CONFIG['continousFileImport']['detectModifications'],
-                'detectDeletions': Settings.get().CONFIG['continousFileImport']['detectDeletions'],
+                'continuousScan': Settings.get().config['continousFileImport']['enabled'],
+                'scanInterval': Settings.get().config['continousFileImport']['scanInterval'],
+                'detectModifications': Settings.get().config['continousFileImport']['detectModifications'],
+                'detectDeletions': Settings.get().config['continousFileImport']['detectDeletions'],
             }
         }
     }
@@ -108,7 +108,7 @@ def setSpaceSize(space_id, size = None):
 
 def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
     space_id = createSpaceForGroup(group_id, name)
-    token = tokens.createNamedTokenForUser(space_id, name, Settings.get().CONFIG['serviceUserId'])
+    token = tokens.createNamedTokenForUser(space_id, name, Settings.get().config['serviceUserId'])
     time.sleep(3)
     supportSpace(token, capacity, storage_id)
     tokens.deleteNamedToken(token['tokenId'])
@@ -117,10 +117,10 @@ def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
 def enableContinuousImport(space_id):
     # running file exists, permissions should be periodically set to new dirs and files have given permissions
     file_id = getSpace(space_id)['fileId']
-    files.setFileAttributeRecursive(file_id, Settings.get().CONFIG['initialPOSIXlikePermissions'])
+    files.setFileAttributeRecursive(file_id, Settings.get().config['initialPOSIXlikePermissions'])
 
     if not getContinuousImportStatus(space_id):
-        setSpaceSize(space_id, Settings.get().CONFIG['implicitSpaceSize'])
+        setSpaceSize(space_id, Settings.get().config['implicitSpaceSize'])
         time.sleep(1)
         result = setContinuousImport(space_id, True)
         if result:
@@ -134,7 +134,7 @@ def disableContinuousImport(space_id):
             time.sleep(1)
             # continous import is disabling now, permissions of all dirs and file should set to given permissions
             file_id = getSpace(space_id)['fileId']
-            files.setFileAttributeRecursive(file_id, Settings.get().CONFIG['initialPOSIXlikePermissions'])
+            files.setFileAttributeRecursive(file_id, Settings.get().config['initialPOSIXlikePermissions'])
             # Set metadata for the space
             metadata.setSpaceMetadataFromYaml(space_id)
             # set the space size to space occupancy
@@ -152,15 +152,15 @@ def setContinuousImport(space_id, continuousScanEnabled):
     if Settings.get().debug >= 2: print("setContinuousImport(" + space_id + ", " + str(continuousScanEnabled) + "): ")
     autoStorageImportInfo = getAutoStorageImportInfo(space_id)['status']
     # test if import was completed
-    if Settings.get().CONFIG['continousFileImport']['enabled'] and autoStorageImportInfo == "completed":
+    if Settings.get().config['continousFileImport']['enabled'] and autoStorageImportInfo == "completed":
         # https://onedata.org/#/home/api/21.02.0-alpha21/onepanel?anchor=operation/modify_space
         url = "onepanel/provider/spaces/" + space_id
         data = {
             'autoStorageImportConfig': {
                 'continuousScan': continuousScanEnabled,
-                'scanInterval': Settings.get().CONFIG['continousFileImport']['scanInterval'],
-                'detectModifications': Settings.get().CONFIG['continousFileImport']['detectModifications'],
-                'detectDeletions': Settings.get().CONFIG['continousFileImport']['detectDeletions'],
+                'scanInterval': Settings.get().config['continousFileImport']['scanInterval'],
+                'detectModifications': Settings.get().config['continousFileImport']['detectModifications'],
+                'detectDeletions': Settings.get().config['continousFileImport']['detectDeletions'],
             }
         }
         headers = dict({'Content-type': 'application/json'})

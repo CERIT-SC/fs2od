@@ -71,7 +71,7 @@ def createInviteTokenToGroup(group_id, token_name):
     if Settings.get().TEST: token_name = Settings.get().TEST_PREFIX + token_name
     if Settings.get().debug >= 2: print("createInviteTokenToGroup(" + group_id + ", " + token_name + "): ")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_named_token_for_user
-    url = "onezone/users/" + Settings.get().CONFIG['serviceUserId'] + "/tokens/named"
+    url = "onezone/users/" + Settings.get().config['serviceUserId'] + "/tokens/named"
     data = {
         'name': token_name,
         'type': {
