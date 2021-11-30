@@ -85,13 +85,13 @@ def creatingOfSpaces(base_path):
                     files.setFileAttributeRecursive(file_id, Settings.get().config['initialPOSIXlikePermissions'])
 
                     if Settings.get().debug >= 1: print("Processing of", base_path + os.sep + directory.name, "done.")
+                    time.sleep(Settings.get().config['sleepFactor'] * 5)
                 else:
                     if Settings.get().debug >= 0: print("Error: Space for", directory.name, "not created.")
             else:
                 if Settings.get().debug >= 1: print("Space for", directory.name, "not created (spaceId exists in yaml file).")
         else:
             if Settings.get().debug >= 1: print("Space for", directory.name, "not created (not contains yaml or no dir).")
-        time.sleep(Settings.get().config['sleepFactor'] * 6)
 
 def setupContinuousImport(base_path):
     sub_dirs = os.scandir(path=base_path)
