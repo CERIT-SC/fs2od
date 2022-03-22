@@ -39,6 +39,12 @@ def getAutoStorageImportInfo(space_id):
     response = request.get(url)
     return response.json()
 
+def stopAutoStorageImport(space_id):
+    # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/force_start_auto_storage_import_scan
+    url = "onepanel/provider/spaces/" + space_id + "/storage-import/auto/force-stop"
+    response = request.post(url)
+    return response
+
 def createSpaceForGroup(group_id, space_name):
     if Settings.get().TEST: space_name = Settings.get().TEST_PREFIX + space_name
     if Settings.get().debug >= 2: print("createSpaceForGroup(" + group_id + ", " + space_name + "): ")
