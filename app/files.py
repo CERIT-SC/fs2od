@@ -32,6 +32,11 @@ def setFileAttributeRecursive(file_id, posix_mode):
     In case of directory attributes is set to all children.
     """
     attributes = getFileAttributes(file_id)
+
+    if not 'type' in attributes:
+        # in case there is no file in space
+        return
+
     if attributes['type'] == "dir":
         # node is directory
         directory = listDirectory(file_id)
