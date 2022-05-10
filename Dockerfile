@@ -1,6 +1,6 @@
 FROM alpine:3.14
 
-RUN apk add --update --no-cache python3 nano \
+RUN apk add --update --no-cache python3 gcc musl-dev python3-dev nano \
     && ln -sf python3 /usr/bin/python \
     && python3 -m ensurepip \
     && pip3 install --no-cache --upgrade pip
