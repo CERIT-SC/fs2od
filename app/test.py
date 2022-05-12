@@ -1,5 +1,7 @@
 from pprint import pprint
 import time
+import sys
+import spaces, storages, groups, tokens
 
 def safetyNotice(message):
     print("*** Possibly dangerous action! ***")
@@ -78,3 +80,16 @@ def deleteAllTestGroups(prefix):
             time.sleep(0.5)
 
     print("Groups deleted =", deleted_groups)
+
+# NOT FULLY IMPLEMETED
+# def registerSpace(path):
+#     # if last char is os.sep(/) remove it
+#     if path[-1] == os.sep:
+#         path = path[0:len(path)-1]
+
+#     # split according to last os.sep char (/)
+#     temp = path.rsplit(os.sep, 1)
+#     base_path = temp[0]
+#     directory = temp[1]
+
+#     workflow.registerSpace(base_path, directory)
