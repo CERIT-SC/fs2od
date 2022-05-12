@@ -43,12 +43,12 @@ continousFileImport:
   # is stopped. 
   runningFileName: ".running"
   # Time between two scans of filesystem by Oneprovider in seconds
-  scanInterval: 600
+  scanInterval: 10800
   # If set to True file modifications are detected. If set to False, only creations and deletions of files on
   # will be detected (files are treated as immutable).
-  detectModifications: True
+  detectModifications: False
   # If set to True file deletions are detected. If set to False, files deletions aren't detected.
-  detectDeletions: True
+  detectDeletions: False
 
 # Onedata POSIX like permissions which would be set to all directories and files
 initialPOSIXlikePermissions: "0775"
