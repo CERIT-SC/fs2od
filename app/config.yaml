@@ -4,9 +4,13 @@ watchedDirectories:
   - "/volumes/volume1/test"
   #- "/volumes/volumeX/test"
 
-# Name of YAML file with metadata. Only if subdirectory contains specifed YAML file, it is proccesed by the application.
-# To these file will be included attributes to acces the directory by Onedata service.
-yamlFileName: "spa.yml"
+
+# Names of tags in metadata YAML file
+metadataFile:
+  onedata: Onedata2
+  space: Space
+  publicURL: PublicURL
+  inviteToken: InviteToken
 
 ## Allow verbose output and debug prints
 # 0 - silent mode, only errors are printed
