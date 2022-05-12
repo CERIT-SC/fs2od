@@ -24,7 +24,7 @@ def process_url(url, headers):
 def response_print(response):
     if Settings.get().debug >= 1:
         if not response.ok:
-            print("Warning: response is not ok, response code", response.status_code)
+            print("Response isn't ok, response code", response.status_code)
 
 def debug_print(response):
     if Settings.get().debug >= 3:
