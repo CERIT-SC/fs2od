@@ -34,7 +34,7 @@ testModePrefix: "test123_"
 # Therefor there are a pauses between some function calls. You can set duration of waiting.
 # 0 = don't sleep (only testing without Onedata)
 # 1 = wait only a while (testing on small datasets)
-# 10 = normal production value
+# 2 = normal production value
 sleepFactor: 1
 
 ## Setting of automatic continous import of files from POSIX filesystem to Onedata service

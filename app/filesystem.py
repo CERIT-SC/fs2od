@@ -3,102 +3,66 @@ import os
 import time
 import ruamel.yaml
 from settings import Settings
-import spaces, storages, metadata, groups, tokens, shares, files
+from utils import Logger
+import spaces, workflow
 
 def scanWatchedDirectories():
-    if Settings.get().debug >= 2: print("Directories to check:")
-    if Settings.get().debug >= 2: pprint(Settings.get().config['watchedDirectories'])
+    Logger.log(4, "scanWatchedDirectories():")
 
-    for d in Settings.get().config['watchedDirectories']:
-        scanDirectory(d)
+    for directory in Settings.get().config['watchedDirectories']:
+        _scanWatchedDirectory(directory)
 
-def scanDirectory(base_path):
-    if Settings.get().debug >= 1: print("Processing path", base_path)
+def _scanWatchedDirectory(base_path):
+    Logger.log(4, "_scanWatchedDirectory(%s):" % base_path)
+    Logger.log(3, "Processing path %s" % base_path)
+
+    if not os.path.isdir(base_path):
+        Logger.log(1, "Directory %s can't be processed, it doesn't exist." % base_path)
+        return
+
+    # creating of spaces and all related stuff
     creatingOfSpaces(base_path)
-    
-    # if Settings.get().config['continousFileImport']['enabled']:
-    if Settings.get().config['continousFileImport']['enabled']:  ########################################
-        time.sleep(Settings.get().config['sleepFactor'])
+
+    # set continous file import on all spaces
+    # TODO - when config['continousFileImport']['enabled'] is set tu False, all import should be stopped
+    if Settings.get().config['continousFileImport']['enabled']:
+        time.sleep(1 * Settings.get().config['sleepFactor'])
         setupContinuousImport(base_path)
-    if Settings.get().debug >= 1: print("Processing path", base_path, "done.")
+
+    Logger.log(3, "Processing path %s done." % base_path)
+
+def getMetaDataFile(directory):
+    Logger.log(4, "getMetaDataFile(%s):" % directory)
+    for file in Settings.get().config['metadataFiles']:
+        yml_file = directory.path + os.sep + file
+        # check if given metadata file exists in directory
+        if os.path.isfile(yml_file):
+            # check if a metadata file has been already found
+            return yml_file
+
+    # no metadata file found
+    Logger.log(4, "No file with metadata found in " % directory)
+    return None
 
 def creatingOfSpaces(base_path):
-    # pokud obsahuje spa.yml a neni jeste zalozen, tak pro nej zalozit space v OneData
-
-    # get list of existing spaces
-    # spaces = list()
-    # for space in spaces.getSpaces():
-    #     spaces.append(space['name'])
-
+    Logger.log(4, "creatingOfSpaces(%s):" % base_path)
     sub_dirs = os.scandir(path=base_path)
-    for directory in sub_dirs:        
-        yml_file = directory.path + os.sep + Settings.get().config['yamlFileName']
-        # test if directory is directory and contains a yaml file
-        if directory.is_dir() and os.path.isfile(yml_file):
-            yml_content = loadYaml(yml_file)
-            # test if yaml contains space_id
-            if not yamlContainsSpaceId(yml_content):
-                if Settings.get().debug >= 1: print("Processing:", base_path + os.sep + directory.name)
-                dataset_name = directory.name
-                
-                # Create storage for space
-                storage_id = storages.createAndGetStorage(dataset_name, os.path.join(base_path, directory.name))
-
-                # Create group for space
-                #gid = groups.createChildGroup(Settings.get().config['spacesParentGroupId'], dataset_name)
-                gid = groups.createParentGroup(Settings.get().config['initialGroupId'], dataset_name)
-                time.sleep(1)
-
-                # Create invite token for the group
-                token = tokens.createInviteTokenToGroup(gid, "Invite token for " + dataset_name)
-                time.sleep(1)
-
-                # Create a new space
-                space_id = spaces.createSpaceForGroup(gid, dataset_name)
-                support_token = tokens.createNamedTokenForUser(space_id, dataset_name, Settings.get().config['serviceUserId'])
-                time.sleep(3)
-                if space_id and support_token:
-                    # write onedata parameters (space_id, invite_token) to file
-                    yaml_onedata_dict = dict()
-                    yaml_onedata_dict['Space'] = space_id
-                    yaml_onedata_dict['InviteToken'] = token['token']
-                    setValuesToYaml(yml_file, yml_content, yaml_onedata_dict)
-
-                    # set up space support on the provider
-                    spaces.supportSpace(support_token, Settings.get().config['implicitSpaceSize'], storage_id)
-                    tokens.deleteNamedToken(support_token['tokenId'])
-                    time.sleep(3)
-
-                    # Create public share
-                    file_id = spaces.getSpace(space_id)['fileId']
-                    description = ""
-                    share = shares.createAndGetShare(dataset_name, file_id, description)
-
-                    # write onedata parameter (publicURL) to file
-                    setValueToYaml(yml_file, yml_content, "PublicURL", share['publicUrl'])
-                    time.sleep(1)
-
-                    # Set metadata for the space
-                    metadata.setSpaceMetadataFromYaml(space_id)
-
-                    # set up permissions
-                    files.setFileAttributeRecursive(file_id, Settings.get().config['initialPOSIXlikePermissions'])
-
-                    if Settings.get().debug >= 1: print("Processing of", base_path + os.sep + directory.name, "done.")
-                    time.sleep(Settings.get().config['sleepFactor'] * 5)
-                else:
-                    if Settings.get().debug >= 0: print("Error: Space for", directory.name, "not created.")
-            else:
-                if Settings.get().debug >= 1: print("Space for", directory.name, "not created (spaceId exists in yaml file).")
-        else:
-            if Settings.get().debug >= 1: print("Space for", directory.name, "not created (not contains yaml or no dir).")
+    # TODO - add condition to process only directories (no files)
+    for directory in sub_dirs:
+        workflow.registerSpace(base_path, directory)
 
 def setupContinuousImport(base_path):
+    Logger.log(4, "setupContinuousImport(%s):" % base_path)
+    # TODO - to be replaced by walk through files in Onedata instead of in POSIX
     sub_dirs = os.scandir(path=base_path)
-    for directory in sub_dirs:        
-        yml_file = directory.path + os.sep + Settings.get().config['yamlFileName']
-        # test if directory is directory and contains a yaml file
-        if directory.is_dir() and os.path.isfile(yml_file):
+    for directory in sub_dirs:
+        # only directories should be processed
+        if not directory.is_dir():
+            continue
+
+        # test if directory contains a yaml file
+        yml_file = getMetaDataFile(directory)
+        if yml_file:
             yml_content = loadYaml(yml_file)
             # test if yaml contains space_id
             space_id = yamlContainsSpaceId(yml_content)
@@ -126,10 +90,14 @@ def loadYaml(file_path):
             #configuration = yaml.safe_load(stream) # pyyaml
             yaml = ruamel.yaml.YAML(typ='safe')
             configuration = yaml.load(stream)
+            # if load empty file
+            if not configuration:
+                configuration = dict()
+            
             if Settings.get().debug >= 3: pprint(configuration)
             return configuration
     else:
-        if Settings.get().debug >= 1: print("Error: File", file_path, "doesn't exists.")
+        Logger.log(1, "Error: File %s doesn't exists." % file_path)
 
 def getSpaceIDfromYaml(yaml_dict):
     """
@@ -137,23 +105,25 @@ def getSpaceIDfromYaml(yaml_dict):
     or None when file doesn't contain it.
     """
     if yaml_dict:
-        onedata_part = yaml_dict.get('Onedata')
+        onedata_part = yaml_dict.get(Settings.get().config['metadataFile']['onedata'])
         if onedata_part:
-            return onedata_part.get('Space')
-    # no onedata or space tag in YAML
+            return onedata_part.get(Settings.get().config['metadataFile']['space'])
+
+    Logger.log(3, "No onedata tag in YAML")
     return None
 
 def setValueToYaml(file_path, yaml_dict, valueType, value):
     if os.path.exists(file_path):
-        if yaml_dict.get('Onedata') == None:
-            yaml_dict['Onedata'] = dict()
+        if yaml_dict.get(Settings.get().config['metadataFile']['onedata']) == None:
+            yaml_dict[Settings.get().config['metadataFile']['onedata']] = dict()
+
         # change value in original yaml dict
         if valueType == "Space":
-            yaml_dict['Onedata']['Space'] = value
+            yaml_dict[Settings.get().config['metadataFile']['onedata']][Settings.get().config['metadataFile']['space']] = value
         if valueType == "PublicURL":
-            yaml_dict['Onedata']['PublicURL'] = value
+            yaml_dict[Settings.get().config['metadataFile']['onedata']][Settings.get().config['metadataFile']['publicURL']] = value
         if valueType == "InviteToken":
-            yaml_dict['Onedata']['InviteToken'] = value
+            yaml_dict[Settings.get().config['metadataFile']['onedata']][Settings.get().config['metadataFile']['inviteToken']] = value
         
         # open yaml file
         with open(file_path, 'w') as f:    
@@ -163,18 +133,19 @@ def setValueToYaml(file_path, yaml_dict, valueType, value):
             ryaml.indent(sequence=4, offset=2)
             ryaml.dump(yaml_dict, f)
     else:
-        if Settings.get().debug >= 1: print("Error: File", file_path, "doesn't exists.")
+        Logger.log(1, "Metadata file %s doesn't exists." % file_path)
 
 def setValuesToYaml(file_path, yaml_dict, new_values_dict):
     """
-    Set values to onedata tag in yaml. 
-
+    Set values to onedata tag in yaml.
     """
     if os.path.exists(file_path):
-        if yaml_dict.get('Onedata') == None:
-            yaml_dict['Onedata'] = dict()
+        if not yaml_dict.get(Settings.get().config['metadataFile']['onedata']):
+            # there isn't tag onedata yet
+            yaml_dict[Settings.get().config['metadataFile']['onedata']] = dict()
+
         # change value in original yaml dict
-        yaml_dict['Onedata'] = new_values_dict
+        yaml_dict[Settings.get().config['metadataFile']['onedata']] = new_values_dict
 
         # open yaml file
         with open(file_path, 'w') as f:    
@@ -188,4 +159,4 @@ def setValuesToYaml(file_path, yaml_dict, new_values_dict):
             ryaml.indent(sequence=4, offset=2)
             ryaml.dump(yaml_dict, f)
     else:
-        if Settings.get().debug >= 1: print("Error: File", file_path, "doesn't exists.")
+        Logger.log(1, "Metadata file doesn't exists." % file_path)
