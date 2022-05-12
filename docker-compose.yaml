@@ -5,7 +5,7 @@ services:
     # use image from a remote container registry
     image: tomsvo/fs2od:latest
     # use locally built image
-    # docker build -f Dockerfile -t fs2od .
+    # docker build -f Dockerfile -t tomsvo/fs2od:latest .
     # image: fs2od
     # restart policy
     restart: unless-stopped
