@@ -33,15 +33,14 @@ def main():
 
     args = parser.parse_args()
 
-    # call fs2od with no argument
-    if len(sys.argv) <= 1:
-        parser.print_help(sys.stdout)
-        sys.exit(1)
-
-    if args.func:
+    if "func" in args:
         # init singleton class with configuration
         Settings(args.config)
         args.func(args)
+    else:
+        # call with no task
+        parser.print_help(sys.stdout)
+
 
 if __name__ == "__main__":
     main()
