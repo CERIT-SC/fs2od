@@ -41,9 +41,14 @@ class Settings():
         """ 
         if os.path.exists(config_file):
             with open(config_file, 'r') as stream:
-                #CONFIG = yaml.safe_load(stream) # pyyaml
-                yaml = ruamel.yaml.YAML(typ='safe')
-                self.config = yaml.load(stream)
+                try:
+                    yaml = ruamel.yaml.YAML(typ='safe')
+                    self.config = yaml.load(stream)
+                except Exception as e:
+                    print("Error: exception occured during loading config file", config_file)
+                    print(str(e))
+                    sys.exit(1)
+                
                 self.debug = self.config["debug"]
 
                 self.TEST = self.config['testMode']
@@ -67,5 +72,5 @@ class Settings():
                 self.ONEPROVIDER_AUTH_HEADERS = {'x-auth-token' : self.ONEPROVIDER_API_KEY}
                 self.ONEPANEL_AUTH_HEADERS = {'x-auth-token' : self.ONEPANEL_API_KEY}
         else:
-            print("File", config_file, "doesn't exists.")
-            sys.exit(-1)
+            print("Error: config file %s doesn't exists" % config_file)
+            sys.exit(1)
