@@ -12,7 +12,7 @@ def listEffectiveUserGroups():
 
 def createGroup(group_name):
     if Settings.get().TEST: group_name = Settings.get().TEST_PREFIX + group_name
-    if Settings.get().debug >= 2: print("createGroup(" + group_name + "): ")
+    Logger.log(3, "createGroup(%s):" % group_name)
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_group
     url = "onezone/groups"
     my_data = {
@@ -32,7 +32,7 @@ def createGroup(group_name):
 
 def createChildGroup(parent_group_id, group_name):
     if Settings.get().TEST: group_name = Settings.get().TEST_PREFIX + group_name
-    if Settings.get().debug >= 2: print("createChildGroup(" + parent_group_id + "): ")
+    Logger.log(3, "createChildGroup(" + parent_group_id + "):")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_child_group
     url = "onezone/groups/" + parent_group_id + "/children"
     my_data = {
@@ -49,7 +49,7 @@ def createChildGroup(parent_group_id, group_name):
 
 def createParentGroup(child_group_id, group_name):
     if Settings.get().TEST: group_name = Settings.get().TEST_PREFIX + group_name
-    if Settings.get().debug >= 2: print("createParentGroup(" + child_group_id + "): ")
+    Logger.log(3, "createParentGroup(" + child_group_id + "):")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_parent_group
     url = "onezone/groups/" + child_group_id + "/parents"
     my_data = {
@@ -65,14 +65,14 @@ def createParentGroup(child_group_id, group_name):
     return group_id
 
 def getGroupDetails(group_id):
-    if Settings.get().debug >= 2: print("getGroupDetails(" + group_id + "): ")
+    Logger.log(3, "getGroupDetails(%s):" % group_id)
     #https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_group
     url = "onezone/groups/" + group_id
     response = request.get(url)
     return response.json()
 
 def removeGroup(group_id):
-    if Settings.get().debug >= 2: print("removeGroup(" + group_id + "): ")
+    Logger.log(3, "removeGroup(%s):" % group_id)
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/remove_group
     url = "onezone/groups/" + group_id
     response = request.delete(url)
