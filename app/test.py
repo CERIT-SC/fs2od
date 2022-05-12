@@ -1,21 +1,18 @@
 from pprint import pprint
 import time
-import argparse
-import spaces, storages, groups, tokens
+
+def safetyNotice(message):
+    print("*** Possibly dangerous action! ***")
+    print(message)
+    if input("If you yould like continue, write 'yes': ") != "yes":
+        print("Exiting.")
+        sys.exit(1)
 
 def deleteAllTestInstances(prefix):
     """
     Delete all instances of a given prefix.
-    Should by called from cmd by:
-    python3 test.py --remove_instances some_prefix
     """
-    # safety notice
-    print("Possibly dangerous action!")
-    if input("If you yould like continue, write 'yes': ") != "yes":
-        print("Exiting.")
-        return
-
-    print("Deleting all spaces, groups, tokens and storages with the prefix \"" + prefix + "\".")
+    safetyNotice("All spaces, groups, tokens and storages with the prefix \"" + prefix + "\" will be deleted.")
 
     # invite tokens
     deleted_tokens = 0
@@ -63,3 +60,21 @@ def deleteAllTestInstances(prefix):
     print("Tokens deleted =", deleted_tokens)
     print("Groups deleted =", deleted_groups)
     print("Storages deleted =", deleted_storages)
+
+def deleteAllTestGroups(prefix):
+    """
+    Delete all groups of a given prefix.
+    """
+    safetyNotice("All groups with the prefix \"" + prefix + "\" will be deleted.")
+    
+    deleted_groups = 0 
+    user_groups = groups.listEffectiveUserGroups()
+    for groupId in user_groups:
+        group_name = groups.getGroupDetails(groupId)['name']
+        if group_name.startswith(prefix):
+            groups.removeGroup(groupId)
+            print("Group", group_name, "deleted. ")
+            deleted_groups += 1
+            time.sleep(0.5)
+
+    print("Groups deleted =", deleted_groups)
