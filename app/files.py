@@ -39,6 +39,10 @@ def setFileAttributeRecursive(file_id, posix_mode):
 
     if attributes['type'] == "dir":
         # node is directory
+        # set attribute to directory itself
+        setFileAttribute(file_id, posix_mode)
+
+        # set attribute to childs
         directory = listDirectory(file_id)
         for node in directory['children']:
             # recursive set up attributes to all files in directory
