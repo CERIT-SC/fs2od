@@ -1,6 +1,14 @@
 import json
 from settings import Settings
+from utils import Logger
 import request
+
+def listEffectiveUserGroups():
+    Logger.log(3, "listEffectiveUserGroups():")
+    # https://onedata.org/#/home/api/stable/onezone?anchor=operation/list_effective_user_groups
+    url = "onezone/user/effective_groups"
+    response = request.get(url)
+    return response.json()
 
 def createGroup(group_name):
     if Settings.get().TEST: group_name = Settings.get().TEST_PREFIX + group_name
