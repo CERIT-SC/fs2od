@@ -6,7 +6,7 @@ from utils import Logger
 import spaces, files, request
 
 def _setFileJsonMetadata(file_id, data):
-    Logger.log(4, "_setFileJsonMetadata(" + file_id + ", data):")
+    Logger.log(4, "_setFileJsonMetadata(%s, data):" % file_id)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/set_json_metadata
     if not data:
         Logger.log(2, "No data given to setFileJsonMetadata (file ID %s)" % file_id)

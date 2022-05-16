@@ -10,12 +10,6 @@ class Settings():
     __instance = None
     config=None
 
-    debug = 0
-    test = None
-    test_prefix = None
-    
-    onezone_host = None
-
     def __init__(self, config):
         """
         Virtually private constructor.
@@ -49,7 +43,7 @@ class Settings():
                     print(str(e))
                     sys.exit(1)
                 
-                self.debug = self.config["debug"]
+                self.debug = self.config["verboseLevel"]
 
                 self.TEST = self.config['testMode']
                 self.TEST_PREFIX = self.config['testModePrefix']

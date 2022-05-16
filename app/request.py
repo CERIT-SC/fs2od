@@ -1,7 +1,7 @@
-from pprint import pprint
 import requests
 import urllib3
 from settings import Settings
+from utils import Logger
 
 # HACK - disable warnings when curl can't verify the remote server by its certificate. Fix before production.
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -17,26 +17,24 @@ def process_url(url, headers):
         url = Settings.get().ONEZONE_API_URL + url
         headers.update(Settings.get().ONEZONE_AUTH_HEADERS)
     else:
-        print("Error: no comunication party in url")
-        return None
+        Logger.log(1, "No comunication party in URL (%s)" % url)
+        return None, None
     return url, headers
 
 def response_print(response):
-    if Settings.get().debug >= 1:
         if not response.ok:
-            print("Response isn't ok, response code", response.status_code)
+            Logger.log(2, "response isn't ok, response code %s" % response.status_code)
 
 def debug_print(response):
-    if Settings.get().debug >= 3:
-        print(response)
-        if response.content != b'':
-            pprint(response.json())
+    Logger.log(4, "Response: %s" % response)
+    if response.content != b'':
+        Logger.log(5, "Response content:", pretty_print=response.json())
 
 def get(url, headers=dict()):
     url, headers = process_url(url, headers)
-    timeout_counter = 3
     response = requests.get(url, headers=headers, verify=False)
-    # commented because not ok is sometimes right response 
+    # commented because not ok is sometimes right response
+    # timeout_counter = 3
     # while timeout_counter > 0:
     #     response = requests.get(url, headers=headers, verify=False)
     #     if response.ok:

@@ -12,12 +12,14 @@ metadataFile:
   publicURL: PublicURL
   inviteToken: InviteToken
 
-## Allow verbose output and debug prints
-# 0 - silent mode, only errors are printed
-# 1 - print base info, errors and warning are printed (recommended for normal usage)
-# 2 - print detailed info, errors, warning and functions calls are printed
-# 3 - print detailed info like previous, processed data values are also printed
-debug: 1
+## Output detail level
+# 0 - silent mode - nothing printed
+# 1 - error
+# 2 - error, warning
+# 3 - error, warning, info
+# 4 - error, warning, info, debug
+# 5 - error, warning, info, debug, verbose (debug with extensive data prints)
+verboseLevel: 3
 
 ## Test mode
 # When test mode is allowed (set to True) all instances (spaces, tokens, groups, ...) are created with a given prefix,

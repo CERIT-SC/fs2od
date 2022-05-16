@@ -1,9 +1,10 @@
+from pprint import pprint
 from settings import Settings
 
 class Logger():
 
     @staticmethod
-    def log(level, message):
+    def log(level, message, pretty_print=None):
         """
         Print the message if the global verbose level is equal or greater then the given level.
         """
@@ -15,8 +16,13 @@ class Logger():
                 prefix = "Warning"
             elif level == 3: 
                 prefix = "Info"
-            elif level >= 4:
+            elif level == 4:
                 prefix = "Debug"
+            elif level >= 5:
+                prefix = "Verbose"
 
             prefix = "[" + prefix + "]"
             print(prefix, message)
+
+            if pretty_print:
+                pprint(pretty_print)

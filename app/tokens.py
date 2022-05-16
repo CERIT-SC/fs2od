@@ -2,24 +2,25 @@ import json
 import random
 import time
 from settings import Settings
+from utils import Logger
 import request
 
 def listAllNamedtokens():
-    if Settings.get().debug >= 2: print("listAllNamedtokens(): ")
+    Logger.log(4, "listAllNamedtokens():")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/list_all_named_tokens
     url = "onezone/users/" + Settings.get().config['serviceUserId'] + "/tokens/named"
     response = request.get(url)
     return response.json()['tokens']
 
 def getNamedToken(token_id):
-    if Settings.get().debug >= 2: print("getNamedToken(" + token_id + "): ")
+    Logger.log(4, "getNamedToken(%s):" % token_id)
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_named_token
     url = "onezone/tokens/named/" + token_id
     response = request.get(url)
     return response.json()
 
 def createNamedTokenForUser(space_id, space_name, user_id):
-    if Settings.get().debug >= 2: print("createNamedTokenForUser(" + space_id + ", " + space_name + ", " + user_id + "): ")
+    Logger.log(4, "createNamedTokenForUser(%s, %s, %s):" % (space_id, space_name, user_id))
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_named_token_for_user
     url = "onezone/users/" + user_id + "/tokens/named"
     data = {
@@ -42,7 +43,7 @@ def createNamedTokenForUser(space_id, space_name, user_id):
 
 # not used
 def createTemporaryTokenForUser(space_id, space_name, user_id):
-    if Settings.get().debug >= 2: print("createTemporaryTokenForUser(" + space_id + ", " + space_name + ", " + user_id + "): ")
+    Logger.log(4, "createTemporaryTokenForUser(%s, %s, %s):" % (space_id, space_name, user_id))
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_temporary_token_for_user
     url = "onezone/users/" + user_id + "/tokens/temporary"
     data = {
@@ -69,7 +70,7 @@ def createTemporaryTokenForUser(space_id, space_name, user_id):
 
 def createInviteTokenToGroup(group_id, token_name):
     if Settings.get().TEST: token_name = Settings.get().TEST_PREFIX + token_name
-    if Settings.get().debug >= 2: print("createInviteTokenToGroup(" + group_id + ", " + token_name + "): ")
+    Logger.log(4, "createInviteTokenToGroup(%s, %s):" % (group_id, token_name))
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_named_token_for_user
     url = "onezone/users/" + Settings.get().config['serviceUserId'] + "/tokens/named"
     data = {
@@ -88,10 +89,11 @@ def createInviteTokenToGroup(group_id, token_name):
     if resp:
         return resp.json()
     else:
-        raise BaseException("Response for creating new token failed: " + str(resp.content))
+        Logger.log(1, "Request for creating new token failed")
+        raise BaseException("Response: " + str(resp.content))
 
 def deleteNamedToken(token_id):
-    if Settings.get().debug >= 2: print("deleteNamedToken(" + token_id + "): ")
+    Logger.log(4, "deleteNamedToken(%s):" % token_id)
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/delete_named_token
     url = "onezone/tokens/named/" + token_id
     resp = request.delete(url)

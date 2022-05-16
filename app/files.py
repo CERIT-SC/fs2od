@@ -1,12 +1,13 @@
 import json
 import request
 from settings import Settings
+from utils import Logger
 
 def getFileAttributes(file_id):
     """
     Get attributes of file with given file_id.
     """
-    if Settings.get().debug >= 2: print("getFileAttributes(" + file_id + "): ")
+    Logger.log(4, "getFileAttributes(%s):" % file_id)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_attrs
     url = "oneprovider/data/" + file_id
     response = request.get(url)
@@ -16,7 +17,7 @@ def setFileAttribute(file_id, posix_mode):
     """
     Set attributes to directory or file with given file_id. Only POSIX mode can be set up.
     """
-    if Settings.get().debug >= 2: print("setFileAttribute(" + file_id + ", " + posix_mode + "): ")
+    Logger.log(4, "setFileAttribute(%s, %s):" % (file_id, posix_mode))
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/set_attr
     url = "oneprovider/data/" + file_id
     data = {
@@ -55,7 +56,7 @@ def listDirectory(file_id):
     """
     List directory. Subdirectories and files are accesible in response['children'].
     """
-    if Settings.get().debug >= 2: print("listDirectory(" + file_id + "): ")
+    Logger.log(4, "listDirectory(%s):" % file_id)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/list_children
     url = "oneprovider/data/" + file_id + "/children"
     response = request.get(url)
@@ -64,9 +65,8 @@ def listDirectory(file_id):
 def downloadFileContent(file_id):
     """
     Download file conntent as binary string (application/octet-stream).
- 
     """
-    if Settings.get().debug >= 2: print("downloadFileContent(" + file_id + "): ")
+    Logger.log(4, "downloadFileContent(%s):" % file_id)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/download_file_content
     url = "oneprovider/data/" + file_id + "/content"
     response = request.get(url)
@@ -78,12 +78,12 @@ def lookupFileId(path):
     '/MySpace/dir/readme.txt'
     Return None if path doesn't exist.
     """
-    if Settings.get().debug >= 2: print("filePathResolution(" + path + "): ")
+    Logger.log(4, "lookupFileId(%s):" % path)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=tag/File-Path-Resolution
     url = "oneprovider/lookup-file-id/" + path
     response = request.post(url)
     if response.ok:
         return response.json()
     else:
-        if Settings.get().debug >= 1: print("Warning: lookupFileId return not ok response - ", response.text)
+        Logger.log(2, "lookupFileId return not ok response: %s" % response.text)
         return None

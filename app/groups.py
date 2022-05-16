@@ -4,7 +4,7 @@ from utils import Logger
 import request
 
 def listEffectiveUserGroups():
-    Logger.log(3, "listEffectiveUserGroups():")
+    Logger.log(4, "listEffectiveUserGroups():")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/list_effective_user_groups
     url = "onezone/user/effective_groups"
     response = request.get(url)
@@ -12,7 +12,7 @@ def listEffectiveUserGroups():
 
 def createGroup(group_name):
     if Settings.get().TEST: group_name = Settings.get().TEST_PREFIX + group_name
-    Logger.log(3, "createGroup(%s):" % group_name)
+    Logger.log(4, "createGroup(%s):" % group_name)
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_group
     url = "onezone/groups"
     my_data = {
@@ -25,14 +25,14 @@ def createGroup(group_name):
         # Should return space ID in Headers
         location = response.headers["Location"]
         group_id = location.split("groups/")[1]
-        if Settings.get().debug >= 1: print("Group", group_name, "was created with id", group_id)
+        Logger.log(3, "Group %s was created with ID %s" % (group_name, group_id))
         return group_id
     else:
-        if Settings.get().debug >= 0: print("Error: group", group_name, "can't be created")
+        Logger.log(1, "Group %s can't be created" % group_name)
 
 def createChildGroup(parent_group_id, group_name):
     if Settings.get().TEST: group_name = Settings.get().TEST_PREFIX + group_name
-    Logger.log(3, "createChildGroup(" + parent_group_id + "):")
+    Logger.log(4, "createChildGroup(" + parent_group_id + "):")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_child_group
     url = "onezone/groups/" + parent_group_id + "/children"
     my_data = {
@@ -44,12 +44,12 @@ def createChildGroup(parent_group_id, group_name):
     # Should return space ID in Headers
     location = response.headers["Location"]
     group_id = location.split("children/")[1]
-    if Settings.get().debug >= 1: print("Group", group_name, "was created with id", group_id)
+    Logger.log(3, "Group %s was created with ID %s" % (group_name, group_id))
     return group_id
 
 def createParentGroup(child_group_id, group_name):
     if Settings.get().TEST: group_name = Settings.get().TEST_PREFIX + group_name
-    Logger.log(3, "createParentGroup(" + child_group_id + "):")
+    Logger.log(4, "createParentGroup(" + child_group_id + "):")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_parent_group
     url = "onezone/groups/" + child_group_id + "/parents"
     my_data = {
@@ -61,18 +61,18 @@ def createParentGroup(child_group_id, group_name):
     # Should return space ID in Headers
     location = response.headers["Location"]
     group_id = location.split("groups/")[1].split("/parents")[0]
-    if Settings.get().debug >= 1: print("Group", group_name, "was created with id", group_id)
+    Logger.log(3, "Group %s was created with ID %s" % (group_name, group_id))
     return group_id
 
 def getGroupDetails(group_id):
-    Logger.log(3, "getGroupDetails(%s):" % group_id)
+    Logger.log(4, "getGroupDetails(%s):" % group_id)
     #https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_group
     url = "onezone/groups/" + group_id
     response = request.get(url)
     return response.json()
 
 def removeGroup(group_id):
-    Logger.log(3, "removeGroup(%s):" % group_id)
+    Logger.log(4, "removeGroup(%s):" % group_id)
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/remove_group
     url = "onezone/groups/" + group_id
     response = request.delete(url)

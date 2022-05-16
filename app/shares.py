@@ -1,12 +1,12 @@
-from pprint import pprint
 import json
 import time
 from settings import Settings
+from utils import Logger
 import request
 
 def createShare(name, file_id, description = ""):
     if Settings.get().TEST: name = Settings.get().TEST_PREFIX + name
-    if Settings.get().debug >= 2: print("createShare(): ")
+    Logger.log(4, "createShare(%s, %s, %s)" % (name, file_id, description))
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/create_share
     url = "oneprovider/shares"
     data = {
@@ -19,7 +19,7 @@ def createShare(name, file_id, description = ""):
     return response.json()['shareId']
 
 def getShare(share_id):
-    if Settings.get().debug >= 2: print("getShare(" + share_id + "): ")
+    Logger.log(4, "getShare(%s):" % share_id)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_share
     url = "oneprovider/shares/" + share_id
     response = request.get(url)
@@ -27,5 +27,5 @@ def getShare(share_id):
 
 def createAndGetShare(name, file_id, description = ""):
     share_id = createShare(name, file_id, description)
-    time.sleep(2)
+    time.sleep(2 * Settings.get().config['sleepFactor'])
     return getShare(share_id)

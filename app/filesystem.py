@@ -94,7 +94,7 @@ def loadYaml(file_path):
             if not configuration:
                 configuration = dict()
             
-            if Settings.get().debug >= 3: pprint(configuration)
+            Logger.log(5, "Configuration:", pretty_print=configuration)
             return configuration
     else:
         Logger.log(1, "Error: File %s doesn't exists." % file_path)

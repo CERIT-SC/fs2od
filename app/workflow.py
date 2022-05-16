@@ -72,8 +72,7 @@ def registerSpace(base_path, directory):
             else:
                 Logger.log(1, "Error: Space for %s not created." % directory.name)
         else:
-            if Settings.get().debug >= 2: print("Space for %s not created (spaceId exists in yaml file)." % directory.name)
-            Logger.log(3, "Space for %s not created (spaceId exists in yaml file)." % directory.name)
+            Logger.log(4, "Space for %s not created (spaceId exists in yaml file)." % directory.name)
     else:
         Logger.log(2, "Space for %s not created (not contains yaml or no dir)." % directory.name)
 
