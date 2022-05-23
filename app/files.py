@@ -36,12 +36,15 @@ def setFileAttributeRecursive(file_id, posix_mode):
 
     if not 'type' in attributes:
         # in case there is no file in space
+        # TODO - could this case happen? Check.
         return
 
     if attributes['type'] == "dir":
         # node is directory
-        # set attribute to directory itself
-        setFileAttribute(file_id, posix_mode)
+        if attributes['mode'] != posix_mode:
+            # desired posix_mode is different from the actual mode
+            # set attribute to directory itself
+            setFileAttribute(file_id, posix_mode)
 
         # set attribute to childs
         directory = listDirectory(file_id)
@@ -50,7 +53,9 @@ def setFileAttributeRecursive(file_id, posix_mode):
             setFileAttributeRecursive(node['id'], posix_mode)
     else:
         # node is file
-        setFileAttribute(file_id, posix_mode)
+        if attributes['mode'] != posix_mode:
+            # desired posix_mode is different from the actual mode
+            setFileAttribute(file_id, posix_mode)
 
 def listDirectory(file_id):
     """
