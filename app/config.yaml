@@ -12,6 +12,9 @@ metadataFile:
   publicURL: PublicURL
   inviteToken: InviteToken
 
+# Import attributes from metadata files to metadata stored by a Space in Onedata
+importMetadata: False
+
 ## Output detail level
 # 0 - silent mode - nothing printed
 # 1 - error

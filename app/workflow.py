@@ -62,7 +62,8 @@ def registerSpace(base_path, directory):
                 filesystem.setValueToYaml(yml_file, yml_content, Settings.get().config['metadataFile']['publicURL'], share['publicUrl'])
 
                 # Set metadata for the space
-                metadata.setSpaceMetadataFromYaml(space_id)
+                if Settings.get().config['importMetadata']:
+                    metadata.setSpaceMetadataFromYaml(space_id)
 
                 # set up permissions
                 files.setFileAttributeRecursive(file_id, Settings.get().config['initialPOSIXlikePermissions'])
