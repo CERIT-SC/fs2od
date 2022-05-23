@@ -1,6 +1,7 @@
 from pprint import pprint
 import time
 import sys
+from settings import Settings
 from utils import Logger
 import spaces, storages, groups, request, tokens
 
@@ -15,6 +16,9 @@ def deleteAllTestInstances(prefix):
     """
     Delete all instances of a given prefix.
     """
+    if not prefix:
+        prefix = Settings.get().TEST_PREFIX
+
     safetyNotice("All spaces, groups, tokens and storages with the prefix \"" + prefix + "\" will be deleted.")
 
     # invite tokens
@@ -68,6 +72,9 @@ def deleteAllTestGroups(prefix):
     """
     Delete all groups of a given prefix.
     """
+    if not prefix:
+        prefix = Settings.get().TEST_PREFIX
+
     safetyNotice("All groups with the prefix \"" + prefix + "\" will be deleted.")
     
     deleted_groups = 0 

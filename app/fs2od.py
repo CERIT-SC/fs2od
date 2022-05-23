@@ -10,17 +10,14 @@ import filesystem, test, sandbox
 def runScan(args):
     filesystem.scanWatchedDirectories()
 
-def runTest(args):
-    if args.remove_instances:
-        prefix = args.remove_instances
-        test.deleteAllTestInstances(prefix)
-    elif args.remove_groups:
-        prefix = args.remove_groups
-        test.deleteAllTestGroups(prefix)
-    elif args.register_space:
-        test.registerSpace(args.register_space)
-    else:
-        Logger.log(1, "No test task set")
+def runTestRemoveInstances(args):
+    test.deleteAllTestInstances(args.prefix)
+
+def runTestRemoveGroups(args):
+    test.deleteAllTestGroups(args.prefix)
+
+def runTestRegisterSpace(args):
+    test.registerSpace(args.register_space)
 
 def runTestConnection(args):
     test.testConnection()
@@ -32,15 +29,24 @@ def main():
     parser = argparse.ArgumentParser(description='FS2OD - Filesystem to Onedata importing software')
     parser.add_argument("--config", default="config.yaml", required=False, type=str, help="Path to YAML configuration file (default value is ./config.yaml)")
     subparsers = parser.add_subparsers(help='Name of workflow which will be run')
-    
+
     parser_1 = subparsers.add_parser("scan", help="Scan watched directories and import to Onedata")
     parser_1.set_defaults(func=runScan)
 
     parser_2 = subparsers.add_parser("test", help="Do defined test workflow")
-    parser_2.set_defaults(func=runTest)
-    parser_2.add_argument("--remove_instances", required=False, type=str, help="Delete all instances (storages, spaces, groups, tokens) with a given prefix.")
-    parser_2.add_argument("--remove_groups", required=False, type=str, help="Delete all groups with a given prefix.")
-    parser_2.add_argument("--register_space", required=False, type=str, help="Register space - create space (storage, group, token).")
+    subparser_2 = parser_2.add_subparsers(help='Name of test workflow which will be run')
+    
+    parser_2_1 = subparser_2.add_parser("remove_instances", help="Delete all instances (storages, spaces, groups, tokens) with a given prefix (default is testModePrefix value from config file).")
+    parser_2_1.add_argument("--prefix", required=False, default="", type=str, help="Prefix of instances to remove")
+    parser_2_1.set_defaults(func=runTestRemoveInstances)
+
+    parser_2_2 = subparser_2.add_parser("remove_groups", help="Delete all groups with a given prefix (default is testModePrefix value from config file).")
+    parser_2_2.add_argument("--prefix", required=False, default="", type=str, help="Prefix of groups to remove")
+    parser_2_2.set_defaults(func=runTestRemoveGroups)
+
+    parser_2_3 = subparser_2.add_parser("register_space", help="Register space - create space (storage, group, token).")
+    parser_2_3.add_argument("--path", required=True, type=str, help="Path to space")
+    parser_2_3.set_defaults(func=runTestRegisterSpace)
 
     parser_3 = subparsers.add_parser("test-connection", help="Test if Onezone and Oneprovider is available")
     parser_3.set_defaults(func=runTestConnection)
