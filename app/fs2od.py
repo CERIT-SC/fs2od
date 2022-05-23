@@ -22,6 +22,9 @@ def runTest(args):
     else:
         Logger.log(1, "No test task set")
 
+def runTestConnection(args):
+    test.testConnection()
+
 def runSandbox(args):
     sandbox.sandbox()
 
@@ -30,17 +33,20 @@ def main():
     parser.add_argument("--config", default="config.yaml", required=False, type=str, help="Path to YAML configuration file (default value is ./config.yaml)")
     subparsers = parser.add_subparsers(help='Name of workflow which will be run')
     
-    a_parser = subparsers.add_parser("scan", help="Scan watched directories and import to Onedata")
-    a_parser.set_defaults(func=runScan)
+    parser_1 = subparsers.add_parser("scan", help="Scan watched directories and import to Onedata")
+    parser_1.set_defaults(func=runScan)
 
-    b_parser = subparsers.add_parser("test", help="Do some test workflow")
-    b_parser.set_defaults(func=runTest)
-    b_parser.add_argument("--remove_instances", required=False, type=str, help="Delete all instances (storages, spaces, groups, tokens) with a given prefix.")
-    b_parser.add_argument("--remove_groups", required=False, type=str, help="Delete all groups with a given prefix.")
-    b_parser.add_argument("--register_space", required=False, type=str, help="Register space - create space (storage, group, token).")
-    
-    c_parser = subparsers.add_parser("sandbox", help="Do manually edited source file in fs2od evironment - sandbox ")
-    c_parser.set_defaults(func=runSandbox)
+    parser_2 = subparsers.add_parser("test", help="Do defined test workflow")
+    parser_2.set_defaults(func=runTest)
+    parser_2.add_argument("--remove_instances", required=False, type=str, help="Delete all instances (storages, spaces, groups, tokens) with a given prefix.")
+    parser_2.add_argument("--remove_groups", required=False, type=str, help="Delete all groups with a given prefix.")
+    parser_2.add_argument("--register_space", required=False, type=str, help="Register space - create space (storage, group, token).")
+
+    parser_3 = subparsers.add_parser("test-connection", help="Test if Onezone and Oneprovider is available")
+    parser_3.set_defaults(func=runTestConnection)
+
+    parser_4 = subparsers.add_parser("sandbox", help="Do manually edited source file in fs2od evironment - sandbox ")
+    parser_4.set_defaults(func=runSandbox)
 
     args = parser.parse_args()
 

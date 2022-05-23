@@ -2,7 +2,7 @@ from pprint import pprint
 import time
 import sys
 from utils import Logger
-import spaces, storages, groups, tokens
+import spaces, storages, groups, request, tokens
 
 def safetyNotice(message):
     print("*** Possibly dangerous action! ***")
@@ -81,6 +81,42 @@ def deleteAllTestGroups(prefix):
             time.sleep(0.5)
 
     print("Groups deleted =", deleted_groups)
+
+def _testOnezone():
+    Logger.log(4, "_testOnezone():")
+    # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_configuration
+    url = "onezone/configuration"
+    response = request.get(url)
+    # test if a attribute exists
+    if "build" in response.json(): 
+        return 0
+    else:
+        return 1
+
+def _testOneprovider():
+    Logger.log(4, "_testOneprovider():")
+    # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_configuration
+    url = "oneprovider/configuration"
+    response = request.get(url)
+    # test if a attribute exists
+    if "build" in response.json(): 
+        return 0
+    else:
+        return 2
+
+def testConnection():
+    result = _testOnezone()
+    result = result + _testOneprovider()
+    
+    if result == 0:
+        Logger.log(3, "Onezone and Oneprovider exist.")
+    elif result == 1:
+        Logger.log(1, "Onezone doesn't exist.")
+    elif result == 2:
+        Logger.log(1, "Oneprovider doesn't exist.")
+    elif result == 3:
+        Logger.log(1, "Onezone and Oneprovider don't exist.")
+    return result
 
 def registerSpace(path):
     Logger.log(1, "Not fully implemeted yet")
