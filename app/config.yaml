@@ -4,6 +4,11 @@ watchedDirectories:
   - "/volumes/volume1/test"
   #- "/volumes/volumeX/test"
 
+## Metadata settings
+# Name of YAML files with metadata. Only if subdirectory contains one of specifed YAML files, it is proccesed by the application.
+# To this file will be written attributes describing Onedata space.
+metadataFiles:
+  - "SPA.yml"
 
 # Names of tags in metadata YAML file
 metadataFile:
