@@ -21,10 +21,10 @@ def _scanWatchedDirectory(base_path):
         return
 
     # creating of spaces and all related stuff
-    creatingOfSpaces(base_path)
+    _creatingOfSpaces(base_path)
 
     # set continous file import on all spaces
-    # TODO - when config['continousFileImport']['enabled'] is set tu False, all import should be stopped
+    # TODO, #5 - when config['continousFileImport']['enabled'] is set to False, all import should be stopped
     if Settings.get().config['continousFileImport']['enabled']:
         time.sleep(1 * Settings.get().config['sleepFactor'])
         setupContinuousImport(base_path)
@@ -44,8 +44,8 @@ def getMetaDataFile(directory):
     Logger.log(4, "No file with metadata found in " % directory)
     return None
 
-def creatingOfSpaces(base_path):
-    Logger.log(4, "creatingOfSpaces(%s):" % base_path)
+def _creatingOfSpaces(base_path):
+    Logger.log(4, "_creatingOfSpaces(%s):" % base_path)
     sub_dirs = os.scandir(path=base_path)
     # TODO - add condition to process only directories (no files)
     for directory in sub_dirs:
@@ -53,7 +53,7 @@ def creatingOfSpaces(base_path):
 
 def setupContinuousImport(base_path):
     Logger.log(4, "setupContinuousImport(%s):" % base_path)
-    # TODO - to be replaced by walk through files in Onedata instead of in POSIX
+    # TODO, #6 - to be replaced by walk through files in Onedata instead of in POSIX
     sub_dirs = os.scandir(path=base_path)
     for directory in sub_dirs:
         # only directories should be processed

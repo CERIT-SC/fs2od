@@ -53,20 +53,24 @@ def registerSpace(base_path, directory):
                 tokens.deleteNamedToken(support_token['tokenId'])
                 time.sleep(3 * Settings.get().config['sleepFactor'])
 
-                # Create public share
+                # first import of files to Onedata space
+                spaces.startAutoStorageImport(space_id)
+                time.sleep(3 * Settings.get().config['sleepFactor'])
+
+                # set up permissions
                 file_id = spaces.getSpace(space_id)['fileId']
+                files.setFileAttributeRecursive(file_id, Settings.get().config['initialPOSIXlikePermissions'])
+
+                # create public share
                 description = ""
                 share = shares.createAndGetShare(dataset_name, file_id, description)
 
                 # write onedata parameter (publicURL) to file
                 filesystem.setValueToYaml(yml_file, yml_content, Settings.get().config['metadataFile']['publicURL'], share['publicUrl'])
 
-                # Set metadata for the space
+                # set metadata for the space
                 if Settings.get().config['importMetadata']:
                     metadata.setSpaceMetadataFromYaml(space_id)
-
-                # set up permissions
-                files.setFileAttributeRecursive(file_id, Settings.get().config['initialPOSIXlikePermissions'])
 
                 Logger.log(3, "Processing of %s done." % base_path + os.sep + directory.name)
                 time.sleep(3 * Settings.get().config['sleepFactor'])

@@ -7,7 +7,7 @@ def getFileAttributes(file_id):
     """
     Get attributes of file with given file_id.
     """
-    Logger.log(4, "getFileAttributes(%s):" % file_id)
+    Logger.log(5, "getFileAttributes(%s):" % file_id)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_attrs
     url = "oneprovider/data/" + file_id
     response = request.get(url)
@@ -17,7 +17,7 @@ def setFileAttribute(file_id, posix_mode):
     """
     Set attributes to directory or file with given file_id. Only POSIX mode can be set up.
     """
-    Logger.log(4, "setFileAttribute(%s, %s):" % (file_id, posix_mode))
+    Logger.log(5, "setFileAttribute(%s, %s):" % (file_id, posix_mode))
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/set_attr
     url = "oneprovider/data/" + file_id
     data = {
@@ -61,7 +61,7 @@ def listDirectory(file_id):
     """
     List directory. Subdirectories and files are accesible in response['children'].
     """
-    Logger.log(4, "listDirectory(%s):" % file_id)
+    Logger.log(5, "listDirectory(%s):" % file_id)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/list_children
     url = "oneprovider/data/" + file_id + "/children"
     response = request.get(url)

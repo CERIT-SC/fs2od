@@ -4,6 +4,12 @@ from settings import Settings
 from  utils import Logger
 import request, tokens, files, metadata
 
+"""
+Minimal size of a space. Smaller size cause "badValueTooLow" error on Oneprovder. 
+1 MB = 1*2**20 = 1048576
+"""
+MINIMAL_SPACE_SIZE = 1048576
+
 def getSpaces():
     Logger.log(4, "getSpaces():")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_all_spaces
@@ -38,6 +44,13 @@ def getAutoStorageImportInfo(space_id):
     url = "onepanel/provider/spaces/" + space_id + "/storage-import/auto/info"
     response = request.get(url)
     return response.json()
+
+def startAutoStorageImport(space_id):
+    Logger.log(4, "startAutoStorageImport(%s):" % space_id)
+    # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/force_start_auto_storage_import_scan
+    url = "onepanel/provider/spaces/" + space_id + "/storage-import/auto/force-start"
+    response = request.post(url)
+    return response
 
 def stopAutoStorageImport(space_id):
     Logger.log(4, "stopAutoStorageImport(%s):" % space_id)
@@ -81,7 +94,7 @@ def supportSpace(token, size, storage_id):
             }
         }
     }
-    
+
     headers = dict({'Content-type': 'application/json'})
     response = request.post(url, headers=headers, data=json.dumps(data))
     if response.ok:
@@ -100,6 +113,11 @@ def setSpaceSize(space_id, size = None):
         sd = getSpaceDetails(space_id)
         size = sd['spaceOccupancy']
 
+    # fix space size if it is too small
+    if size < MINIMAL_SPACE_SIZE:
+        Logger.log(3, "Space size fixed (%s -> %s)" % (size, MINIMAL_SPACE_SIZE))
+        size = MINIMAL_SPACE_SIZE
+
     # based on https://onedata.org/#/home/api/stable/onepanel?anchor=operation/modify_space
     url = "onepanel/provider/spaces/" + space_id
     data = {
@@ -108,9 +126,9 @@ def setSpaceSize(space_id, size = None):
     headers = dict({'Content-type': 'application/json'})
     response = request.patch(url, headers=headers, data=json.dumps(data))
     if response.ok:
-        Logger.log(3, "New size (%s) set for space with ID %s" % (size, space_id))
+        Logger.log(3, "New size (%s) set for space %s" % (size, space_id))
     else:
-        Logger.log(2, "New size (%s) can't be set for space with ID %s" % (size, space_id))
+        Logger.log(2, "New size (%s) can't be set for space %s" % (size, space_id))
     return response
 
 def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
@@ -142,11 +160,18 @@ def disableContinuousImport(space_id):
         if result:
             Logger.log(3, "Continuous import disabled for space with ID %s" % space_id)
             time.sleep(1 * Settings.get().config['sleepFactor'])
-            # continous import is disabling now, permissions of all dirs and file should set to given permissions
+            # continous import is disabled now
+            # force (full) import of files last time
+            startAutoStorageImport(space_id)
+
+            # permissions of all dirs and file should set to given permissions
             file_id = getSpace(space_id)['fileId']
             files.setFileAttributeRecursive(file_id, Settings.get().config['initialPOSIXlikePermissions'])
+
             # Set metadata for the space
-            metadata.setSpaceMetadataFromYaml(space_id)
+            if Settings.get().config['importMetadata']:
+                metadata.setSpaceMetadataFromYaml(space_id)
+
             # set the space size to space occupancy
             setSpaceSize(space_id)
 
