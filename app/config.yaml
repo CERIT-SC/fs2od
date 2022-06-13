@@ -17,6 +17,9 @@ metadataFile:
   publicURL: PublicURL
   inviteToken: InviteToken
 
+# Prefix off all datasets (spaces, groups, tokens and storages)
+datasetPrefix: ""
+
 # Import attributes from metadata files to metadata stored by a Space in Onedata
 importMetadata: False
 

@@ -22,7 +22,7 @@ def registerSpace(base_path, directory):
         # test if yaml contains space_id
         if not filesystem.yamlContainsSpaceId(yml_content):
             Logger.log(3, "Creating space from %s" % base_path + os.sep + directory.name)
-            dataset_name = directory.name
+            dataset_name = Settings.get().config['datasetPrefix'] + directory.name
 
             # Create storage for space
             storage_id = storages.createAndGetStorage(dataset_name, os.path.join(base_path, directory.name))
