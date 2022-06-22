@@ -164,6 +164,9 @@ def enableContinuousImport(space_id):
         result = setContinuousImport(space_id, True)
         if result:
             Logger.log(3, "Continuous import enabled for space with ID %s" % space_id)
+            # continous import is enabled now
+            # force (full) import of files immediately
+            startAutoStorageImport(space_id)
 
 def disableContinuousImport(space_id):
     Logger.log(4, "disableContinuousImport(%s):" % space_id)
