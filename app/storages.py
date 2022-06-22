@@ -3,6 +3,10 @@ from settings import Settings
 from utils import Logger
 import request
 
+# Storage name must be 2-50 characters long.
+MIN_STORAGE_NAME_LENGTH = 2
+MAX_STORAGE_NAME_LENGTH = 50
+
 def getStorages():
     Logger.log(4, "getStorages():")
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/get_storages
@@ -20,6 +24,14 @@ def getLastStorage():
 
 def addStorage(name, mountpoint):
     Logger.log(4, "addStorage(%s, %s):" % (name, mountpoint))
+
+    if len(name) < MIN_STORAGE_NAME_LENGTH:
+        Logger.log(1, "Too short storage name %s." % name)
+        return
+
+    # fix longer names, let only first N chars
+    name = name[0:MAX_STORAGE_NAME_LENGTH]
+
     url = "onepanel/provider/storages"
     data = {
         name: {

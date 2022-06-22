@@ -3,6 +3,10 @@ from settings import Settings
 from utils import Logger
 import request
 
+# Group name must be 2-50 characters long.
+MIN_GROUP_NAME_LENGTH = 2
+MAX_GROUP_NAME_LENGTH = 50
+
 def listEffectiveUserGroups():
     Logger.log(4, "listEffectiveUserGroups():")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/list_effective_user_groups
@@ -50,6 +54,14 @@ def createChildGroup(parent_group_id, group_name):
 def createParentGroup(child_group_id, group_name):
     if Settings.get().TEST: group_name = Settings.get().TEST_PREFIX + group_name
     Logger.log(4, "createParentGroup(" + child_group_id + "):")
+
+    if len(group_name) < MIN_GROUP_NAME_LENGTH:
+        Logger.log(1, "Too short group name %s." % group_name)
+        return
+
+    # fix longer names, let only first N chars
+    group_name = group_name[0:MAX_GROUP_NAME_LENGTH]
+
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_parent_group
     url = "onezone/groups/" + child_group_id + "/parents"
     my_data = {
