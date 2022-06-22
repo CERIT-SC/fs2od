@@ -67,6 +67,13 @@ def setupContinuousImport(base_path):
             # test if yaml contains space_id
             space_id = yamlContainsSpaceId(yml_content)
             if space_id:
+                # test if such space exists
+                try:
+                    space_name = spaces.getSpace(space_id)['name']
+                except KeyError:
+                    Logger.log(1, "Space ID %s found in %s isn't correct." % (space_id, yml_file))
+                    return
+
                 running_file = directory.path + os.sep + Settings.get().config['continousFileImport']['runningFileName']
                 # test if directory contains running file
                 if os.path.isfile(running_file):
@@ -97,7 +104,7 @@ def loadYaml(file_path):
             Logger.log(5, "Configuration:", pretty_print=configuration)
             return configuration
     else:
-        Logger.log(1, "Error: File %s doesn't exists." % file_path)
+        Logger.log(1, "File %s doesn't exists." % file_path)
 
 def getSpaceIDfromYaml(yaml_dict):
     """
