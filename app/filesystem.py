@@ -41,7 +41,7 @@ def getMetaDataFile(directory):
             return yml_file
 
     # no metadata file found
-    Logger.log(4, "No file with metadata found in " % directory)
+    Logger.log(4, "No file with metadata found in %s " % directory)
     return None
 
 def _creatingOfSpaces(base_path):
