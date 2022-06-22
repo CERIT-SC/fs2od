@@ -57,8 +57,8 @@ def createAndGetStorage(name, mountpoint):
     resp = addStorage(name, mountpoint)
     if resp.status_code == 204:
         last_id = getLastStorage()
-        # compare names of storages
-        if getStorageDetails(last_id)['name'] == name:
+        # compare names of storages, compare only first N chars
+        if getStorageDetails(last_id)['name'][0:MAX_STORAGE_NAME_LENGTH] == name[0:MAX_STORAGE_NAME_LENGTH]:
             Logger.log(3, "Storage %s was created with id %s" % (name, last_id))
             return last_id
         else:
