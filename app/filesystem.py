@@ -105,25 +105,25 @@ def getSpaceIDfromYaml(yaml_dict):
     or None when file doesn't contain it.
     """
     if yaml_dict:
-        onedata_part = yaml_dict.get(Settings.get().config['metadataFile']['onedata'])
+        onedata_part = yaml_dict.get(Settings.get().config['metadataFileTags']['onedata'])
         if onedata_part:
-            return onedata_part.get(Settings.get().config['metadataFile']['space'])
+            return onedata_part.get(Settings.get().config['metadataFileTags']['space'])
 
     Logger.log(3, "No onedata tag in YAML")
     return None
 
 def setValueToYaml(file_path, yaml_dict, valueType, value):
     if os.path.exists(file_path):
-        if yaml_dict.get(Settings.get().config['metadataFile']['onedata']) == None:
-            yaml_dict[Settings.get().config['metadataFile']['onedata']] = dict()
+        if yaml_dict.get(Settings.get().config['metadataFileTags']['onedata']) == None:
+            yaml_dict[Settings.get().config['metadataFileTags']['onedata']] = dict()
 
         # change value in original yaml dict
         if valueType == "Space":
-            yaml_dict[Settings.get().config['metadataFile']['onedata']][Settings.get().config['metadataFile']['space']] = value
+            yaml_dict[Settings.get().config['metadataFileTags']['onedata']][Settings.get().config['metadataFileTags']['space']] = value
         if valueType == "PublicURL":
-            yaml_dict[Settings.get().config['metadataFile']['onedata']][Settings.get().config['metadataFile']['publicURL']] = value
+            yaml_dict[Settings.get().config['metadataFileTags']['onedata']][Settings.get().config['metadataFileTags']['publicURL']] = value
         if valueType == "InviteToken":
-            yaml_dict[Settings.get().config['metadataFile']['onedata']][Settings.get().config['metadataFile']['inviteToken']] = value
+            yaml_dict[Settings.get().config['metadataFileTags']['onedata']][Settings.get().config['metadataFileTags']['inviteToken']] = value
         
         # open yaml file
         with open(file_path, 'w') as f:    
@@ -140,12 +140,12 @@ def setValuesToYaml(file_path, yaml_dict, new_values_dict):
     Set values to onedata tag in yaml.
     """
     if os.path.exists(file_path):
-        if not yaml_dict.get(Settings.get().config['metadataFile']['onedata']):
+        if not yaml_dict.get(Settings.get().config['metadataFileTags']['onedata']):
             # there isn't tag onedata yet
-            yaml_dict[Settings.get().config['metadataFile']['onedata']] = dict()
+            yaml_dict[Settings.get().config['metadataFileTags']['onedata']] = dict()
 
         # change value in original yaml dict
-        yaml_dict[Settings.get().config['metadataFile']['onedata']] = new_values_dict
+        yaml_dict[Settings.get().config['metadataFileTags']['onedata']] = new_values_dict
 
         # open yaml file
         with open(file_path, 'w') as f:    

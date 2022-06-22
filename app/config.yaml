@@ -11,7 +11,7 @@ metadataFiles:
   - "SPA.yml"
 
 # Names of tags in metadata YAML file
-metadataFile:
+metadataFileTags:
   onedata: Onedata2
   space: Space
   publicURL: PublicURL

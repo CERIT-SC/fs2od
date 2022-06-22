@@ -44,8 +44,8 @@ def registerSpace(base_path, directory):
             if space_id and support_token:
                 # write onedata parameters (space_id, invite_token) to file
                 yaml_onedata_dict = dict()
-                yaml_onedata_dict[Settings.get().config['metadataFile']['space']] = space_id
-                yaml_onedata_dict[Settings.get().config['metadataFile']['inviteToken']] = token['token']
+                yaml_onedata_dict[Settings.get().config['metadataFileTags']['space']] = space_id
+                yaml_onedata_dict[Settings.get().config['metadataFileTags']['inviteToken']] = token['token']
                 filesystem.setValuesToYaml(yml_file, yml_content, yaml_onedata_dict)
 
                 # set up space support on the provider
@@ -66,7 +66,7 @@ def registerSpace(base_path, directory):
                 share = shares.createAndGetShare(dataset_name, file_id, description)
 
                 # write onedata parameter (publicURL) to file
-                filesystem.setValueToYaml(yml_file, yml_content, Settings.get().config['metadataFile']['publicURL'], share['publicUrl'])
+                filesystem.setValueToYaml(yml_file, yml_content, Settings.get().config['metadataFileTags']['publicURL'], share['publicUrl'])
 
                 # set metadata for the space
                 if Settings.get().config['importMetadata']:
