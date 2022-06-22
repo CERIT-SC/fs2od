@@ -32,7 +32,7 @@ def registerSpace(base_path, directory):
             time.sleep(1 * Settings.get().config['sleepFactor'])
 
             # Create invite token for the group
-            token = tokens.createInviteTokenToGroup(gid, "Invite token for " + dataset_name)
+            token = tokens.createInviteTokenToGroup(gid, dataset_name)
             time.sleep(1 * Settings.get().config['sleepFactor'])
 
             # Create a new space
