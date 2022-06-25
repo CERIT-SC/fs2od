@@ -1,11 +1,7 @@
 import json
 from settings import Settings
-from utils import Logger
+from utils import Logger, Utils
 import request
-
-# Storage name must be 2-50 characters long.
-MIN_STORAGE_NAME_LENGTH = 2
-MAX_STORAGE_NAME_LENGTH = 50
 
 def getStorages():
     Logger.log(4, "getStorages():")
@@ -25,12 +21,11 @@ def getLastStorage():
 def addStorage(name, mountpoint):
     Logger.log(4, "addStorage(%s, %s):" % (name, mountpoint))
 
-    if len(name) < MIN_STORAGE_NAME_LENGTH:
+    if len(name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:
         Logger.log(1, "Too short storage name %s." % name)
         return
 
-    # fix longer names, let only first N chars
-    name = name[0:MAX_STORAGE_NAME_LENGTH]
+    name = Utils.clearOnedataName(name)
 
     url = "onepanel/provider/storages"
     data = {
@@ -57,8 +52,8 @@ def createAndGetStorage(name, mountpoint):
     resp = addStorage(name, mountpoint)
     if resp.status_code == 204:
         last_id = getLastStorage()
-        # compare names of storages, compare only first N chars
-        if getStorageDetails(last_id)['name'][0:MAX_STORAGE_NAME_LENGTH] == name[0:MAX_STORAGE_NAME_LENGTH]:
+        # compare names of storages, compare cleared names
+        if Utils.clearOnedataName(getStorageDetails(last_id)['name']) == Utils.clearOnedataName(name):
             Logger.log(3, "Storage %s was created with id %s" % (name, last_id))
             return last_id
         else:

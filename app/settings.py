@@ -65,6 +65,10 @@ class Settings():
                 self.ONEZONE_AUTH_HEADERS = {'x-auth-token' : self.ONEZONE_API_KEY}
                 self.ONEPROVIDER_AUTH_HEADERS = {'x-auth-token' : self.ONEPROVIDER_API_KEY}
                 self.ONEPANEL_AUTH_HEADERS = {'x-auth-token' : self.ONEPANEL_API_KEY}
+                
+                # Onedata name must be 2-50 characters long
+                self.MIN_ONEDATA_NAME_LENGTH = 2
+                self.MAX_ONEDATA_NAME_LENGTH = 50
         else:
             print("Error: config file %s doesn't exists" % config_file)
             sys.exit(1)

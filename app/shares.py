@@ -1,22 +1,18 @@
 import json
 import time
 from settings import Settings
-from utils import Logger
+from utils import Logger, Utils
 import request
-
-MIN_SHARE_NAME_LENGTH = 2
-MAX_SHARE_NAME_LENGTH = 50
 
 def createShare(name, file_id, description = ""):
     if Settings.get().TEST: name = Settings.get().TEST_PREFIX + name
     Logger.log(4, "createShare(%s, %s, %s)" % (name, file_id, description))
 
-    if len(name) < MIN_SHARE_NAME_LENGTH:
+    if len(name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:
         Logger.log(1, "Too short share name %s." % name)
         return
 
-    # fix longer names, let only first N chars
-    name = name[0:MAX_SHARE_NAME_LENGTH]
+    name = Utils.clearOnedataName(name)
 
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/create_share
     url = "oneprovider/shares"

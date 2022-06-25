@@ -1,12 +1,8 @@
 import json
 import time
 from settings import Settings
-from  utils import Logger
+from  utils import Logger, Utils
 import request, tokens, files, metadata
-
-MIN_SPACE_NAME_LENGTH = 2
-MAX_SPACE_NAME_LENGTH = 50
-
 
 """
 Minimal size of a space. Smaller size cause "badValueTooLow" error on Oneprovder. 
@@ -67,12 +63,11 @@ def createSpaceForGroup(group_id, space_name):
     if Settings.get().TEST: space_name = Settings.get().TEST_PREFIX + space_name
     Logger.log(4, "createSpaceForGroup(%s, %s):" % (group_id, space_name))
     
-    if len(space_name) < MIN_SPACE_NAME_LENGTH:
+    if len(space_name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:
         Logger.log(1, "Too short space name %s." % space_name)
         return
 
-    # fix longer names, let only first N chars
-    space_name = space_name[0:MAX_SPACE_NAME_LENGTH]
+    space_name = Utils.clearOnedataName(space_name)
 
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_space_for_group
     url = "onezone/groups/" + group_id + "/spaces"

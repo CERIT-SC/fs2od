@@ -2,12 +2,8 @@ import json
 import random
 import time
 from settings import Settings
-from utils import Logger
+from utils import Logger, Utils
 import request
-
-# Token name must be 2-50 characters long.
-MIN_TOKEN_NAME_LENGTH = 2
-MAX_TOKEN_NAME_LENGTH = 50
 
 def listAllNamedtokens():
     Logger.log(4, "listAllNamedtokens():")
@@ -29,12 +25,11 @@ def createNamedTokenForUser(space_id, name, user_id):
     # add to name a random number
     name = str(random.randint(0,10000)) + "_" + name
 
-    if len(name) < MIN_TOKEN_NAME_LENGTH:
+    if len(name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:
         Logger.log(1, "Too short token name %s." % name)
         return
 
-    # fix longer names, let only first N chars
-    name = name[0:MAX_TOKEN_NAME_LENGTH]
+    name = Utils.clearOnedataName(name)
 
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_named_token_for_user
     url = "onezone/users/" + user_id + "/tokens/named"
@@ -87,12 +82,11 @@ def createInviteTokenToGroup(group_id, token_name):
     if Settings.get().TEST: token_name = Settings.get().TEST_PREFIX + token_name
     Logger.log(4, "createInviteTokenToGroup(%s, %s):" % (group_id, token_name))
 
-    if len(token_name) < MIN_TOKEN_NAME_LENGTH:
+    if len(token_name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:
         Logger.log(1, "Too short token name %s." % token_name)
         return
 
-    # fix longer names, let only first N chars
-    token_name = token_name[0:MAX_TOKEN_NAME_LENGTH]
+    token_name = Utils.clearOnedataName(token_name)
 
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_named_token_for_user
     url = "onezone/users/" + Settings.get().config['serviceUserId'] + "/tokens/named"
