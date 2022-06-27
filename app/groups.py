@@ -67,7 +67,7 @@ def createParentGroup(child_group_id, group_name):
     response = request.post(url, headers=headers, data=json.dumps(my_data))
     # Should return space ID in Headers
     location = response.headers["Location"]
-    group_id = location.split("groups/")[1].split("/parents")[0]
+    group_id = location.split("/parents/")[1]
     Logger.log(3, "Group %s was created with ID %s" % (group_name, group_id))
     return group_id
 
