@@ -61,6 +61,11 @@ def main():
         Settings(args.config)
         args.func(args)
     else:
+        # call only with test argument, without specifed test action
+        if 'test' == sys.argv[-1]:
+            parser_2.print_help(sys.stdout)
+            return
+
         # call with no task
         parser.print_help(sys.stdout)
 
