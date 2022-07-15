@@ -13,6 +13,13 @@ def listEffectiveUserGroups():
 def createGroup(group_name):
     if Settings.get().TEST: group_name = Settings.get().TEST_PREFIX + group_name
     Logger.log(4, "createGroup(%s):" % group_name)
+
+    if len(group_name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:
+        Logger.log(1, "Too short group name %s." % group_name)
+        return
+
+    group_name = Utils.clearOnedataName(group_name)
+
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_group
     url = "onezone/groups"
     my_data = {
@@ -33,6 +40,13 @@ def createGroup(group_name):
 def createChildGroup(parent_group_id, group_name):
     if Settings.get().TEST: group_name = Settings.get().TEST_PREFIX + group_name
     Logger.log(4, "createChildGroup(" + parent_group_id + "):")
+
+    if len(group_name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:
+        Logger.log(1, "Too short group name %s." % group_name)
+        return
+
+    group_name = Utils.clearOnedataName(group_name)
+
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_child_group
     url = "onezone/groups/" + parent_group_id + "/children"
     my_data = {
