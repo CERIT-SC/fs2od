@@ -14,7 +14,7 @@ def scanWatchedDirectories():
 
 def _scanWatchedDirectory(base_path):
     Logger.log(4, "_scanWatchedDirectory(%s):" % base_path)
-    Logger.log(3, "Processing path %s" % base_path)
+    Logger.log(3, "Start processing path %s" % base_path)
 
     if not os.path.isdir(base_path):
         Logger.log(1, "Directory %s can't be processed, it doesn't exist." % base_path)
@@ -29,7 +29,7 @@ def _scanWatchedDirectory(base_path):
         time.sleep(1 * Settings.get().config['sleepFactor'])
         setupContinuousImport(base_path)
 
-    Logger.log(3, "Processing path %s done." % base_path)
+    Logger.log(3, "Finish processing path %s" % base_path)
 
 def getMetaDataFile(directory):
     Logger.log(4, "getMetaDataFile(%s):" % directory)
