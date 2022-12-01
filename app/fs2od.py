@@ -23,7 +23,7 @@ def runTestConnection(args):
     test.testConnection()
 
 def runSandbox(args):
-    sandbox.sandbox()
+    sandbox.sandbox(args)
 
 def main():
     parser = argparse.ArgumentParser(description='FS2OD - Filesystem to Onedata importing software')
@@ -51,7 +51,10 @@ def main():
     parser_3 = subparsers.add_parser("test-connection", help="Test if Onezone and Oneprovider is available")
     parser_3.set_defaults(func=runTestConnection)
 
-    parser_4 = subparsers.add_parser("sandbox", help="Do manually edited source file in fs2od evironment - sandbox ")
+    parser_4 = subparsers.add_parser("sandbox", help="Run manually a workflow specifed in the file sandbox.py")
+    parser_4.add_argument("--var1", default="", required=False, type=str, help="Variable which will be set up in sandbox.")
+    parser_4.add_argument("--var2", default="", required=False, type=str, help="Variable which will be set up in sandbox.")
+    parser_4.add_argument("--var3", default="", required=False, type=str, help="Variable which will be set up in sandbox.")
     parser_4.set_defaults(func=runSandbox)
 
     args = parser.parse_args()
