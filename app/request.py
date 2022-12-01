@@ -23,12 +23,14 @@ def process_url(url, headers):
 
 def response_print(response):
         if not response.ok:
-            Logger.log(2, "response isn't ok, response code %s" % response.status_code)
+            Logger.log(2, "Response isn't ok (response code = %s)" % response.status_code)
 
 def debug_print(response):
     Logger.log(4, "Response: %s" % response)
-    if response.content != b'':
+    if response.ok and response.content != b'':
         Logger.log(5, "Response content:", pretty_print=response.json())
+    elif not response.ok and response.content != b'':
+        Logger.log(1, "Response content:", pretty_print=response.json())
 
 def get(url, headers=dict()):
     url, headers = process_url(url, headers)
