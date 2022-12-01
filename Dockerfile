@@ -1,9 +1,12 @@
-FROM alpine:3.16
+FROM debian:11-slim
 
-RUN apk add --update --no-cache python3 gcc musl-dev python3-dev nano \
-    && ln -sf python3 /usr/bin/python \
-    && python3 -m ensurepip \
-    && pip3 install --no-cache --upgrade pip
+RUN apt-get update && apt-get -y upgrade && apt-get -y install --no-install-recommends \
+    python3 \
+    python-is-python3 \
+    python3-pip \
+    nano \
+    && pip3 install --no-cache --upgrade pip \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt/fs2od
 
@@ -16,4 +19,4 @@ COPY init.sh app/* /opt/fs2od/
 RUN chmod u+x fs2od.py \
     && ln -s /opt/fs2od/fs2od.py /usr/bin/fs2od.py
 
-CMD [ "/bin/sh", "init.sh" ]
+CMD [ "/bin/bash", "init.sh" ]
