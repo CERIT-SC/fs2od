@@ -35,7 +35,7 @@ def registerSpace(base_path, directory):
 
             if space_id and support_token:
                 # Create user group for space
-                gid = groups.createChildGroup(Settings.get().config['initialGroupId'], dataset_name)
+                gid = groups.createChildGroup(Settings.get().config['userGroupId'], dataset_name)
                 time.sleep(1 * Settings.get().config['sleepFactor'])
 
                 # Create invite token for the user group

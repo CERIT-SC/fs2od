@@ -70,8 +70,8 @@ continousFileImport:
 # Onedata POSIX like permissions which would be set to all directories and files
 initialPOSIXlikePermissions: "0775"
 
-# Initial child group for all groups, which will be created for spaces.
-initialGroupId: ""
+# Parent group for dataspaces groups.
+userGroupId: ""
 
 # Implicit space size. It is size of space on Oneprovider after its creation. 
 # Is should be set to great value (bigger than expected size of the bigest dataset directory). E.g. 10 TB = 10*2**40 = 10995116277760
@@ -80,6 +80,9 @@ implicitSpaceSize: 10995116277760
 ## AAI section
 # Service user identifier
 serviceUserId: ""
+
+# Service group identifier
+managerGroupId: ""
 
 # REST API access (hostnames and tokens) to Onedata services
 onezone:
