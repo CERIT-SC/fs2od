@@ -1,4 +1,4 @@
-FROM alpine:3.14
+FROM alpine:3.16
 
 RUN apk add --update --no-cache python3 gcc musl-dev python3-dev nano \
     && ln -sf python3 /usr/bin/python \
