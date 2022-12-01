@@ -225,3 +225,24 @@ def listSpaceGroups(space_id):
     url = "onezone/spaces/"+ space_id + "/groups"
     response = request.get(url)
     return response.json()['groups']
+
+def addGroupToSpace(space_id, gid, privileges = None):
+    """
+    Add given group to the space. The third argument is list of the privileges, 
+    which the group will be given on the space. 
+    If no privileges are given, default privileges are used.
+    """
+    Logger.log(4, "addGroupToSpace(%s, %s, %s):" % (space_id, gid, privileges))
+    # https://onedata.org/#/home/api/stable/onezone?anchor=operation/add_group_to_space
+    url = "onezone/spaces/" + space_id + "/groups/" + gid
+    headers = dict({'Content-type': 'application/json'})
+    data = {
+        "privileges": privileges
+    }
+    response = request.put(url, headers=headers, data=json.dumps(data))
+    if response.ok:
+        Logger.log(3, "Space %s was added as member of group %s" % (space_id, gid))
+        return response
+    else:
+        Logger.log(1, "Space %s wasn't added as member of group %s" % (space_id, gid))
+        return response

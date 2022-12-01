@@ -10,6 +10,7 @@ def listEffectiveUserGroups():
     response = request.get(url)
     return response.json()["groups"]
 
+# not used
 def createGroup(group_name):
     if Settings.get().TEST: group_name = Settings.get().TEST_PREFIX + group_name
     Logger.log(4, "createGroup(%s):" % group_name)
@@ -39,7 +40,7 @@ def createGroup(group_name):
 
 def createChildGroup(parent_group_id, group_name):
     if Settings.get().TEST: group_name = Settings.get().TEST_PREFIX + group_name
-    Logger.log(4, "createChildGroup(" + parent_group_id + "):")
+    Logger.log(4, "createChildGroup(%s, %s):" % (parent_group_id, group_name))
 
     if len(group_name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:
         Logger.log(1, "Too short group name %s." % group_name)
@@ -61,6 +62,7 @@ def createChildGroup(parent_group_id, group_name):
     Logger.log(3, "Group %s was created with ID %s" % (group_name, group_id))
     return group_id
 
+# not used
 def createParentGroup(child_group_id, group_name):
     if Settings.get().TEST: group_name = Settings.get().TEST_PREFIX + group_name
     Logger.log(4, "createParentGroup(" + child_group_id + "):")

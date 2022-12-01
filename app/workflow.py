@@ -27,21 +27,30 @@ def registerSpace(base_path, directory):
             # Create storage for space
             storage_id = storages.createAndGetStorage(dataset_name, os.path.join(base_path, directory.name))
 
-            # Create group for space
-            gid = groups.createParentGroup(Settings.get().config['initialGroupId'], dataset_name)
-            time.sleep(1 * Settings.get().config['sleepFactor'])
-
-            # Create invite token for the group
-            token = tokens.createInviteTokenToGroup(gid, dataset_name)
-            time.sleep(1 * Settings.get().config['sleepFactor'])
-
             # Create a new space
-            space_id = spaces.createSpaceForGroup(gid, dataset_name)
+            space_id = spaces.createSpaceForGroup(Settings.get().config['managerGroupId'], dataset_name)
             # TODO - replace with temporary token
             support_token = tokens.createNamedTokenForUser(space_id, dataset_name, Settings.get().config['serviceUserId'])
             time.sleep(3 * Settings.get().config['sleepFactor'])
 
             if space_id and support_token:
+                # Create user group for space
+                gid = groups.createChildGroup(Settings.get().config['initialGroupId'], dataset_name)
+                time.sleep(1 * Settings.get().config['sleepFactor'])
+
+                # Create invite token for the user group
+                token = tokens.createInviteTokenToGroup(gid, dataset_name)
+                time.sleep(1 * Settings.get().config['sleepFactor'])
+                
+                # add the space to the user group
+                privileges = [
+                    "space_view",
+                    "space_view_privileges",
+                    "space_read_data",
+                    "space_add_support",
+                ]
+                spaces.addGroupToSpace(space_id, gid, privileges)
+
                 # write onedata parameters (space_id, invite_token) to file
                 yaml_onedata_dict = dict()
                 yaml_onedata_dict[Settings.get().config['metadataFileTags']['space']] = space_id
