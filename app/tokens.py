@@ -19,6 +19,7 @@ def getNamedToken(token_id):
     response = request.get(url)
     return response.json()
 
+# not used
 def createNamedTokenForUser(space_id, name, user_id):
     Logger.log(4, "createNamedTokenForUser(%s, %s, %s):" % (space_id, name, user_id))
 
@@ -51,32 +52,29 @@ def createNamedTokenForUser(space_id, name, user_id):
     else:
         raise BaseException("Response for creating new token failed: " + str(resp.content))
 
-# not used
-def createTemporaryTokenForUser(space_id, space_name, user_id):
-    Logger.log(4, "createTemporaryTokenForUser(%s, %s, %s):" % (space_id, space_name, user_id))
-    # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_temporary_token_for_user
-    url = "onezone/users/" + user_id + "/tokens/temporary"
+def createTemporarySupportToken(space_id):
+    Logger.log(4, "createTemporarySupportToken(%s):" % space_id)
+    # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_temporary_token_for_current_user
+    url = "onezone/user/tokens/temporary"
     data = {
-        'name': "Token_for_"+space_name+"_"+str(random.randint(0,10000)),
         'type': {
             "inviteToken": {
                 'inviteType': "supportSpace",
                 'spaceId': space_id
             },
-            'caveats': {
-                'type': "time",
-                # valid for 6 hours (6*60*60)
-                'validUntil': int(time.time()) + 21600,
-            }
-        }
+        },
+        'caveats': [{
+            'type': 'time',
+            'validUntil': int(time.time()) + 120
+        }]
     }
 
     headers = dict({'Content-type': 'application/json'})
     resp = request.post(url, headers=headers, data=json.dumps(data))
-    if resp:
+    if resp.ok:
         return resp.json()
     else:
-        raise BaseException("Response for creating new token failed: " + str(resp.content))
+        Logger.log(4, "Creating temporary token for support space %s failed" % space_id)
 
 def createInviteTokenToGroup(group_id, token_name):
     if Settings.get().TEST: token_name = Settings.get().TEST_PREFIX + token_name
@@ -97,6 +95,7 @@ def createInviteTokenToGroup(group_id, token_name):
                 'inviteType': "userJoinGroup",
                 'groupId': group_id
             },
+        #'privileges': ['group_view', 'group_invite_group', 'group_invite_user', 'group_join_group', 'group_add_user', 'group_view_privileges'],
         'usageLimit': "infinity"
         }
     }

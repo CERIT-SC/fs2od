@@ -30,8 +30,7 @@ def registerSpace(base_path, directory):
 
             # Create a new space
             space_id = spaces.createSpaceForGroup(Settings.get().config['managerGroupId'], dataset_name)
-            # TODO - replace with temporary token
-            support_token = tokens.createNamedTokenForUser(space_id, dataset_name, Settings.get().config['serviceUserId'])
+            support_token = tokens.createTemporarySupportToken(space_id)
             time.sleep(3 * Settings.get().config['sleepFactor'])
 
             if space_id and support_token:
@@ -60,7 +59,6 @@ def registerSpace(base_path, directory):
 
                 # set up space support on the provider
                 spaces.supportSpace(support_token, Settings.get().config['implicitSpaceSize'], storage_id)
-                tokens.deleteNamedToken(support_token['tokenId'])
                 time.sleep(3 * Settings.get().config['sleepFactor'])
 
                 # first import of files to Onedata space
