@@ -36,3 +36,17 @@ def createAndGetShare(name, file_id, description = ""):
     share_id = createShare(name, file_id, description)
     time.sleep(2 * Settings.get().config['sleepFactor'])
     return getShare(share_id)
+
+def updateShare(shid, name = None, description = None):
+    Logger.log(4, "updateShare(%s, %s, %s):" % (shid, name, description))
+    # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/update_share
+    url = "oneprovider/shares/" + shid
+    data = dict()
+    if name is not None: data["name"] = name
+    if description is not None: data["description"] = description
+    if data:
+        headers = dict({'Content-type': 'application/json'})
+        response = request.patch(url, headers=headers, data=json.dumps(data))
+        return response
+    else:
+        Logger.log(3, "no content to update the share %s" % shid)

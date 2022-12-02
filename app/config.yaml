@@ -17,6 +17,9 @@ metadataFileTags:
   publicURL: PublicURL
   inviteToken: InviteToken
 
+# Name of institution importing datasets to Onedata
+institutionName: MUNI ICS
+
 # Prefix off all datasets (spaces, groups, tokens and storages)
 datasetPrefix: ""
 

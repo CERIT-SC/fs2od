@@ -2,6 +2,7 @@ import os
 import time
 import sys
 from pprint import pprint
+from string import Template
 from settings import Settings
 from utils import Logger
 import spaces, storages, metadata, groups, tokens, shares, files, filesystem
@@ -71,8 +72,21 @@ def registerSpace(base_path, directory):
                 files.setFileAttributeRecursive(file_id, Settings.get().config['initialPOSIXlikePermissions'])
 
                 # create public share
-                description = ""
-                share = shares.createAndGetShare(dataset_name, file_id, description)
+                share = shares.createAndGetShare(dataset_name, file_id)
+                if not share:
+                    Logger.log(1, "Share for the space %s not created." % dataset_name)
+                    return
+
+                # add Share description
+                with open('share_description_base.md', 'r') as file:
+                    to_substitute = {
+                        "dataset_name": dataset_name,
+                        "institution_name": Settings.get().config['institutionName'],
+                        "share_file_id": share["rootFileId"],
+                    }
+                    src = Template(file.read())
+                    result = src.substitute(to_substitute)
+                    shares.updateShare(share['shareId'], description=result)
 
                 # write onedata parameter (publicURL) to file
                 filesystem.setValueToYaml(yml_file, yml_content, Settings.get().config['metadataFileTags']['publicURL'], share['publicUrl'])
@@ -84,7 +98,7 @@ def registerSpace(base_path, directory):
                 Logger.log(3, "Processing of %s done." % base_path + os.sep + directory.name)
                 time.sleep(3 * Settings.get().config['sleepFactor'])
             else:
-                Logger.log(1, "Error: Space for %s not created." % directory.name)
+                Logger.log(1, "Space for %s not created." % directory.name)
         else:
             Logger.log(4, "Space for %s not created (spaceId exists in yaml file)." % directory.name)
     else:
