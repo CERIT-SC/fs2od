@@ -10,13 +10,16 @@ Basic dataset details:
 You can browse through the content of the dataset in this web interface in the tab `Files`.
 
 ## Download
- You can run following command to download whole content of the dataset:
+You can run following command to download whole content of the dataset:
 ```
 # get the download script
 wget https://raw.githubusercontent.com/CERIT-SC/onedata-downloader/master/download.py
 
-# download the dataset
-./download.py $share_file_id
+# download the dataset to the current folder
+python3 download.py $share_file_id
+
+# help can be obtain by
+python3 download.py --help
 ```
 or you can run the download script directly from the repository:
 ```
