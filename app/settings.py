@@ -105,6 +105,7 @@ class Settings():
         self._test_existence(self.config['metadataFileTags'], 'publicURL', 'PublicURL')
         self._test_existence(self.config['metadataFileTags'], 'inviteToken', 'InviteToken')
 
+        self._test_existence(self.config, 'institutionName')
         self._test_existence(self.config, 'datasetPrefix', '')
         self._test_existence(self.config, 'importMetadata', True)
 
