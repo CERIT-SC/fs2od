@@ -1,6 +1,5 @@
 import os
 import sys
-from pprint import pprint
 import ruamel.yaml
 
 class Settings():
@@ -39,10 +38,12 @@ class Settings():
                     yaml = ruamel.yaml.YAML(typ='safe')
                     self.config = yaml.load(stream)
                 except Exception as e:
-                    print("Error: exception occured during loading config file", config_file)
+                    print("[Error] exception occured during loading config file", config_file)
                     print(str(e))
                     sys.exit(1)
-                
+
+                self.check_configuration()
+
                 self.debug = self.config["verboseLevel"]
 
                 self.TEST = self.config['testMode']
@@ -70,5 +71,68 @@ class Settings():
                 self.MIN_ONEDATA_NAME_LENGTH = 2
                 self.MAX_ONEDATA_NAME_LENGTH = 50
         else:
-            print("Error: config file %s doesn't exists" % config_file)
+            print("[Error] config file %s doesn't exists" % config_file)
             sys.exit(1)
+
+    @staticmethod
+    def _failed(message):
+        print("[Error] %s" % message)
+        sys.exit(1)
+
+    @staticmethod
+    def _test_existence(dictionary, attribute, default = None):
+        if attribute not in dictionary:
+            if default == None:
+                print("[Error] attribute %s not set in configuration file" % attribute)
+                sys.exit(1)
+            else:
+                dictionary[attribute] = default
+                if not type(attribute) is dict:
+                    print("[Info] no attribute %s in configuration file, using its default value [%s]" % (attribute, default))
+
+    def check_configuration(self):
+        self._test_existence(self.config, 'watchedDirectories')
+        if type(self.config['watchedDirectories']) is not list or len(self.config['watchedDirectories']) < 1:
+            self._failed("no watched directory defined in watchedDirectories")
+
+        self._test_existence(self.config, 'metadataFiles')
+        if type(self.config['metadataFiles']) is not list or len(self.config['metadataFiles']) < 1:
+            self._failed("no metadata file defined in metadataFiles")
+
+        self._test_existence(self.config, 'metadataFileTags', dict())
+        self._test_existence(self.config['metadataFileTags'], 'onedata', 'Onedata')
+        self._test_existence(self.config['metadataFileTags'], 'space', 'Space')
+        self._test_existence(self.config['metadataFileTags'], 'publicURL', 'PublicURL')
+        self._test_existence(self.config['metadataFileTags'], 'inviteToken', 'InviteToken')
+
+        self._test_existence(self.config, 'datasetPrefix', '')
+        self._test_existence(self.config, 'importMetadata', True)
+
+        self._test_existence(self.config, 'verboseLevel', 3)
+        self._test_existence(self.config, 'testMode', False)
+        self._test_existence(self.config, 'testModePrefix', 'test_fs2od')
+        self._test_existence(self.config, 'sleepFactor', 2)
+
+        self._test_existence(self.config, 'continousFileImport', dict())
+        self._test_existence(self.config['continousFileImport'], 'enabled', True)
+        self._test_existence(self.config['continousFileImport'], 'runningFileName', '.running')
+        self._test_existence(self.config['continousFileImport'], 'scanInterval', 10800)
+        self._test_existence(self.config['continousFileImport'], 'detectModifications', False)
+        self._test_existence(self.config['continousFileImport'], 'detectDeletions', False)
+        self._test_existence(self.config['continousFileImport'], 'enabled', True)
+
+        self._test_existence(self.config, 'initialPOSIXlikePermissions', '0775')
+        self._test_existence(self.config, 'userGroupId')
+        self._test_existence(self.config, 'implicitSpaceSize', 10995116277760)
+        self._test_existence(self.config, 'serviceUserId')
+        self._test_existence(self.config, 'managerGroupId')
+
+        self._test_existence(self.config, 'onezone')
+        self._test_existence(self.config['onezone'], 'host')
+        self._test_existence(self.config['onezone'], 'apiToken')
+        self._test_existence(self.config, 'oneprovider')
+        self._test_existence(self.config['oneprovider'], 'host')
+        self._test_existence(self.config['oneprovider'], 'apiToken')
+        self._test_existence(self.config, 'onepanel')
+        self._test_existence(self.config['onepanel'], 'host')
+        self._test_existence(self.config['onepanel'], 'apiToken')
