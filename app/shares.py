@@ -4,8 +4,10 @@ from settings import Settings
 from utils import Logger, Utils
 import request
 
-def createShare(name, file_id, description = ""):
-    if Settings.get().TEST: name = Settings.get().TEST_PREFIX + name
+
+def createShare(name, file_id, description=""):
+    if Settings.get().TEST:
+        name = Settings.get().TEST_PREFIX + name
     Logger.log(4, "createShare(%s, %s, %s)" % (name, file_id, description))
 
     if len(name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:
@@ -16,14 +18,11 @@ def createShare(name, file_id, description = ""):
 
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/create_share
     url = "oneprovider/shares"
-    data = {
-        "name": name,
-        "description": description,
-        "fileId": file_id
-    }
-    headers = dict({'Content-type': 'application/json'})
+    data = {"name": name, "description": description, "fileId": file_id}
+    headers = dict({"Content-type": "application/json"})
     response = request.post(url, headers=headers, data=json.dumps(data))
-    return response.json()['shareId']
+    return response.json()["shareId"]
+
 
 def getShare(share_id):
     Logger.log(4, "getShare(%s):" % share_id)
@@ -32,20 +31,24 @@ def getShare(share_id):
     response = request.get(url)
     return response.json()
 
-def createAndGetShare(name, file_id, description = ""):
+
+def createAndGetShare(name, file_id, description=""):
     share_id = createShare(name, file_id, description)
-    time.sleep(2 * Settings.get().config['sleepFactor'])
+    time.sleep(2 * Settings.get().config["sleepFactor"])
     return getShare(share_id)
 
-def updateShare(shid, name = None, description = None):
+
+def updateShare(shid, name=None, description=None):
     Logger.log(4, "updateShare(%s, %s, %s):" % (shid, name, description))
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/update_share
     url = "oneprovider/shares/" + shid
     data = dict()
-    if name is not None: data["name"] = name
-    if description is not None: data["description"] = description
+    if name is not None:
+        data["name"] = name
+    if description is not None:
+        data["description"] = description
     if data:
-        headers = dict({'Content-type': 'application/json'})
+        headers = dict({"Content-type": "application/json"})
         response = request.patch(url, headers=headers, data=json.dumps(data))
         return response
     else:

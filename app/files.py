@@ -3,6 +3,7 @@ import request
 from settings import Settings
 from utils import Logger
 
+
 def getFileAttributes(file_id):
     """
     Get attributes of file with given file_id.
@@ -13,6 +14,7 @@ def getFileAttributes(file_id):
     response = request.get(url)
     return response.json()
 
+
 def setFileAttribute(file_id, posix_mode):
     """
     Set attributes to directory or file with given file_id. Only POSIX mode can be set up.
@@ -20,42 +22,42 @@ def setFileAttribute(file_id, posix_mode):
     Logger.log(5, "setFileAttribute(%s, %s):" % (file_id, posix_mode))
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/set_attr
     url = "oneprovider/data/" + file_id
-    data = {
-        'mode': posix_mode
-    }
-    headers = dict({'Content-type': 'application/json'})
+    data = {"mode": posix_mode}
+    headers = dict({"Content-type": "application/json"})
     response = request.put(url, headers=headers, data=json.dumps(data))
     return response.ok
 
+
 def setFileAttributeRecursive(file_id, posix_mode):
     """
-    Set attributes to directory or file with given file_id. Only POSIX mode can be set up. 
+    Set attributes to directory or file with given file_id. Only POSIX mode can be set up.
     In case of directory attributes is set to all children.
     """
     attributes = getFileAttributes(file_id)
 
-    if not 'type' in attributes:
+    if not "type" in attributes:
         # in case there is no file in space
         # TODO - could this case happen? Check.
         return
 
-    if attributes['type'] == "dir":
+    if attributes["type"] == "dir":
         # node is directory
-        if attributes['mode'] != posix_mode:
+        if attributes["mode"] != posix_mode:
             # desired posix_mode is different from the actual mode
             # set attribute to directory itself
             setFileAttribute(file_id, posix_mode)
 
         # set attribute to childs
         directory = listDirectory(file_id)
-        for node in directory['children']:
+        for node in directory["children"]:
             # recursive set up attributes to all files in directory
-            setFileAttributeRecursive(node['id'], posix_mode)
+            setFileAttributeRecursive(node["id"], posix_mode)
     else:
         # node is file
-        if attributes['mode'] != posix_mode:
+        if attributes["mode"] != posix_mode:
             # desired posix_mode is different from the actual mode
             setFileAttribute(file_id, posix_mode)
+
 
 def listDirectory(file_id):
     """
@@ -66,6 +68,7 @@ def listDirectory(file_id):
     url = "oneprovider/data/" + file_id + "/children"
     response = request.get(url)
     return response.json()
+
 
 def downloadFileContent(file_id):
     """
@@ -78,9 +81,10 @@ def downloadFileContent(file_id):
     if response.ok:
         return response.content
 
+
 def lookupFileId(path):
     """
-    Return file_id of file with given path in format e.g. 
+    Return file_id of file with given path in format e.g.
     '/MySpace/dir/readme.txt'
     Return None if path doesn't exist.
     """

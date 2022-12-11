@@ -3,6 +3,7 @@ from settings import Settings
 from utils import Logger, Utils
 import request
 
+
 def listEffectiveUserGroups():
     Logger.log(4, "listEffectiveUserGroups():")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/list_effective_user_groups
@@ -10,9 +11,11 @@ def listEffectiveUserGroups():
     response = request.get(url)
     return response.json()["groups"]
 
+
 # not used
 def createGroup(group_name):
-    if Settings.get().TEST: group_name = Settings.get().TEST_PREFIX + group_name
+    if Settings.get().TEST:
+        group_name = Settings.get().TEST_PREFIX + group_name
     Logger.log(4, "createGroup(%s):" % group_name)
 
     if len(group_name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:
@@ -23,11 +26,8 @@ def createGroup(group_name):
 
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_group
     url = "onezone/groups"
-    my_data = {
-        "name": group_name,
-        "type": "team"
-    }
-    headers = dict({'Content-type': 'application/json'})
+    my_data = {"name": group_name, "type": "team"}
+    headers = dict({"Content-type": "application/json"})
     response = request.post(url, headers=headers, data=json.dumps(my_data))
     if response.ok:
         # Should return space ID in Headers
@@ -38,8 +38,10 @@ def createGroup(group_name):
     else:
         Logger.log(1, "Group %s can't be created" % group_name)
 
+
 def createChildGroup(parent_group_id, group_name):
-    if Settings.get().TEST: group_name = Settings.get().TEST_PREFIX + group_name
+    if Settings.get().TEST:
+        group_name = Settings.get().TEST_PREFIX + group_name
     Logger.log(4, "createChildGroup(%s, %s):" % (parent_group_id, group_name))
 
     if len(group_name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:
@@ -50,11 +52,8 @@ def createChildGroup(parent_group_id, group_name):
 
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_child_group
     url = "onezone/groups/" + parent_group_id + "/children"
-    my_data = {
-        "name": group_name,
-        "type": "team"
-    }
-    headers = dict({'Content-type': 'application/json'})
+    my_data = {"name": group_name, "type": "team"}
+    headers = dict({"Content-type": "application/json"})
     response = request.post(url, headers=headers, data=json.dumps(my_data))
     # Should return space ID in Headers
     location = response.headers["Location"]
@@ -62,9 +61,11 @@ def createChildGroup(parent_group_id, group_name):
     Logger.log(3, "Group %s was created with ID %s" % (group_name, group_id))
     return group_id
 
+
 # not used
 def createParentGroup(child_group_id, group_name):
-    if Settings.get().TEST: group_name = Settings.get().TEST_PREFIX + group_name
+    if Settings.get().TEST:
+        group_name = Settings.get().TEST_PREFIX + group_name
     Logger.log(4, "createParentGroup(" + child_group_id + "):")
 
     if len(group_name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:
@@ -75,11 +76,8 @@ def createParentGroup(child_group_id, group_name):
 
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_parent_group
     url = "onezone/groups/" + child_group_id + "/parents"
-    my_data = {
-        "name": group_name,
-        "type": "team"
-    }
-    headers = dict({'Content-type': 'application/json'})
+    my_data = {"name": group_name, "type": "team"}
+    headers = dict({"Content-type": "application/json"})
     response = request.post(url, headers=headers, data=json.dumps(my_data))
     # Should return space ID in Headers
     location = response.headers["Location"]
@@ -87,12 +85,14 @@ def createParentGroup(child_group_id, group_name):
     Logger.log(3, "Group %s was created with ID %s" % (group_name, group_id))
     return group_id
 
+
 def getGroupDetails(group_id):
     Logger.log(4, "getGroupDetails(%s):" % group_id)
-    #https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_group
+    # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_group
     url = "onezone/groups/" + group_id
     response = request.get(url)
     return response.json()
+
 
 def removeGroup(group_id):
     Logger.log(4, "removeGroup(%s):" % group_id)
@@ -100,6 +100,7 @@ def removeGroup(group_id):
     url = "onezone/groups/" + group_id
     response = request.delete(url)
     return response
+
 
 # def addUserToGroup(user_id, group_id):
 #     url = Settings.get().ONEPROVIDER_API_URL + "onezone/groups/" + group_id + "/users/" + user_id

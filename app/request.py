@@ -6,7 +6,8 @@ from utils import Logger
 # HACK - disable warnings when curl can't verify the remote server by its certificate. Fix before production.
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-def process_url(url, headers, oneprovider = None):
+
+def process_url(url, headers, oneprovider=None):
     if "oneprovider/" in url:
         if oneprovider:
             # WIP
@@ -26,16 +27,19 @@ def process_url(url, headers, oneprovider = None):
         return None, None
     return url, headers
 
+
 def response_print(response):
-        if not response.ok:
-            Logger.log(2, "Response isn't ok (response code = %s)" % response.status_code)
+    if not response.ok:
+        Logger.log(2, "Response isn't ok (response code = %s)" % response.status_code)
+
 
 def debug_print(response):
     Logger.log(4, "Response: %s" % response)
-    if response.ok and response.content != b'':
+    if response.ok and response.content != b"":
         Logger.log(5, "Response content:", pretty_print=response.json())
-    elif not response.ok and response.content != b'':
+    elif not response.ok and response.content != b"":
         Logger.log(1, "Response content:", pretty_print=response.json())
+
 
 def get(url, headers=dict()):
     url, headers = process_url(url, headers)
@@ -55,29 +59,33 @@ def get(url, headers=dict()):
     debug_print(response)
     return response
 
+
 def patch(url, headers=dict(), data=dict()):
-    url, headers = process_url(url, headers)    
+    url, headers = process_url(url, headers)
     response = requests.patch(url, headers=headers, data=data, verify=False)
     response_print(response)
     debug_print(response)
     return response
 
+
 def put(url, headers=dict(), data=dict()):
-    url, headers = process_url(url, headers)    
+    url, headers = process_url(url, headers)
     response = requests.put(url, headers=headers, data=data, verify=False)
     response_print(response)
     debug_print(response)
     return response
 
-def post(url, headers=dict(), data=dict(), oneprovider = None):
-    url, headers = process_url(url, headers, oneprovider)    
+
+def post(url, headers=dict(), data=dict(), oneprovider=None):
+    url, headers = process_url(url, headers, oneprovider)
     response = requests.post(url, headers=headers, data=data, verify=False)
     response_print(response)
     debug_print(response)
     return response
 
+
 def delete(url, headers=dict(), data=dict()):
-    url, headers = process_url(url, headers)    
+    url, headers = process_url(url, headers)
     response = requests.delete(url, headers=headers, data=data, verify=False)
     response_print(response)
     debug_print(response)

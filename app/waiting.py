@@ -3,10 +3,10 @@ import datetime
 import time
 
 # get container start time
-container_start = datetime.datetime.strptime(os.environ.get('START_TIME'), '%Y-%m-%dT%H:%M:%S')
+container_start = datetime.datetime.strptime(os.environ.get("START_TIME"), "%Y-%m-%dT%H:%M:%S")
 
 # set up time limit
-limit = datetime.timedelta(seconds=int(os.environ.get('REPEAT_TIME_PERIOD')))
+limit = datetime.timedelta(seconds=int(os.environ.get("REPEAT_TIME_PERIOD")))
 run_time = datetime.datetime.now() - container_start
 
 # compare the uptime time of the container and given limit
