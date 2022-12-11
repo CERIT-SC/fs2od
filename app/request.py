@@ -6,9 +6,14 @@ from utils import Logger
 # HACK - disable warnings when curl can't verify the remote server by its certificate. Fix before production.
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-def process_url(url, headers):
+def process_url(url, headers, oneprovider = None):
     if "oneprovider/" in url:
-        url = Settings.get().ONEPROVIDER_API_URL + url
+        if oneprovider:
+            # WIP
+            url = "https://cesnet-oneprovider-01.datahub.egi.eu/api/v3/" + url, headers
+        else:
+            url = Settings.get().ONEPROVIDER_API_URL + url
+
         headers.update(Settings.get().ONEPROVIDER_AUTH_HEADERS)
     elif "onepanel/" in url:
         url = Settings.get().ONEPANEL_API_URL + url
@@ -64,8 +69,8 @@ def put(url, headers=dict(), data=dict()):
     debug_print(response)
     return response
 
-def post(url, headers=dict(), data=dict()):
-    url, headers = process_url(url, headers)    
+def post(url, headers=dict(), data=dict(), oneprovider = None):
+    url, headers = process_url(url, headers, oneprovider)    
     response = requests.post(url, headers=headers, data=data, verify=False)
     response_print(response)
     debug_print(response)

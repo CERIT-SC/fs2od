@@ -10,14 +10,15 @@ def getTransferStatus(transfer_id):
     response = request.get(url)
     return response.json()
 
-def createTransfer(replicating_provider_id, file_id):
-    Logger.log(4, "createTransfer(%s, %s):" % (replicating_provider_id, file_id))
+# WIP
+def createTransfer(type, replicating_provider_id, file_id, dataSourceType):
+    Logger.log(4, "createTransfer(%s, %s, %s, %s):" % (type, replicating_provider_id, file_id, dataSourceType))
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/create_transfer
     url = "oneprovider/transfers"
     data = {
-        "type": "replication",
+        "type": type,
         "replicatingProviderId": replicating_provider_id,
-        "dataSourceType": "file",
+        "dataSourceType": dataSourceType,
         "fileId": file_id
     }
 
@@ -27,6 +28,10 @@ def createTransfer(replicating_provider_id, file_id):
         return response.json()
     else:
         return response
+
+# WIP
+def createReplicationTransfer(replicating_provider_id, file_id, dataSourceType = "file"):
+    createTransfer("replication", replicating_provider_id, file_id, dataSourceType)
 
 def getFileDistribution(file_id):
     Logger.log(4, "getFileDistribution(%s):" % file_id)
