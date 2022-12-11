@@ -1,10 +1,6 @@
 import requests
-import urllib3
 from settings import Settings
 from utils import Logger
-
-# HACK - disable warnings when curl can't verify the remote server by its certificate. Fix before production.
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def process_url(url, headers, oneprovider=None):
@@ -43,7 +39,7 @@ def debug_print(response):
 
 def get(url, headers=dict()):
     url, headers = process_url(url, headers)
-    response = requests.get(url, headers=headers, verify=False)
+    response = requests.get(url, headers=headers)
     # commented because not ok is sometimes right response
     # timeout_counter = 3
     # while timeout_counter > 0:
@@ -62,7 +58,7 @@ def get(url, headers=dict()):
 
 def patch(url, headers=dict(), data=dict()):
     url, headers = process_url(url, headers)
-    response = requests.patch(url, headers=headers, data=data, verify=False)
+    response = requests.patch(url, headers=headers, data=data)
     response_print(response)
     debug_print(response)
     return response
@@ -70,7 +66,7 @@ def patch(url, headers=dict(), data=dict()):
 
 def put(url, headers=dict(), data=dict()):
     url, headers = process_url(url, headers)
-    response = requests.put(url, headers=headers, data=data, verify=False)
+    response = requests.put(url, headers=headers, data=data)
     response_print(response)
     debug_print(response)
     return response
@@ -78,7 +74,7 @@ def put(url, headers=dict(), data=dict()):
 
 def post(url, headers=dict(), data=dict(), oneprovider=None):
     url, headers = process_url(url, headers, oneprovider)
-    response = requests.post(url, headers=headers, data=data, verify=False)
+    response = requests.post(url, headers=headers, data=data)
     response_print(response)
     debug_print(response)
     return response
@@ -86,7 +82,7 @@ def post(url, headers=dict(), data=dict(), oneprovider=None):
 
 def delete(url, headers=dict(), data=dict()):
     url, headers = process_url(url, headers)
-    response = requests.delete(url, headers=headers, data=data, verify=False)
+    response = requests.delete(url, headers=headers, data=data)
     response_print(response)
     debug_print(response)
     return response
