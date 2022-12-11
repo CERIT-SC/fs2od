@@ -75,7 +75,8 @@ def downloadFileContent(file_id):
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/download_file_content
     url = "oneprovider/data/" + file_id + "/content"
     response = request.get(url)
-    return response.content
+    if response.ok:
+        return response.content
 
 def lookupFileId(path):
     """
