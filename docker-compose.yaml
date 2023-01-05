@@ -21,3 +21,12 @@ services:
       RUN_PERIODICALLY: "true"
       # Number of seconds between two checks
       REPEAT_TIME_PERIOD: 600 
+      # identification of a fs2od instance in Graylog
+      facility: devel
+    logging:
+      # set up logging to Graylog
+      driver: gelf
+      options:
+        gelf-address: "tcp://ip:port"
+        tag: fs2od
+        labels: facility
