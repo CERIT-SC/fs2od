@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from pprint import pprint
 from settings import Settings
 
@@ -33,25 +34,29 @@ class Utils:
 
 class Logger:
     @staticmethod
-    def log(level, message, pretty_print=None):
+    def log(level, message, space_id=None, pretty_print=None):
         """
         Print the message if the global verbose level is equal or greater then the given level.
         """
         if Settings.get().debug >= level:
+            current_datetime = datetime.now()
             prefix = ""
             if level == 1:
-                prefix = "Error"
+                prefix = "error"
             elif level == 2:
-                prefix = "Warning"
+                prefix = "warning"
             elif level == 3:
-                prefix = "Info"
+                prefix = "info"
             elif level == 4:
-                prefix = "Debug"
+                prefix = "debug"
             elif level >= 5:
-                prefix = "Verbose"
+                prefix = "verbose"
 
-            prefix = "[" + prefix + "]"
-            print(prefix, message)
+            # log record parts are divided by single spaces, message (msg) have to be the last part
+            if space_id:
+                print("%s [%s] space=%s msg=%s" % (current_datetime, prefix, space_id, message))
+            else:
+                print("%s [%s] msg=%s" % (current_datetime, prefix, message))
 
             if pretty_print:
                 pprint(pretty_print)

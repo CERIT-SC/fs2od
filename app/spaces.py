@@ -87,7 +87,9 @@ def createSpaceForGroup(group_id, space_name):
     location = response.headers["Location"]
     space_id = location.split("spaces/")[1]
     if space_id:
-        Logger.log(3, "Space %s was created with space ID %s" % (space_name, space_id))
+        Logger.log(
+            3, "Space %s was created with space ID %s" % (space_name, space_id), space_id=space_id
+        )
         return space_id
     else:
         Logger.log(1, "Space %s can't be created" % space_name)
@@ -144,9 +146,11 @@ def setSpaceSize(space_id, size=None):
     headers = dict({"Content-type": "application/json"})
     response = request.patch(url, headers=headers, data=json.dumps(data))
     if response.ok:
-        Logger.log(3, "New size (%s) set for space %s" % (size, space_id))
+        Logger.log(3, "New size (%s) set for space %s" % (size, space_id), space_id=space_id)
     else:
-        Logger.log(2, "New size (%s) can't be set for space %s" % (size, space_id))
+        Logger.log(
+            2, "New size (%s) can't be set for space %s" % (size, space_id), space_id=space_id
+        )
     return response
 
 
@@ -171,7 +175,9 @@ def enableContinuousImport(space_id):
         time.sleep(1 * Settings.get().config["sleepFactor"])
         result = setContinuousImport(space_id, True)
         if result:
-            Logger.log(3, "Continuous import enabled for space with ID %s" % space_id)
+            Logger.log(
+                3, "Continuous import enabled for space with ID %s" % space_id, space_id=space_id
+            )
             # continous import is enabled now
             # force (full) import of files immediately
             startAutoStorageImport(space_id)
@@ -182,7 +188,9 @@ def disableContinuousImport(space_id):
     if getContinuousImportStatus(space_id):
         result = setContinuousImport(space_id, False)
         if result:
-            Logger.log(3, "Continuous import disabled for space with ID %s" % space_id)
+            Logger.log(
+                3, "Continuous import disabled for space with ID %s" % space_id, space_id=space_id
+            )
             time.sleep(1 * Settings.get().config["sleepFactor"])
             # continous import is disabled now
             # force (full) import of files last time
@@ -208,7 +216,11 @@ def getContinuousImportStatus(space_id):
     if space_details["importedStorage"]:
         return space_details["storageImport"]["autoStorageImportConfig"]["continuousScan"]
     else:
-        Logger.log(2, "Imported storage value not available, space %s isn't imported" % space_id)
+        Logger.log(
+            2,
+            "Imported storage value not available, space %s isn't imported" % space_id,
+            space_id=space_id,
+        )
         return None
 
 
@@ -237,9 +249,11 @@ def setContinuousImport(space_id, continuousScanEnabled):
         if response.ok:
             return True
     else:
-        Logger.log(2, "Continuous scan can't be changed for the space %s" % space_id)
+        Logger.log(
+            2, "Continuous scan can't be changed for the space %s" % space_id, space_id=space_id
+        )
         if autoStorageImportInfo != "completed":
-            Logger.log(2, "Import of files is not completed yet")
+            Logger.log(2, "Import of files is not completed yet", space_id=space_id)
         return False
 
 
@@ -264,8 +278,12 @@ def addGroupToSpace(space_id, gid, privileges=None):
     data = {"privileges": privileges}
     response = request.put(url, headers=headers, data=json.dumps(data))
     if response.ok:
-        Logger.log(3, "Space %s was added as member of group %s" % (space_id, gid))
+        Logger.log(
+            3, "Space %s was added as member of group %s" % (space_id, gid), space_id=space_id
+        )
         return response
     else:
-        Logger.log(1, "Space %s wasn't added as member of group %s" % (space_id, gid))
+        Logger.log(
+            1, "Space %s wasn't added as member of group %s" % (space_id, gid), space_id=space_id
+        )
         return response

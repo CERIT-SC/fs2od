@@ -14,8 +14,6 @@ def sandbox(args):
     var1 = args.var1
     var2 = args.var2
     var3 = args.var3
-    print("Run sandbox with variables:")
-    print("var1=%s, var2=%s, var3=%s" % (var1, var2, var3))
-    print("***")
+    Logger.log(3, "Run sandbox with variables:\nvar1=%s, var2=%s, var3=%s" % (var1, var2, var3))
 
     # a specific workflow can be defined here
