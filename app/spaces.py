@@ -117,11 +117,17 @@ def supportSpace(token, size, storage_id):
     }
 
     headers = dict({"Content-type": "application/json"})
-    response = request.post(url, headers=headers, data=json.dumps(data))
-    if response.ok:
-        return response.json()["id"]
-    else:
-        Logger.log(1, "Space support can't' be set on starage ID %s" % storage_id)
+
+    # more attempts to support space
+    attempt = 0
+    while attempt <= 3:
+        response = request.post(url, headers=headers, data=json.dumps(data))
+        attempt += 1
+        if response.ok:
+            return response.json()["id"]
+        else:
+            Logger.log(1, "Space support can't' be set on starage ID %s" % storage_id)
+            time.sleep(3 * Settings.get().config["sleepFactor"])
 
 
 def setSpaceSize(space_id, size=None):
