@@ -14,7 +14,7 @@ def registerSpace(base_path, directory):
     # only directories should be processed
     if not os.path.isdir(full_path):
         Logger.log(
-            1,
+            3,
             "Space can't be created, this isn't directory %s" % base_path + os.sep + directory.name,
         )
         return
@@ -112,7 +112,8 @@ def registerSpace(base_path, directory):
                 if Settings.get().config["importMetadata"]:
                     metadata.setSpaceMetadataFromYaml(space_id)
 
-                Logger.log(3, "Processing of %s done." % base_path + os.sep + directory.name)
+                path = base_path + os.sep + directory.name
+                Logger.log(3, "Processing of %s done." % path)
                 time.sleep(3 * Settings.get().config["sleepFactor"])
             else:
                 Logger.log(1, "Space for %s not created." % directory.name)
@@ -121,7 +122,7 @@ def registerSpace(base_path, directory):
                 4, "Space for %s not created (spaceId exists in yaml file)." % directory.name
             )
     else:
-        Logger.log(2, "Space for %s not created (not contains yaml or no dir)." % directory.name)
+        Logger.log(4, "Space for %s not created (not contains yaml or no dir)." % directory.name)
 
 
 # TODO - WIP
