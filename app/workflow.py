@@ -39,7 +39,7 @@ def registerSpace(base_path, directory):
                 Settings.get().config["managerGroupId"], dataset_name
             )
             support_token = tokens.createTemporarySupportToken(space_id)
-            time.sleep(3 * Settings.get().config["sleepFactor"])
+            time.sleep(1 * Settings.get().config["sleepFactor"])
 
             if space_id and support_token:
                 # Create user group for space
@@ -59,6 +59,11 @@ def registerSpace(base_path, directory):
                 ]
                 spaces.addGroupToSpace(space_id, gid, privileges)
 
+                # set up space support on the provider
+                spaces.supportSpace(
+                    support_token, Settings.get().config["implicitSpaceSize"], storage_id
+                )
+
                 # write onedata parameters (space_id, invite_token) to file
                 yaml_onedata_dict = dict()
                 yaml_onedata_dict[Settings.get().config["metadataFileTags"]["space"]] = space_id
@@ -66,11 +71,6 @@ def registerSpace(base_path, directory):
                     "token"
                 ]
                 filesystem.setValuesToYaml(yml_file, yml_content, yaml_onedata_dict)
-
-                # set up space support on the provider
-                spaces.supportSpace(
-                    support_token, Settings.get().config["implicitSpaceSize"], storage_id
-                )
                 time.sleep(3 * Settings.get().config["sleepFactor"])
 
                 # first import of files to Onedata space
