@@ -2,6 +2,7 @@ image: docker:20.10
 
 stages:
   - prepareImage
+  - prepareImageDevel
 
 variables:
   DOCKER_TLS_CERTDIR: "/certs"
@@ -26,3 +27,12 @@ buildImage:
     - docker push tomsvo/fs2od:latest
   only:
     - master
+
+buildImageDevel:
+  stage: prepareImageDevel
+  script:
+    - docker pull tomsvo/fs2od:devel || true
+    - docker build --cache-from tomsvo/fs2od:devel -t tomsvo/fs2od:devel -f Dockerfile .
+    - docker push tomsvo/fs2od:devel
+  only:
+    - devel
