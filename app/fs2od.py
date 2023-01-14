@@ -32,6 +32,10 @@ def runSandbox(args):
     sandbox.sandbox(args)
 
 
+def runCheck(args):
+    filesystem.scanWatchedDirectories(True)
+
+
 def main():
     parser = argparse.ArgumentParser(description="FS2OD - Filesystem to Onedata importing software")
     parser.add_argument(
@@ -103,6 +107,11 @@ def main():
         help="Variable which will be set up in sandbox.",
     )
     parser_4.set_defaults(func=runSandbox)
+
+    parser_5 = subparsers.add_parser(
+        "check-running", help="Only check and change continous import status"
+    )
+    parser_5.set_defaults(func=runCheck)
 
     args = parser.parse_args()
 

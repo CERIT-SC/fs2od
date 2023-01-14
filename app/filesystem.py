@@ -7,14 +7,14 @@ from utils import Logger
 import spaces, workflow
 
 
-def scanWatchedDirectories():
+def scanWatchedDirectories(only_check=False):
     Logger.log(4, "scanWatchedDirectories():")
 
     for directory in Settings.get().config["watchedDirectories"]:
-        _scanWatchedDirectory(directory)
+        _scanWatchedDirectory(directory, only_check)
 
 
-def _scanWatchedDirectory(base_path):
+def _scanWatchedDirectory(base_path, only_check):
     Logger.log(4, "_scanWatchedDirectory(%s):" % base_path)
     Logger.log(3, "Start processing path %s" % base_path)
 
@@ -22,8 +22,11 @@ def _scanWatchedDirectory(base_path):
         Logger.log(1, "Directory %s can't be processed, it doesn't exist." % base_path)
         return
 
-    # creating of spaces and all related stuff
-    _creatingOfSpaces(base_path)
+    if not only_check:
+        # creating of spaces and all related stuff
+        _creatingOfSpaces(base_path)
+    else:
+        Logger.log(3, "Only check and change continous scan status")
 
     # set continous file import on all spaces
     # TODO, #5 - when config['continousFileImport']['enabled'] is set to False, all import should be stopped
