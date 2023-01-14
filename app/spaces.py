@@ -95,7 +95,7 @@ def createSpaceForGroup(group_id, space_name):
         Logger.log(1, "Space %s can't be created" % space_name)
 
 
-def supportSpace(token, size, storage_id):
+def supportSpace(token, size, storage_id, space_id):
     Logger.log(4, "supportSpace(token, %s, %s)" % (size, storage_id))
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/support_space
     url = "onepanel/provider/spaces"
@@ -126,6 +126,12 @@ def supportSpace(token, size, storage_id):
         if response.ok:
             return response.json()["id"]
         else:
+            time.sleep(3 * Settings.get().config["sleepFactor"])
+            # test if support set up
+            response_space = getSpace(space_id)
+            if len(response_space["providers"]) == 1:
+                Logger.log(2, "First failed, but space support set")
+                return
             Logger.log(1, "Space support can't' be set on starage ID %s" % storage_id)
             time.sleep(3 * Settings.get().config["sleepFactor"])
 

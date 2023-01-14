@@ -58,10 +58,11 @@ def registerSpace(base_path, directory):
                     "space_add_support",
                 ]
                 spaces.addGroupToSpace(space_id, gid, privileges)
+                time.sleep(1 * Settings.get().config["sleepFactor"])
 
                 # set up space support on the provider
                 spaces.supportSpace(
-                    support_token, Settings.get().config["implicitSpaceSize"], storage_id
+                    support_token, Settings.get().config["implicitSpaceSize"], storage_id, space_id
                 )
 
                 # write onedata parameters (space_id, invite_token) to file
