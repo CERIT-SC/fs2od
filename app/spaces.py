@@ -1,5 +1,6 @@
 import json
 import time
+import sys
 from settings import Settings
 from utils import Logger, Utils
 import request, tokens, files, metadata
@@ -117,23 +118,12 @@ def supportSpace(token, size, storage_id, space_id):
     }
 
     headers = dict({"Content-type": "application/json"})
-
-    # more attempts to support space
-    attempt = 0
-    while attempt <= 3:
-        response = request.post(url, headers=headers, data=json.dumps(data))
-        attempt += 1
-        if response.ok:
-            return response.json()["id"]
-        else:
-            time.sleep(3 * Settings.get().config["sleepFactor"])
-            # test if support set up
-            response_space = getSpace(space_id)
-            if len(response_space["providers"]) == 1:
-                Logger.log(2, "First failed, but space support set")
-                return
-            Logger.log(1, "Space support can't' be set on starage ID %s" % storage_id)
-            time.sleep(3 * Settings.get().config["sleepFactor"])
+    response = request.post(url, headers=headers, data=json.dumps(data))
+    if response.ok:
+        return response.json()["id"]
+    else:
+        Logger.log(1, "Space support can't' be set on starage ID %s" % storage_id)
+        sys.exit(1)
 
 
 def setSpaceSize(space_id, size=None):
