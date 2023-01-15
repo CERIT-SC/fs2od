@@ -58,7 +58,7 @@ def registerSpace(base_path, directory):
                     "space_add_support",
                 ]
                 spaces.addGroupToSpace(space_id, gid, privileges)
-                time.sleep(1 * Settings.get().config["sleepFactor"])
+                time.sleep(3 * Settings.get().config["sleepFactor"])
 
                 # set up space support on the provider
                 spaces.supportSpace(
