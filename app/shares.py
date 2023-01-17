@@ -8,7 +8,8 @@ import request
 def createShare(name, file_id, description=""):
     if Settings.get().TEST:
         name = Settings.get().TEST_PREFIX + name
-    Logger.log(4, "createShare(%s, %s, %s)" % (name, file_id, description))
+    Logger.log(4, "createShare(%s, %s, description)" % (name, file_id))
+    Logger.log(5, "description: %s" % description)
 
     if len(name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:
         Logger.log(1, "Too short share name %s." % name)
@@ -39,7 +40,8 @@ def createAndGetShare(name, file_id, description=""):
 
 
 def updateShare(shid, name=None, description=None):
-    Logger.log(4, "updateShare(%s, %s, %s):" % (shid, name, description))
+    Logger.log(4, "updateShare(%s, %s, description)" % (shid, name))
+    Logger.log(5, "description: %s" % description)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/update_share
     url = "oneprovider/shares/" + shid
     data = dict()
