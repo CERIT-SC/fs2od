@@ -4,7 +4,8 @@ import sys
 from pprint import pprint
 from string import Template
 from settings import Settings
-from utils import Logger, isValidOnedataName
+import utils
+from utils import Logger
 import spaces, storages, metadata, groups, tokens, shares, files, filesystem
 
 
@@ -29,7 +30,7 @@ def registerSpace(base_path, directory):
             Logger.log(3, "Creating space from %s" % base_path + os.sep + directory.name)
             dataset_name = Settings.get().config["datasetPrefix"] + directory.name
 
-            if not isValidOnedataName:
+            if not utils.isValidOnedataName:
                 Logger.log(1, "Invalid dataset name %s" % directory.name)
                 return
 
