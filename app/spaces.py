@@ -1,5 +1,6 @@
 import json
 import time
+import sys
 from settings import Settings
 from utils import Logger, Utils
 import request, tokens, files, metadata
@@ -95,7 +96,7 @@ def createSpaceForGroup(group_id, space_name):
         Logger.log(1, "Space %s can't be created" % space_name)
 
 
-def supportSpace(token, size, storage_id):
+def supportSpace(token, size, storage_id, space_id):
     Logger.log(4, "supportSpace(token, %s, %s)" % (size, storage_id))
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/support_space
     url = "onepanel/provider/spaces"
@@ -117,17 +118,12 @@ def supportSpace(token, size, storage_id):
     }
 
     headers = dict({"Content-type": "application/json"})
-
-    # more attempts to support space
-    attempt = 0
-    while attempt <= 3:
-        response = request.post(url, headers=headers, data=json.dumps(data))
-        attempt += 1
-        if response.ok:
-            return response.json()["id"]
-        else:
-            Logger.log(1, "Space support can't' be set on starage ID %s" % storage_id)
-            time.sleep(3 * Settings.get().config["sleepFactor"])
+    response = request.post(url, headers=headers, data=json.dumps(data))
+    if response.ok:
+        return response.json()["id"]
+    else:
+        Logger.log(1, "Space support can't' be set on starage ID %s" % storage_id)
+        sys.exit(1)
 
 
 def setSpaceSize(space_id, size=None):

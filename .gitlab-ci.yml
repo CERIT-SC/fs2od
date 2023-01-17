@@ -2,6 +2,7 @@ image: docker:20.10
 
 stages:
   - prepareImage
+  - prepareImageDevel
 
 variables:
   DOCKER_TLS_CERTDIR: "/certs"
@@ -22,7 +23,16 @@ buildImage:
     # - docker build --cache-from registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest -t registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest -f Dockerfile .
     # - docker push registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest
     - docker pull tomsvo/fs2od:latest || true
-    - docker build --cache-from tomsvo/fs2od:latest -t tomsvo/fs2od:latest -f Dockerfile .
+    - docker build --cache-from tomsvo/fs2od:latest --cache-from tomsvo/fs2od:devel -t tomsvo/fs2od:latest -f Dockerfile .
     - docker push tomsvo/fs2od:latest
   only:
     - master
+
+buildImageDevel:
+  stage: prepareImageDevel
+  script:
+    - docker pull tomsvo/fs2od:devel || true
+    - docker build --cache-from tomsvo/fs2od:devel -t tomsvo/fs2od:devel -f Dockerfile .
+    - docker push tomsvo/fs2od:devel
+  only:
+    - devel
