@@ -45,9 +45,23 @@ def registerSpace(base_path, directory):
 
             if space_id and support_token:
                 # set up space support on the provider
-                spaces.supportSpace(
+                result_support = spaces.supportSpace(
                     support_token, Settings.get().config["implicitSpaceSize"], storage_id, space_id
                 )
+                time.sleep(2 * Settings.get().config["sleepFactor"])
+
+                # HACK
+                if not result_support:
+                    # delete space
+                    spaces.removeSpace(space_id)
+                    time.sleep(2 * Settings.get().config["sleepFactor"])
+
+                    # delete storage
+                    storages.removeStorage(storage_id)
+                    Logger.log(
+                        4, "Space for %s not created (unsucessfull support)." % directory.name
+                    )
+                    return
 
                 # Create user group for space
                 gid = groups.createChildGroup(Settings.get().config["userGroupId"], dataset_name)

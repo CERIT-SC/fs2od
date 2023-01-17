@@ -125,7 +125,7 @@ def supportSpace(token, size, storage_id, space_id):
         return response.json()["id"]
     else:
         Logger.log(1, "Space support can't' be set on starage ID %s" % storage_id)
-        sys.exit(1)
+        return False
 
 
 def setSpaceSize(space_id, size=None):
