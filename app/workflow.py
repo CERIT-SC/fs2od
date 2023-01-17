@@ -38,10 +38,17 @@ def registerSpace(base_path, directory):
             space_id = spaces.createSpaceForGroup(
                 Settings.get().config["managerGroupId"], dataset_name
             )
-            support_token = tokens.createTemporarySupportToken(space_id)
             time.sleep(1 * Settings.get().config["sleepFactor"])
 
+            support_token = tokens.createTemporarySupportToken(space_id)
+            time.sleep(3 * Settings.get().config["sleepFactor"])
+
             if space_id and support_token:
+                # set up space support on the provider
+                spaces.supportSpace(
+                    support_token, Settings.get().config["implicitSpaceSize"], storage_id, space_id
+                )
+
                 # Create user group for space
                 gid = groups.createChildGroup(Settings.get().config["userGroupId"], dataset_name)
                 time.sleep(1 * Settings.get().config["sleepFactor"])
@@ -58,12 +65,7 @@ def registerSpace(base_path, directory):
                     "space_add_support",
                 ]
                 spaces.addGroupToSpace(space_id, gid, privileges)
-                time.sleep(3 * Settings.get().config["sleepFactor"])
-
-                # set up space support on the provider
-                spaces.supportSpace(
-                    support_token, Settings.get().config["implicitSpaceSize"], storage_id, space_id
-                )
+                time.sleep(1 * Settings.get().config["sleepFactor"])
 
                 # write onedata parameters (space_id, invite_token) to file
                 yaml_onedata_dict = dict()

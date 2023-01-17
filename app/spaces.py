@@ -98,6 +98,7 @@ def createSpaceForGroup(group_id, space_name):
 
 def supportSpace(token, size, storage_id, space_id):
     Logger.log(4, "supportSpace(token, %s, %s)" % (size, storage_id))
+    Logger.log(3, "Atempt to set up support to space %s" % space_id)
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/support_space
     url = "onepanel/provider/spaces"
     data = {
@@ -120,6 +121,7 @@ def supportSpace(token, size, storage_id, space_id):
     headers = dict({"Content-type": "application/json"})
     response = request.post(url, headers=headers, data=json.dumps(data))
     if response.ok:
+        Logger.log(3, "Space %s supported by storage %s" % (space_id, storage_id))
         return response.json()["id"]
     else:
         Logger.log(1, "Space support can't' be set on starage ID %s" % storage_id)
