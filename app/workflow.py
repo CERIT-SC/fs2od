@@ -59,7 +59,7 @@ def registerSpace(base_path, directory):
                     # delete storage
                     storages.removeStorage(storage_id)
                     Logger.log(
-                        4, "Space for %s not created (unsucessfull support)." % directory.name
+                        1, "Space for %s not created (unsucessfull support)." % directory.name
                     )
                     return
 
