@@ -69,7 +69,7 @@ def createTemporarySupportToken(space_id):
     if resp.ok:
         return resp.json()
     else:
-        Logger.log(4, "Creating temporary token for support space %s failed" % space_id)
+        Logger.log(1, "Creating temporary token for support space %s failed" % space_id)
 
 
 def createInviteTokenToGroup(group_id, token_name):
