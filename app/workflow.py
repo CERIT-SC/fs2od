@@ -30,7 +30,7 @@ def registerSpace(base_path, directory):
             dataset_name = Settings.get().config["datasetPrefix"] + directory.name
 
             if not Utils.isValidOnedataName(dataset_name):
-                Logger.log(1, "Invalid dataset name %s" % directory.name)
+                Logger.log(2, "Invalid dataset name %s" % directory.name)
                 return
 
             # Create storage for space
