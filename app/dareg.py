@@ -25,6 +25,6 @@ def register_dataset(space_id, name, path, invite_token=None, public_URL=None):
         "invite_token": invite_token,
     }
 
-    response = requests.post(url, headers=headers, data=json.dumps(data), verify=False)
+    response = requests.post(url, headers=headers, data=json.dumps(data))
     response_print(response)
     debug_print(response)
