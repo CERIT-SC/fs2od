@@ -4,7 +4,7 @@ import time
 from pprint import pprint
 from settings import Settings
 from utils import Logger
-import storages, spaces, metadata, tokens, filesystem, groups, shares, files, transfers, request, workflow
+import storages, spaces, metadata, tokens, filesystem, groups, shares, files, transfers, request, workflow, dareg
 
 
 def sandbox(args):

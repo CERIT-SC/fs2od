@@ -87,6 +87,16 @@ serviceUserId: ""
 # Service group identifier
 managerGroupId: ""
 
+## DAREG - Datasets register
+dareg:
+  # Enable storing information about datasets to dareg
+  enabled: False
+  host: ""
+  # Authorization token
+  token: ""
+  # ID of the fs2od instance in dareg
+  origin_instance_pk: 1
+
 # REST API access (hostnames and tokens) to Onedata services
 onezone:
   host: ""

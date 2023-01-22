@@ -138,6 +138,12 @@ class Settings:
         self._test_existence(self.config, "serviceUserId")
         self._test_existence(self.config, "managerGroupId")
 
+        self._test_existence(self.config, "dareg", dict())
+        self._test_existence(self.config["dareg"], "enabled", False)
+        self._test_existence(self.config["dareg"], "host", "https://dareg.example.com")
+        self._test_existence(self.config["dareg"], "token", "a_secret_token")
+        self._test_existence(self.config["dareg"], "origin_instance_pk", 1)
+
         self._test_existence(self.config, "onezone")
         self._test_existence(self.config["onezone"], "host")
         self._test_existence(self.config["onezone"], "apiToken")
