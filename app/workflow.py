@@ -5,7 +5,7 @@ from pprint import pprint
 from string import Template
 from settings import Settings
 from utils import Logger, Utils
-import spaces, storages, metadata, groups, tokens, shares, files, filesystem
+import spaces, storages, metadata, groups, tokens, shares, files, filesystem, dareg
 
 
 def registerSpace(base_path, directory):
@@ -33,18 +33,24 @@ def registerSpace(base_path, directory):
                 Logger.log(2, "Invalid dataset name %s" % directory.name)
                 return
 
-            # Create storage for space
-            storage_id = storages.createAndGetStorage(
-                dataset_name, os.path.join(base_path, directory.name)
-            )
-
             # Create a new space
             space_id = spaces.createSpaceForGroup(
                 Settings.get().config["managerGroupId"], dataset_name
             )
+            if Settings.get().config["dareg"]["enabled"] and space_id:
+                dareg_dataset_id = dareg.register_dataset(space_id, dataset_name, base_path)
+
             time.sleep(1 * Settings.get().config["sleepFactor"])
 
+            # Create support token
             support_token = tokens.createTemporarySupportToken(space_id)
+
+            # Create storage for the space
+            storage_id = storages.createAndGetStorage(
+                dataset_name, os.path.join(base_path, directory.name)
+            )
+            if Settings.get().config["dareg"]["enabled"] and storage_id:
+                dareg.log(dareg_dataset_id, "info", "created storage %s" % storage_id)
             time.sleep(3 * Settings.get().config["sleepFactor"])
 
             if space_id and support_token:
@@ -54,6 +60,8 @@ def registerSpace(base_path, directory):
                 )
                 time.sleep(2 * Settings.get().config["sleepFactor"])
 
+                if Settings.get().config["dareg"]["enabled"] and result_support:
+                    dareg.log(dareg_dataset_id, "info", "supported")
                 # HACK
                 if not result_support:
                     # delete space
@@ -65,14 +73,20 @@ def registerSpace(base_path, directory):
                     Logger.log(
                         1, "Space for %s not created (unsucessfull support)." % directory.name
                     )
+                    if Settings.get().config["dareg"]["enabled"] and result_support:
+                        dareg.log(dareg_dataset_id, "error", "removed")
                     return
 
                 # Create user group for space
                 gid = groups.createChildGroup(Settings.get().config["userGroupId"], dataset_name)
+                if Settings.get().config["dareg"]["enabled"] and gid:
+                    dareg.log(dareg_dataset_id, "info", "created group %s" % gid)
                 time.sleep(1 * Settings.get().config["sleepFactor"])
 
                 # Create invite token for the user group
                 token = tokens.createInviteTokenToGroup(gid, dataset_name)
+                if Settings.get().config["dareg"]["enabled"] and token:
+                    dareg.log(dareg_dataset_id, "info", "created invite token")
                 time.sleep(1 * Settings.get().config["sleepFactor"])
 
                 # add the space to the user group
@@ -83,6 +97,9 @@ def registerSpace(base_path, directory):
                     "space_add_support",
                 ]
                 spaces.addGroupToSpace(space_id, gid, privileges)
+                # TODO - test result
+                if Settings.get().config["dareg"]["enabled"] and True:
+                    dareg.log(dareg_dataset_id, "info", "group added to space")
                 time.sleep(1 * Settings.get().config["sleepFactor"])
 
                 # write onedata parameters (space_id, invite_token) to file
@@ -110,6 +127,9 @@ def registerSpace(base_path, directory):
                     Logger.log(1, "Share for the space %s not created." % dataset_name)
                     return
 
+                if Settings.get().config["dareg"]["enabled"]:
+                    dareg.update_dataset(dareg_dataset_id, token["token"], share["shareId"])
+
                 # add Share description
                 with open("share_description_base.md", "r") as file:
                     to_substitute = {
@@ -135,6 +155,8 @@ def registerSpace(base_path, directory):
 
                 path = base_path + os.sep + directory.name
                 Logger.log(3, "Processing of %s done." % path)
+                if Settings.get().config["dareg"]["enabled"]:
+                    dareg.log(dareg_dataset_id, "info", "processing done")
                 time.sleep(3 * Settings.get().config["sleepFactor"])
             else:
                 Logger.log(1, "Space for %s not created." % directory.name)
