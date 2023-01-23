@@ -28,15 +28,13 @@ def register_dataset(space_id, name, path, invite_token=None, public_URL=None):
     response = requests.post(url, headers=headers, data=json.dumps(data))
     response_print(response)
     debug_print(response)
-    # return ID of the new dataset
-    return response.json()["pk"]
 
 
-def update_dataset(dareg_dataset_id, invite_token=None, public_URL=None):
+def update_dataset(space_id, invite_token=None, public_URL=None):
     """
     Update the dataset.
     """
-    url = Settings.get().config["dareg"]["host"] + "/datasets/" + str(dareg_dataset_id) + "/"
+    url = Settings.get().config["dareg"]["host"] + "/datasets/" + space_id + "/"
     headers = {
         "Authorization": "Token " + Settings.get().config["dareg"]["token"],
         "Content-type": "application/json",
@@ -52,7 +50,7 @@ def update_dataset(dareg_dataset_id, invite_token=None, public_URL=None):
     debug_print(response)
 
 
-def log(dareg_dataset_id, type, message):
+def log(space_id, type, message):
     """
     Log a record to dataset.
     """
@@ -62,10 +60,7 @@ def log(dareg_dataset_id, type, message):
         "Content-type": "application/json",
     }
     data = {
-        "dataset": Settings.get().config["dareg"]["host"]
-        + "/datasets/"
-        + str(dareg_dataset_id)
-        + "/",
+        "dataset": Settings.get().config["dareg"]["host"] + "/datasets/" + space_id + "/",
         "type": type,
         "message": message,
     }

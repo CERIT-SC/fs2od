@@ -3,7 +3,7 @@ import time
 import sys
 from settings import Settings
 from utils import Logger, Utils
-import request, tokens, files, metadata
+import request, tokens, files, metadata, dareg
 
 """
 Minimal size of a space. Smaller size cause "badValueTooLow" error on Oneprovder. 
@@ -162,6 +162,7 @@ def setSpaceSize(space_id, size=None):
     response = request.patch(url, headers=headers, data=json.dumps(data))
     if response.ok:
         Logger.log(3, "New size (%s) set for space %s" % (size, space_id), space_id=space_id)
+        dareg.log(space_id, "info", "set new size %s" % size)
     else:
         Logger.log(
             2, "New size (%s) can't be set for space %s" % (size, space_id), space_id=space_id
@@ -193,6 +194,7 @@ def enableContinuousImport(space_id):
             Logger.log(
                 3, "Continuous import enabled for space with ID %s" % space_id, space_id=space_id
             )
+            dareg.log(space_id, "info", "continuous scan enabled")
             # continous import is enabled now
             # force (full) import of files immediately
             time.sleep(1 * Settings.get().config["sleepFactor"])
@@ -207,6 +209,7 @@ def disableContinuousImport(space_id):
             Logger.log(
                 3, "Continuous import disabled for space with ID %s" % space_id, space_id=space_id
             )
+            dareg.log(space_id, "info", "continuous scan disabled")
             time.sleep(1 * Settings.get().config["sleepFactor"])
             # continous import is disabled now
             # force (full) import of files last time
