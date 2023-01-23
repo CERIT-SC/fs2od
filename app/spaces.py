@@ -121,11 +121,22 @@ def supportSpace(token, size, storage_id, space_id):
     headers = dict({"Content-type": "application/json"})
     response = request.post(url, headers=headers, data=json.dumps(data))
     if response.ok:
-        Logger.log(3, "Space %s supported by storage %s" % (space_id, storage_id))
+        Logger.log(3, "Support of space %s successfully set on storage %s" % (space_id, storage_id))
         return response.json()["id"]
     else:
-        Logger.log(1, "Space support can't' be set on starage ID %s" % storage_id)
+        Logger.log(1, "Space support can't be set on storage %s" % storage_id)
         return False
+
+
+def revokeSpaceSupport(space_id):
+    Logger.log(4, "revokeSpaceSupport(%s):" % space_id)
+    # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/revoke_space_support
+    url = "onepanel/provider/spaces/" + space_id
+    response = request.delete(url)
+    if response.ok:
+        Logger.log(3, "Space %s support revoked" % space_id)
+    else:
+        Logger.log(1, "Error when revoking space %s support" % space_id)
 
 
 def setSpaceSize(space_id, size=None):
@@ -184,6 +195,7 @@ def enableContinuousImport(space_id):
             )
             # continous import is enabled now
             # force (full) import of files immediately
+            time.sleep(1 * Settings.get().config["sleepFactor"])
             startAutoStorageImport(space_id)
 
 
