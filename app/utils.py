@@ -12,9 +12,9 @@ class Utils:
         """
         name = name[0 : Settings.get().MAX_ONEDATA_NAME_LENGTH]
         name = name.replace("+", "_")
+        name = name.replace("@", "_")
         return name
 
-    # not used
     @staticmethod
     def isValidOnedataName(name):
         """

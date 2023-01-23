@@ -3,7 +3,7 @@ import time
 import sys
 from settings import Settings
 from utils import Logger, Utils
-import request, tokens, files, metadata
+import request, tokens, files, metadata, dareg
 
 """
 Minimal size of a space. Smaller size cause "badValueTooLow" error on Oneprovder. 
@@ -98,6 +98,7 @@ def createSpaceForGroup(group_id, space_name):
 
 def supportSpace(token, size, storage_id, space_id):
     Logger.log(4, "supportSpace(token, %s, %s)" % (size, storage_id))
+    Logger.log(3, "Atempt to set up support to space %s" % space_id)
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/support_space
     url = "onepanel/provider/spaces"
     data = {
@@ -120,10 +121,22 @@ def supportSpace(token, size, storage_id, space_id):
     headers = dict({"Content-type": "application/json"})
     response = request.post(url, headers=headers, data=json.dumps(data))
     if response.ok:
+        Logger.log(3, "Support of space %s successfully set on storage %s" % (space_id, storage_id))
         return response.json()["id"]
     else:
-        Logger.log(1, "Space support can't' be set on starage ID %s" % storage_id)
-        sys.exit(1)
+        Logger.log(1, "Space support can't be set on storage %s" % storage_id)
+        return False
+
+
+def revokeSpaceSupport(space_id):
+    Logger.log(4, "revokeSpaceSupport(%s):" % space_id)
+    # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/revoke_space_support
+    url = "onepanel/provider/spaces/" + space_id
+    response = request.delete(url)
+    if response.ok:
+        Logger.log(3, "Space %s support revoked" % space_id)
+    else:
+        Logger.log(1, "Error when revoking space %s support" % space_id)
 
 
 def setSpaceSize(space_id, size=None):
@@ -149,6 +162,7 @@ def setSpaceSize(space_id, size=None):
     response = request.patch(url, headers=headers, data=json.dumps(data))
     if response.ok:
         Logger.log(3, "New size (%s) set for space %s" % (size, space_id), space_id=space_id)
+        dareg.log(space_id, "info", "set new size %s" % size)
     else:
         Logger.log(
             2, "New size (%s) can't be set for space %s" % (size, space_id), space_id=space_id
@@ -180,8 +194,10 @@ def enableContinuousImport(space_id):
             Logger.log(
                 3, "Continuous import enabled for space with ID %s" % space_id, space_id=space_id
             )
+            dareg.log(space_id, "info", "continuous scan enabled")
             # continous import is enabled now
             # force (full) import of files immediately
+            time.sleep(1 * Settings.get().config["sleepFactor"])
             startAutoStorageImport(space_id)
 
 
@@ -193,6 +209,7 @@ def disableContinuousImport(space_id):
             Logger.log(
                 3, "Continuous import disabled for space with ID %s" % space_id, space_id=space_id
             )
+            dareg.log(space_id, "info", "continuous scan disabled")
             time.sleep(1 * Settings.get().config["sleepFactor"])
             # continous import is disabled now
             # force (full) import of files last time
