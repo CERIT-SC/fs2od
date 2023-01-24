@@ -31,7 +31,12 @@ def registerSpace(base_path, directory):
 
             if not Utils.isValidOnedataName(dataset_name):
                 Logger.log(2, "Invalid dataset name %s" % directory.name)
-                return
+                # try clear the name
+                dataset_name = Utils.clearOnedataName(dataset_name)
+                # and test it again
+                if not Utils.isValidOnedataName(dataset_name):
+                    Logger.log(2, "Dataset name %s can't be cleared" % directory.name)
+                    return
 
             # Create a new space
             space_id = spaces.createSpaceForGroup(
