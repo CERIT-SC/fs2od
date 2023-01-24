@@ -1,4 +1,5 @@
 import re
+import uuid
 from datetime import datetime
 from pprint import pprint
 from settings import Settings
@@ -30,6 +31,15 @@ class Utils:
                 return True
 
         return False
+
+    @staticmethod
+    def create_uuid(length):
+        """
+        Return random uuid with given length (up to 32 characters).
+        """
+        if length > 32:
+            raise ValueError("Length must be max 32 chars")
+        return uuid.uuid4().hex[:length]
 
 
 class Logger:
