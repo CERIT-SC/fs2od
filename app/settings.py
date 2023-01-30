@@ -161,10 +161,16 @@ class Settings:
 
         self._test_existence(self.config, "onezone")
         self._test_existence(self.config["onezone"], "host")
+        # test if http/s
+        self.config["onezone"]["host"] = self._add_protocol_to_host_if_missing(self.config["onezone"]["host"])
         self._test_existence(self.config["onezone"], "apiToken")
         self._test_existence(self.config, "oneprovider")
         self._test_existence(self.config["oneprovider"], "host")
+        # test if http/s
+        self.config["oneprovider"]["host"] = self._add_protocol_to_host_if_missing(self.config["oneprovider"]["host"])
         self._test_existence(self.config["oneprovider"], "apiToken")
         self._test_existence(self.config, "onepanel")
         self._test_existence(self.config["onepanel"], "host")
+        # test if http/s
+        self.config["onepanel"]["host"] = self._add_protocol_to_host_if_missing(self.config["onepanel"]["host"])
         self._test_existence(self.config["onepanel"], "apiToken")
