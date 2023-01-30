@@ -3,7 +3,7 @@ import time
 import sys
 from settings import Settings
 from utils import Logger
-import spaces, storages, groups, request, tokens
+import spaces, storages, groups, request, tokens, oneprovider, onezone
 
 
 def safetyNotice(message):
@@ -97,26 +97,32 @@ def deleteAllTestGroups(prefix):
 
 def _testOnezone():
     Logger.log(4, "_testOnezone():")
-    # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_configuration
-    url = "onezone/configuration"
-    response = request.get(url)
-    # test if a attribute exists
-    if "build" in response.json():
-        return 0
-    else:
+    # test noauth request, test if an attribute exists
+    if not "build" in onezone.getConfiguration():
+        Logger.log(1, "Onezone didn't return its configuration.")
         return 1
+
+    # test auth request
+    if "error" in onezone.getCurrentUserDetails():
+        Logger.log(1, "Onezone didn't respond to auth request.")
+        return 2
+
+    return 0
 
 
 def _testOneprovider():
     Logger.log(4, "_testOneprovider():")
-    # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_configuration
-    url = "oneprovider/configuration"
-    response = request.get(url)
-    # test if a attribute exists
-    if "build" in response.json():
-        return 0
-    else:
+    # test noauth request, test if an attribute exists
+    if not "build" in oneprovider.getConfiguration():
+        Logger.log(1, "Oneprovider doesn't return its configuration.")
+        return 1
+
+    # test auth request
+    if "error" in spaces.getSpaces():
+        Logger.log(1, "Oneprovider doesn't respond to auth request.")
         return 2
+
+    return 0
 
 
 def testConnection():
@@ -124,13 +130,9 @@ def testConnection():
     result = result + _testOneprovider()
 
     if result == 0:
-        Logger.log(3, "Onezone and Oneprovider exist.")
-    elif result == 1:
-        Logger.log(1, "Onezone doesn't exist.")
-    elif result == 2:
-        Logger.log(1, "Oneprovider doesn't exist.")
-    elif result == 3:
-        Logger.log(1, "Onezone and Oneprovider don't exist.")
+        Logger.log(3, "Onezone and Oneprovider exist and respond.")
+    else:
+        Logger.log(1, "Error when communicating with Onezone and Oneprovider.")
     return result
 
 
