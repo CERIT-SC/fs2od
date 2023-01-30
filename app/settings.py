@@ -1,6 +1,7 @@
 import os
 import sys
 import ruamel.yaml
+from urllib.parse import urlparse
 
 
 class Settings:
@@ -97,6 +98,26 @@ class Settings:
                         % (attribute, default)
                     )
 
+    @staticmethod
+    def _add_protocol_to_host_if_missing(host: str, allowed_protocols: tuple = ("https", "http")) -> str:
+        """
+        Adds a protocol to the host url if missing. If no or not allowed protocol used, replaces with first available.
+        """
+        assert len(allowed_protocols) > 0, "There must be at least one allowed protocol"
+
+        host_object = urlparse(host)
+        # test actual protocol
+        if host_object.scheme not in allowed_protocols:
+            host_object = host_object._replace(scheme=allowed_protocols[0])
+            # when protocol missing, it parses as path, not network address
+            host_object = host_object._replace(netloc=host_object.path)
+            host_object = host_object._replace(path="")
+
+        # return to string
+        host = host_object.geturl()
+
+        return host
+
     def check_configuration(self):
         self._test_existence(self.config, "watchedDirectories")
         if (
@@ -146,10 +167,16 @@ class Settings:
 
         self._test_existence(self.config, "onezone")
         self._test_existence(self.config["onezone"], "host")
+        # test if http/s
+        self.config["onezone"]["host"] = self._add_protocol_to_host_if_missing(self.config["onezone"]["host"])
         self._test_existence(self.config["onezone"], "apiToken")
         self._test_existence(self.config, "oneprovider")
         self._test_existence(self.config["oneprovider"], "host")
+        # test if http/s
+        self.config["oneprovider"]["host"] = self._add_protocol_to_host_if_missing(self.config["oneprovider"]["host"])
         self._test_existence(self.config["oneprovider"], "apiToken")
         self._test_existence(self.config, "onepanel")
         self._test_existence(self.config["onepanel"], "host")
+        # test if http/s
+        self.config["onepanel"]["host"] = self._add_protocol_to_host_if_missing(self.config["onepanel"]["host"])
         self._test_existence(self.config["onepanel"], "apiToken")
