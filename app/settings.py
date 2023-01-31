@@ -186,5 +186,6 @@ class Settings:
         # if there are supporters, they must have host and token
         for item in self.config["supportingProviders"]:
             self._test_existence(item, "host")
+            # using python mutability and list referencing
+            item["host"] = self._add_protocol_to_host_if_missing(item["host"])
             self._test_existence(item, "apiToken")
-
