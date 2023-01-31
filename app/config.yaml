@@ -107,3 +107,18 @@ oneprovider:
 onepanel: 
   host: ""
   apiToken: ""
+
+## Setting data replication between possible spaces supporters
+dataReplication:
+  #
+  enabled: true
+  # Number of servers to which it will be copied, source not counted
+  numberOfCopies: 1
+  # List of providers
+  supportingProviders:
+    -
+      host: ""
+      apiToken: ""
+    #-
+    #  host: ""
+    #  apiToken: ""
