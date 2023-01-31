@@ -185,11 +185,21 @@ class Settings:
         self.config["onepanel"]["host"] = self._add_protocol_to_host_if_missing(self.config["onepanel"]["host"])
         self._test_existence(self.config["onepanel"], "apiToken")
 
+        self._test_existence(self.config, "dataReplication", dict())
+        self._test_existence(self.config["dataReplication"], "enabled", False)
         # list of dicts
-        self._test_existence(self.config, "supportingProviders", list())
+        self._test_existence(self.config["dataReplication"], "supportingProviders", list())
         # if there are supporters, they must have host and token
-        for item in self.config["supportingProviders"]:
+        for item in self.config["dataReplication"]["supportingProviders"]:
             self._test_existence(item, "host")
             # using python mutability and list referencing
             item["host"] = self._add_protocol_to_host_if_missing(item["host"])
             self._test_existence(item, "apiToken")
+        self._test_existence(self.config["dataReplication"], "numberOfCopies", 0)
+
+        number_of_providers = len(self.config["dataReplication"]["supportingProviders"])
+        number_of_copies = self.config["dataReplication"]["numberOfCopies"]
+        if number_of_copies > number_of_providers:
+            self._info(f"Number of copies is higher than number of providers "
+                       f"({number_of_copies} > {number_of_providers}). Decrasing to maximum possible.")
+            self.config["dataReplication"]["numberOfCopies"] = number_of_providers
