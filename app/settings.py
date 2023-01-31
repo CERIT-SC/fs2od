@@ -201,5 +201,5 @@ class Settings:
         number_of_copies = self.config["dataReplication"]["numberOfCopies"]
         if number_of_copies > number_of_providers:
             self._info(f"Number of copies is higher than number of providers "
-                       f"({number_of_copies} > {number_of_providers}). Decrasing to maximum possible.")
+                       f"({number_of_copies} > {number_of_providers}). Decreasing to maximum possible.")
             self.config["dataReplication"]["numberOfCopies"] = number_of_providers
