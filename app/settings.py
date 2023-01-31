@@ -180,3 +180,11 @@ class Settings:
         # test if http/s
         self.config["onepanel"]["host"] = self._add_protocol_to_host_if_missing(self.config["onepanel"]["host"])
         self._test_existence(self.config["onepanel"], "apiToken")
+
+        # list of dicts
+        self._test_existence(self.config, "supportingProviders", list())
+        # if there are supporters, they must have host and token
+        for item in self.config["supportingProviders"]:
+            self._test_existence(item, "host")
+            self._test_existence(item, "apiToken")
+
