@@ -85,6 +85,10 @@ class Settings:
         sys.exit(1)
 
     @staticmethod
+    def _info(message: str) -> None:
+        print(f"[Info] {message}")
+
+    @staticmethod
     def _test_existence(dictionary, attribute, default=None):
         if attribute not in dictionary:
             if default == None:
@@ -93,8 +97,8 @@ class Settings:
             else:
                 dictionary[attribute] = default
                 if not type(attribute) is dict:
-                    print(
-                        "[Info] no attribute %s in configuration file, using its default value [%s]"
+                    Settings._info(
+                        "no attribute %s in configuration file, using its default value [%s]"
                         % (attribute, default)
                     )
 
