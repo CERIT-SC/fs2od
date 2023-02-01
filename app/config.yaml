@@ -114,11 +114,15 @@ dataReplication:
   enabled: true
   # Number of servers to which it will be copied, source not counted
   numberOfCopies: 1
+  # all supporting providers will support this
+  managerSpaceId: ""
   # List of providers
   supportingProviders:
     -
       host: ""
       apiToken: ""
+      onepanelApiToken: ""
     #-
     #  host: ""
     #  apiToken: ""
+    #  onepanelApiToken: ""

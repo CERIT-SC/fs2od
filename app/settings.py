@@ -82,6 +82,11 @@ class Settings:
                 ]
                 self.ONEPANEL_AUTH_HEADERS = {"x-auth-token": self.ONEPANEL_API_KEY}
 
+                self.ONEPANELS_AUTH_HEADERS: list = [self.ONEPANEL_AUTH_HEADERS] + [
+                    {"x-auth-token": provider["onepanelApiToken"]}
+                    for provider in self.config["dataReplication"]["supportingProviders"]
+                ]
+
                 self.DATA_REPLICATION_ENABLED: bool = self.config["dataReplication"]["enabled"]
 
                 # Onedata name must be 2-50 characters long
@@ -199,6 +204,7 @@ class Settings:
 
         self._test_existence(self.config, "dataReplication", dict())
         self._test_existence(self.config["dataReplication"], "enabled", False)
+        self._test_existence(self.config["dataReplication"], "managerSpaceId")
         # list of dicts
         self._test_existence(self.config["dataReplication"], "supportingProviders", list())
         # if there are supporters, they must have host and token
@@ -207,6 +213,7 @@ class Settings:
             # using python mutability and list referencing
             item["host"] = self._add_protocol_to_host_if_missing(item["host"])
             self._test_existence(item, "apiToken")
+            self._test_existence(item, "onepanelApiToken")
         self._test_existence(self.config["dataReplication"], "numberOfCopies", 0)
 
         number_of_providers = len(self.config["dataReplication"]["supportingProviders"])
