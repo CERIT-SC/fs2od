@@ -12,10 +12,10 @@ Minimal size of a space. Smaller size cause "badValueTooLow" error on Oneprovder
 MINIMAL_SPACE_SIZE = 1048576
 
 
-def getSpaces():
+def getSpaces(order: int = 0):
     Logger.log(4, "getSpaces():")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_all_spaces
-    url = "oneprovider/spaces"
+    url = f"oneprovider/spaces[{order}]"
     response = request.get(url)
     return response.json()
 
