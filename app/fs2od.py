@@ -25,7 +25,7 @@ def runTestRegisterSpace(args):
 
 
 def runTestConnection(args):
-    test.testConnection()
+    test.testConnection(of_each_host=True)
 
 
 def runSandbox(args):

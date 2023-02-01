@@ -82,6 +82,8 @@ class Settings:
                 ]
                 self.ONEPANEL_AUTH_HEADERS = {"x-auth-token": self.ONEPANEL_API_KEY}
 
+                self.DATA_REPLICATION_ENABLED: bool = self.config["dataReplication"]["enabled"]
+
                 # Onedata name must be 2-50 characters long
                 self.MIN_ONEDATA_NAME_LENGTH = 2
                 self.MAX_ONEDATA_NAME_LENGTH = 50

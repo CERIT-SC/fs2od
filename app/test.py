@@ -125,14 +125,20 @@ def _testOneprovider(order: int = 0):
     return 0
 
 
-def _testOneproviders() -> tuple:
+def _testOneproviders(every_provider: bool = True) -> tuple:
+    """
+    Tests communication with each of provided Oneproviders
+    """
     # defining two characteristic vectors (binary) - one for noauth request one for auth request
     # because there is a need to check them separately, ternary vector would do the job too
     # order of bits is reversed in the final vector
     vector_noauth = 0
     vector_auth = 0
 
-    for index in range(len(Settings.get().ONEPROVIDERS_API_URL)):
+    # do not want to test if replication is off
+    provider_count = 1 if not every_provider else len(Settings.get().ONEPROVIDERS_API_URL)
+
+    for index in range(provider_count):
         result = _testOneprovider(index)
         # if 1, it will set 1, if 2 or 0, it will stay as is
         vector_noauth |= (result & 1)
@@ -146,10 +152,10 @@ def _testOneproviders() -> tuple:
     return vector_noauth, vector_auth
 
 
-def testConnection():
+def testConnection(of_each_host: bool = False):
     result = _testOnezone()
     # not using yet, discarding
-    noauth, auth = _testOneproviders()
+    noauth, auth = _testOneproviders(of_each_host)
     result = result + noauth + auth
 
     if result == 0:
