@@ -65,11 +65,21 @@ class Settings:
                 self.ONEPANEL_API_KEY = self.config["onepanel"]["apiToken"]
 
                 self.ONEZONE_API_URL = self.ONEZONE_HOST + "/api/v3/"
-                self.ONEPROVIDER_API_URL = self.ONEPROVIDER_HOST + "/api/v3/"
+                self.ONEPROVIDER_API_URL: str = self.ONEPROVIDER_HOST + "/api/v3/"
+                self.ONEPROVIDERS_API_URL: list = [self.ONEPROVIDER_API_URL] + [
+                    provider["host"] + "/api/v3/"
+                    for provider in self.config["dataReplication"]["supportingProviders"]
+                ]
                 self.ONEPANEL_API_URL = self.ONEPANEL_HOST + "/api/v3/"
 
                 self.ONEZONE_AUTH_HEADERS = {"x-auth-token": self.ONEZONE_API_KEY}
-                self.ONEPROVIDER_AUTH_HEADERS = {"x-auth-token": self.ONEPROVIDER_API_KEY}
+                self.ONEPROVIDER_AUTH_HEADERS: dict = {"x-auth-token": self.ONEPROVIDER_API_KEY}
+
+                # all authentication headers for oneproviders in one place
+                self.ONEPROVIDERS_AUTH_HEADERS: list = [self.ONEPROVIDER_AUTH_HEADERS] + [
+                    {"x-auth-token": provider["apiToken"]}
+                    for provider in self.config["dataReplication"]["supportingProviders"]
+                ]
                 self.ONEPANEL_AUTH_HEADERS = {"x-auth-token": self.ONEPANEL_API_KEY}
 
                 # Onedata name must be 2-50 characters long
