@@ -3,7 +3,7 @@ import time
 import sys
 from settings import Settings
 from utils import Logger
-import spaces, storages, groups, request, tokens, oneprovider, onezone
+import spaces, storages, groups, request, tokens, oneprovider, onezone, dareg
 
 
 def safetyNotice(message):
@@ -136,7 +136,9 @@ def _testOneproviders(every_provider: bool = True) -> tuple:
     vector_auth = 0
 
     # do not want to test if replication is off
-    provider_count = 1 if not every_provider else len(Settings.get().ONEPROVIDERS_API_URL)
+    provider_count = len(Settings.get().ONEPROVIDERS_API_URL) if \
+        every_provider or Settings.get().DATA_REPLICATION_ENABLED \
+        else 1
 
     for index in range(provider_count):
         result = _testOneprovider(index)
@@ -152,16 +154,34 @@ def _testOneproviders(every_provider: bool = True) -> tuple:
     return vector_noauth, vector_auth
 
 
+def _test_dareg(even_if_disabled: bool = False) -> int:
+    Logger.log(4, f"_test_dareg():")
+    if not even_if_disabled and not Settings.get().DAREG_ENABLED:
+        return 0
+
+    if dareg.get_index() == b"":
+        Logger.log(1, f"DAREG does not return any answer.")
+        return 1
+
+    # TODO: check auth
+    return 0
+
+
+
 def testConnection(of_each_host: bool = False):
+    # testing Onezone
     result = _testOnezone()
-    # not using yet, discarding
+    # testing Oneprovider(s)
     noauth, auth = _testOneproviders(of_each_host)
+    # not using yet, discarding
     result = result + noauth + auth
+    # testing DAREG
+    result += _test_dareg(of_each_host)
 
     if result == 0:
-        Logger.log(3, "Onezone and Oneprovider exist and respond.")
+        Logger.log(3, "Onezone, Oneprovider and DAREG, if enabled, exist and respond.")
     else:
-        Logger.log(1, "Error when communicating with Onezone and Oneprovider.")
+        Logger.log(1, "Error when communicating with Onezone, Oneprovider or DAREG.")
     return result
 
 

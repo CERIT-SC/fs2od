@@ -68,3 +68,17 @@ def log(space_id, type, message):
     response = requests.post(url, headers=headers, data=json.dumps(data))
     response_print(response)
     debug_print(response)
+
+
+def get_index() -> bytes:
+    # TODO: change to get congig, something in json
+    """
+    Get index only for checking if online.
+    """
+    url = Settings.get().config["dareg"]["host"]
+    response = requests.get(url)
+    print(response.text)
+
+    response_print(response)
+
+    return response.content
