@@ -88,6 +88,7 @@ class Settings:
                 ]
 
                 self.DATA_REPLICATION_ENABLED: bool = self.config["dataReplication"]["enabled"]
+                self.DAREG_ENABLED: bool = self.config["dareg"]["enabled"]
 
                 # Onedata name must be 2-50 characters long
                 self.MIN_ONEDATA_NAME_LENGTH = 2
@@ -183,6 +184,8 @@ class Settings:
         self._test_existence(self.config, "dareg", dict())
         self._test_existence(self.config["dareg"], "enabled", False)
         self._test_existence(self.config["dareg"], "host", "https://dareg.example.com")
+        # test if http/s
+        self.config["dareg"]["host"] = self._add_protocol_to_host_if_missing(self.config["dareg"]["host"])
         self._test_existence(self.config["dareg"], "token", "a_secret_token")
         self._test_existence(self.config["dareg"], "origin_instance_pk", 1)
 
