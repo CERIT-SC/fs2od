@@ -3,15 +3,23 @@ from settings import Settings
 from utils import Logger
 
 
-def process_url(url, headers, oneprovider=None):
+def process_url(url: str, headers, oneprovider=None):
     if "oneprovider/" in url:
+        order = 0
         if oneprovider:
             # WIP
             url = "https://cesnet-oneprovider-01.datahub.egi.eu/api/v3/" + url, headers
         else:
-            url = Settings.get().ONEPROVIDER_API_URL + url
+            if "[" in url and "]" in url:
+                order_index_start = url.index("[")
+                order_index_end = url.index("]")
 
-        headers.update(Settings.get().ONEPROVIDER_AUTH_HEADERS)
+                order = int(url[order_index_start + 1:order_index_end])
+                url = url[:order_index_start] + url[order_index_end + 1:]
+
+            url = Settings.get().ONEPROVIDERS_API_URL[order] + url
+
+        headers.update(Settings.get().ONEPROVIDERS_AUTH_HEADERS[order])
     elif "onepanel/" in url:
         url = Settings.get().ONEPANEL_API_URL + url
         headers.update(Settings.get().ONEPANEL_AUTH_HEADERS)
