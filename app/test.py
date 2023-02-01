@@ -110,24 +110,47 @@ def _testOnezone():
     return 0
 
 
-def _testOneprovider():
-    Logger.log(4, "_testOneprovider():")
+def _testOneprovider(order: int = 0):
+    Logger.log(4, f"_testOneprovider(order={order}):")
     # test noauth request, test if an attribute exists
-    if not "build" in oneprovider.getConfiguration():
-        Logger.log(1, "Oneprovider doesn't return its configuration.")
+    if "build" not in oneprovider.getConfiguration(order):
+        Logger.log(1, f"Oneprovider doesn't return its configuration. (order={order})")
         return 1
 
     # test auth request
-    if "error" in spaces.getSpaces():
+    if "error" in spaces.getSpaces(order):
         Logger.log(1, "Oneprovider doesn't respond to auth request.")
         return 2
 
     return 0
 
 
+def _testOneproviders() -> tuple:
+    # defining two characteristic vectors (binary) - one for noauth request one for auth request
+    # because there is a need to check them separately, ternary vector would do the job too
+    # order of bits is reversed in the final vector
+    vector_noauth = 0
+    vector_auth = 0
+
+    for index in range(len(Settings.get().ONEPROVIDERS_API_URL)):
+        result = _testOneprovider(index)
+        # if 1, it will set 1, if 2 or 0, it will stay as is
+        vector_noauth |= (result & 1)
+        result >>= 1
+        # if was 2, now will set to 1
+        vector_auth |= result
+        # shifting for the next iteration
+        vector_noauth <<= 1
+        vector_auth <<= 1
+
+    return vector_noauth, vector_auth
+
+
 def testConnection():
     result = _testOnezone()
-    result = result + _testOneprovider()
+    # not using yet, discarding
+    noauth, auth = _testOneproviders()
+    result = result + noauth + auth
 
     if result == 0:
         Logger.log(3, "Onezone and Oneprovider exist and respond.")
