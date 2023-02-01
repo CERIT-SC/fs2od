@@ -9,6 +9,7 @@ import filesystem, test, sandbox
 
 
 def runScan(args):
+    test.testConnection(of_each_host=False)
     filesystem.scanWatchedDirectories()
 
 
