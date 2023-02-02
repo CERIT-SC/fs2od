@@ -217,6 +217,10 @@ class Settings:
             item["host"] = self._add_protocol_to_host_if_missing(item["host"])
             self._test_existence(item, "apiToken")
             self._test_existence(item, "onepanelApiToken")
+            self._test_existence(item, "storageIds")
+
+            if len(item["storageIds"]) == 0:
+                self._failed("storage IDs not provided")
         self._test_existence(self.config["dataReplication"], "numberOfCopies", 0)
 
         number_of_providers = len(self.config["dataReplication"]["supportingProviders"])

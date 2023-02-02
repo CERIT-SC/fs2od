@@ -122,7 +122,13 @@ dataReplication:
       host: ""
       apiToken: ""
       onepanelApiToken: ""
+      storageIds:
+        - ""
+        # - ""
     #-
     #  host: ""
     #  apiToken: ""
     #  onepanelApiToken: ""
+    #    storageIds:
+    #      - ""
+    #      - ""
