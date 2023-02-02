@@ -96,11 +96,13 @@ def createSpaceForGroup(group_id, space_name):
         Logger.log(1, "Space %s can't be created" % space_name)
 
 
-def supportSpace(token, size, storage_id, space_id):
+def supportSpace(token, size, storage_id, space_id, **kwargs):
+    space_index = kwargs.get("space_index", 0)
+
     Logger.log(4, "supportSpace(token, %s, %s)" % (size, storage_id))
     Logger.log(3, "Atempt to set up support to space %s" % space_id)
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/support_space
-    url = "onepanel/provider/spaces"
+    url = f"onepanel/provider/spaces[{space_index}]"
     data = {
         "token": token["token"],
         "size": size,

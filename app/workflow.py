@@ -8,6 +8,25 @@ from utils import Logger, Utils
 import spaces, storages, metadata, groups, tokens, shares, files, filesystem, dareg
 
 
+def _get_storage_index(space_id: str, number_of_available_storages: int) -> int:
+    # converting from base 18
+    space_id_int = int(space_id, 18)
+
+    return space_id_int % number_of_available_storages
+
+def _add_support_from_all(support_token, space_id):
+    supporting_providers = Settings.get().config["dataReplication"]["supportingProviders"]
+    for index in range(len(supporting_providers)):
+        print(index)
+
+        storage_ids = supporting_providers[index]["storageIds"]
+        storage_id = storage_ids[_get_storage_index(space_id, len(storage_ids))]
+
+        spaces.supportSpace(
+            support_token, Settings.get().config["implicitSpaceSize"], storage_id, space_id, space_index=index + 1
+        )
+
+
 def registerSpace(base_path, directory):
     full_path = base_path + os.sep + directory.name
 
@@ -67,6 +86,11 @@ def registerSpace(base_path, directory):
 
                 if Settings.get().config["dareg"]["enabled"] and result_support:
                     dareg.log(space_id, "info", "supported")
+
+                print("DATA REPLICATION ENABLED", Settings.get().DATA_REPLICATION_ENABLED)
+                if Settings.get().DATA_REPLICATION_ENABLED:
+                    _add_support_from_all(support_token, space_id)
+
                 # HACK
                 if not result_support:
                     # delete space
