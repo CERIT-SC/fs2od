@@ -22,9 +22,13 @@ def _add_support_from_all(support_token, space_id):
         storage_ids = supporting_providers[index]["storageIds"]
         storage_id = storage_ids[_get_storage_index(space_id, len(storage_ids))]
 
-        spaces.supportSpace(
+        result_support = spaces.supportSpace(
             support_token, Settings.get().config["implicitSpaceSize"], storage_id, space_id, space_index=index + 1
         )
+        time.sleep(2 * Settings.get().config["sleepFactor"])
+
+        if Settings.get().config["dareg"]["enabled"] and result_support:
+            dareg.log(space_id, "info", "supported")
 
 
 def registerSpace(base_path, directory):

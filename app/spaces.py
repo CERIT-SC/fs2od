@@ -157,18 +157,24 @@ def setSpaceSize(space_id, size=None):
         Logger.log(3, "Space size fixed (%s -> %s)" % (size, MINIMAL_SPACE_SIZE))
         size = MINIMAL_SPACE_SIZE
 
-    # based on https://onedata.org/#/home/api/stable/onepanel?anchor=operation/modify_space
-    url = "onepanel/provider/spaces/" + space_id
-    data = {"size": size}
-    headers = dict({"Content-type": "application/json"})
-    response = request.patch(url, headers=headers, data=json.dumps(data))
-    if response.ok:
-        Logger.log(3, "New size (%s) set for space %s" % (size, space_id), space_id=space_id)
-        dareg.log(space_id, "info", "set new size %s" % size)
-    else:
-        Logger.log(
-            2, "New size (%s) can't be set for space %s" % (size, space_id), space_id=space_id
-        )
+    last_oneprovider = 1 if not Settings.get().DATA_REPLICATION_ENABLED else len(Settings.get().ONEPANELS_AUTH_HEADERS)
+
+    # goes down because response of provider 0 is important
+    for index in range(last_oneprovider - 1, -1, -1):
+        # based on https://onedata.org/#/home/api/stable/onepanel?anchor=operation/modify_space
+        url = f"onepanel/provider/spaces/[{index}]" + space_id
+        data = {"size": size}
+        headers = dict({"Content-type": "application/json"})
+        response = request.patch(url, headers=headers, data=json.dumps(data))
+        if response.ok:
+            # Logger.log(3, "New size (%s) set for space %s" % (size, space_id), space_id=space_id)
+            Logger.log(3, "New size (%s) set for storage of provider %s in space %s" % (size, index, space_id), space_id=space_id)
+            # dareg.log(space_id, "info", "set new size %s" % size)
+            dareg.log(space_id, "info", "set new size %s for storage of provider %s" % (size, index))
+        else:
+            Logger.log(
+                2, "New size (%s) can't be set for storage of provider %s of space %s" % (size, index, space_id), space_id=space_id
+            )
     return response
 
 
