@@ -88,6 +88,7 @@ class Settings:
                 ]
 
                 self.DATA_REPLICATION_ENABLED: bool = self.config["dataReplication"]["enabled"]
+                self.DATA_REPLICATION_COPIES: bool = self.config["dataReplication"]["numberOfCopies"]
                 self.DAREG_ENABLED: bool = self.config["dareg"]["enabled"]
 
                 # Onedata name must be 2-50 characters long
