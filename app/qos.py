@@ -1,13 +1,13 @@
 import request, spaces
 from utils import Logger
 import json
-def add_qos_to_space(space_id: str, replicas_number: int) -> str:
+def add_qos_to_space(space_id: str, expression: str, replicas_number: int) -> str:
     Logger.log(4, "add_qos_to_space(%s):" % space_id)
     space_info = spaces.getSpace(space_id)
 
     file_id = space_info["fileId"]
 
-    response = add_qos_to_file(file_id, "anyStorage", replicas_number)
+    response = add_qos_to_file(file_id, expression, replicas_number)
 
     return response["qosRequirementId"]
 
