@@ -55,6 +55,7 @@ def _creatingOfSpaces(base_path):
     Logger.log(4, "_creatingOfSpaces(%s):" % base_path)
     sub_dirs = os.scandir(path=base_path)
     # TODO - add condition to process only directories (no files)
+    # TODO - registering space with the same name after folder removed and added again
     for directory in sub_dirs:
         workflow.registerSpace(base_path, directory)
 
