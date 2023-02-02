@@ -54,6 +54,11 @@ def log(space_id, type, message):
     """
     Log a record to dataset.
     """
+
+    # TODO: Patch: not checking if dareg enabled
+    if not Settings.get().DAREG_ENABLED:
+        return
+
     url = Settings.get().config["dareg"]["host"] + "/logs/"
     headers = {
         "Authorization": "Token " + Settings.get().config["dareg"]["token"],
