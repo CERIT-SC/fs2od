@@ -7,11 +7,7 @@ def add_qos_to_space(space_id: str, expression: str, replicas_number: int) -> st
 
     file_id = space_info["fileId"]
 
-    response = add_qos_to_file(file_id, expression, replicas_number)
-
-    return response["qosRequirementId"]
-
-def add_qos_to_file(file_id: str, expression: str, replicas_number: int) -> dict:
+def add_requirement(file_id: str, expression: str, replicas_number: int) -> dict:
     Logger.log(4, "add_qos_to_file(%s):" % file_id)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/add_qos_requirement
     url = "oneprovider/qos_requirements"
