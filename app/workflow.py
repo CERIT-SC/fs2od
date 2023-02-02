@@ -30,7 +30,9 @@ def _add_support_from_all(support_token, space_id):
 
 
 def _add_qos_requirement(space_id: str, replicas_number: int):
-    requirement_id = qos.add_qos_to_space(space_id, "anyStorage", replicas_number)
+    file_id = spaces.getSpace(space_id)["fileId"]
+
+    requirement_id = qos.add_requirement(file_id, "anyStorage", replicas_number)
     if requirement_id:
         Logger.log(
             3,
