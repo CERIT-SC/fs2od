@@ -4,8 +4,9 @@ from utils import Logger
 
 
 def process_url(url: str, headers, oneprovider=None):
-    if "oneprovider/" in url:
-        order = 0
+    order = 0
+    if "oneprovider/" in url or "onepanel/" in url:
+        # url of Oneprovider and Onepanel should be the same
         if oneprovider:
             # WIP
             url = "https://cesnet-oneprovider-01.datahub.egi.eu/api/v3/" + url, headers
@@ -16,13 +17,12 @@ def process_url(url: str, headers, oneprovider=None):
 
                 order = int(url[order_index_start + 1:order_index_end])
                 url = url[:order_index_start] + url[order_index_end + 1:]
-
             url = Settings.get().ONEPROVIDERS_API_URL[order] + url
 
+    if "oneprovider/" in url:
         headers.update(Settings.get().ONEPROVIDERS_AUTH_HEADERS[order])
     elif "onepanel/" in url:
-        url = Settings.get().ONEPANEL_API_URL + url
-        headers.update(Settings.get().ONEPANEL_AUTH_HEADERS)
+        headers.update(Settings.get().ONEPANELS_AUTH_HEADERS[order])
     elif "onezone/" in url:
         url = Settings.get().ONEZONE_API_URL + url
         headers.update(Settings.get().ONEZONE_AUTH_HEADERS)
