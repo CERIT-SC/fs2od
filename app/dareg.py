@@ -27,7 +27,6 @@ def register_dataset(space_id, name, path, invite_token=None, public_URL=None):
 
     response = requests.post(url, headers=headers, data=json.dumps(data))
     response_print(response)
-    debug_print(response)
 
 
 def update_dataset(space_id, invite_token=None, public_URL=None):
@@ -47,7 +46,6 @@ def update_dataset(space_id, invite_token=None, public_URL=None):
 
     response = requests.patch(url, headers=headers, data=json.dumps(data))
     response_print(response)
-    debug_print(response)
 
 
 def log(space_id, type, message):
@@ -72,7 +70,6 @@ def log(space_id, type, message):
 
     response = requests.post(url, headers=headers, data=json.dumps(data))
     response_print(response)
-    debug_print(response)
 
 
 def get_index() -> bytes:
