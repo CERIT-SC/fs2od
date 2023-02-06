@@ -42,16 +42,16 @@ def _add_qos_requirement(space_id: str, replicas_number: int):
     """
     file_id = spaces.getSpace(space_id)["fileId"]
 
-    requirement_id = qos.add_requirement(file_id, "anyStorage", replicas_number)
+    requirement_id = qos.add_requirement(file_id, "anyStorage", replicas_number)["qosRequirementId"]
     if requirement_id:
         Logger.log(
             3,
-            "QOS requirement %s was created for space %s with %s replicas" % (space_id, requirement_id, replicas_number)
+            "QoS requirement %s was created for space %s with %s replicas" % (space_id, requirement_id, replicas_number)
         )
     else:
         Logger.log(
             1,
-            "QOS requirement could not be created for space %s" % space_id
+            "QoS requirement could not be created for space %s" % space_id
         )
 
 
@@ -77,9 +77,9 @@ def registerSpace(base_path, directory):
             dataset_name = Settings.get().config["datasetPrefix"] + directory.name
 
             if not Utils.isValidOnedataName(dataset_name):
-                Logger.log(2, "Invalid dataset name %s" % directory.name)
                 # try clear the name
                 dataset_name = Utils.clearOnedataName(dataset_name)
+                Logger.log(2, "Invalid dataset name %s. Renamed to %s" % (directory.name, dataset_name))
                 # and test it again
                 if not Utils.isValidOnedataName(dataset_name):
                     Logger.log(2, "Dataset name %s can't be cleared" % directory.name)
