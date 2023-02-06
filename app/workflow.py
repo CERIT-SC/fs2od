@@ -107,7 +107,7 @@ def registerSpace(base_path, directory):
 
                 if Settings.get().DATA_REPLICATION_ENABLED:
                     Logger.log(
-                        3, "Data replication is enabled, adding storages to space %s" % space_id
+                        3, "Setting up replication of space %s" % space_id
                     )
                     _add_support_from_all(support_token, space_id)
                     _add_qos_requirement(space_id, Settings.get().DATA_REPLICATION_REPLICAS)
