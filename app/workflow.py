@@ -9,12 +9,19 @@ import spaces, storages, metadata, groups, tokens, shares, files, filesystem, da
 
 
 def _get_storage_index(space_id: str, number_of_available_storages: int) -> int:
+    """
+    Returns index of storage which will support the space.
+    List of available storages of Oneproviders is provided in config.yml
+    """
     # converting from base 18
     space_id_int = int(space_id, 18)
 
     return space_id_int % number_of_available_storages
 
-def _add_support_from_all(support_token, space_id):
+def _add_support_from_all(support_token: str, space_id: str) -> None:
+    """
+    Iterates through each of the supporting providers and adds their support to space.
+    """
     supporting_providers = Settings.get().config["dataReplication"]["supportingProviders"]
     for index in range(len(supporting_providers)):
         storage_ids = supporting_providers[index]["storageIds"]
@@ -30,6 +37,9 @@ def _add_support_from_all(support_token, space_id):
 
 
 def _add_qos_requirement(space_id: str, replicas_number: int):
+    """
+    Adds Quality of Service requirement to replicate any storage to whole space.
+    """
     file_id = spaces.getSpace(space_id)["fileId"]
 
     requirement_id = qos.add_requirement(file_id, "anyStorage", replicas_number)
