@@ -3,7 +3,7 @@ from utils import Logger
 import json
 
 def add_requirement(file_id: str, expression: str, replicas_number: int) -> dict:
-    Logger.log(4, "add_qos_to_file(%s):" % file_id)
+    Logger.log(4, "add_requirement(%s):" % file_id)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/add_qos_requirement
     url = "oneprovider/qos_requirements"
     data = {
@@ -18,7 +18,7 @@ def add_requirement(file_id: str, expression: str, replicas_number: int) -> dict
     return resp.json()
 
 def get_all_requirements(file_id: str) -> dict:
-    Logger.log(4, "get_all_qos_requirements_of_file(%s):" % file_id)
+    Logger.log(4, "get_all_requirements(%s):" % file_id)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_file_qos_summary
     url = "oneprovider/data/" + file_id + "/qos_summary"
     resp = request.get(url)
@@ -35,7 +35,7 @@ def delete_requirement(requirement_id: str) -> bool:
     return resp.status_code == 204
 
 
-def delete_all_requirements_of_file(file_id: str) -> bool:
+def delete_all_requirements(file_id: str) -> bool:
     Logger.log(4, "delete_all_requirements(%s):" % file_id)
     requirements = get_all_requirements(file_id)
 
