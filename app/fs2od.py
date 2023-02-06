@@ -9,7 +9,7 @@ import filesystem, test, sandbox
 
 
 def runScan(args):
-    test.testConnection(of_each_host=False)
+    test.testConnection(of_each_oneprovider=False)
     filesystem.scanWatchedDirectories()
 
 
@@ -26,7 +26,7 @@ def runTestRegisterSpace(args):
 
 
 def runTestConnection(args):
-    test.testConnection(of_each_host=True)
+    test.testConnection(of_each_oneprovider=True)
 
 
 def runSandbox(args):

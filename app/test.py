@@ -154,9 +154,9 @@ def _testOneproviders(every_provider: bool = True) -> tuple:
     return vector_noauth, vector_auth
 
 
-def _test_dareg(even_if_disabled: bool = False) -> int:
+def _test_dareg() -> int:
     Logger.log(4, f"_test_dareg():")
-    if not even_if_disabled and not Settings.get().DAREG_ENABLED:
+    if not Settings.get().DAREG_ENABLED:
         return 0
 
     if dareg.get_index() == b"":
@@ -168,15 +168,16 @@ def _test_dareg(even_if_disabled: bool = False) -> int:
 
 
 
-def testConnection(of_each_host: bool = False):
+def testConnection(of_each_oneprovider: bool = False):
     # testing Onezone
     result = _testOnezone()
     # testing Oneprovider(s)
-    noauth, auth = _testOneproviders(of_each_host)
+    noauth, auth = _testOneproviders(of_each_oneprovider)
     # not using yet, discarding
     result = result + noauth + auth
     # testing DAREG
-    result += _test_dareg(of_each_host)
+    if of_each_oneprovider:
+        result += _test_dareg()
 
     if result == 0:
         Logger.log(3, "Onezone, Oneprovider and DAREG, if enabled, exist and respond.")
