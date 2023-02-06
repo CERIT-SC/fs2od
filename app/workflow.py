@@ -110,7 +110,7 @@ def registerSpace(base_path, directory):
                         3, "Data replication is enabled, adding storages to space %s" % space_id
                     )
                     _add_support_from_all(support_token, space_id)
-                    _add_qos_requirement(space_id, Settings.get().DATA_REPLICATION_COPIES + 1)
+                    _add_qos_requirement(space_id, Settings.get().DATA_REPLICATION_REPLICAS)
 
                 # HACK
                 if not result_support:

@@ -88,7 +88,7 @@ class Settings:
                 ]
 
                 self.DATA_REPLICATION_ENABLED: bool = self.config["dataReplication"]["enabled"]
-                self.DATA_REPLICATION_COPIES: bool = self.config["dataReplication"]["numberOfCopies"]
+                self.DATA_REPLICATION_REPLICAS: bool = self.config["dataReplication"]["numberOfReplicas"]
                 self.DAREG_ENABLED: bool = self.config["dareg"]["enabled"]
 
                 # Onedata name must be 2-50 characters long
@@ -222,11 +222,11 @@ class Settings:
 
             if len(item["storageIds"]) == 0:
                 self._failed("storage IDs not provided")
-        self._test_existence(self.config["dataReplication"], "numberOfCopies", 0)
+        self._test_existence(self.config["dataReplication"], "numberOfReplicas", 1)
 
-        number_of_providers = len(self.config["dataReplication"]["supportingProviders"])
-        number_of_copies = self.config["dataReplication"]["numberOfCopies"]
-        if number_of_copies > number_of_providers:
-            self._info(f"Number of copies is higher than number of providers "
-                       f"({number_of_copies} > {number_of_providers}). Decreasing to maximum possible.")
-            self.config["dataReplication"]["numberOfCopies"] = number_of_providers
+        number_of_providers = len(self.config["dataReplication"]["supportingProviders"]) + 1
+        number_of_replicas = self.config["dataReplication"]["numberOfReplicas"]
+        if number_of_replicas > number_of_providers:
+            self._info(f"Number of replicas is higher than number of providers "
+                       f"({number_of_replicas} > {number_of_providers}). Decreasing to maximum possible.")
+            self.config["dataReplication"]["numberOfReplicas"] = number_of_providers

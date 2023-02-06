@@ -112,8 +112,8 @@ onepanel:
 dataReplication:
   #
   enabled: true
-  # Number of servers to which it will be copied, source not counted
-  numberOfCopies: 1
+  # Number of servers to which it will be replicated, source included
+  numberOfReplicas: 2
   # all supporting providers will support this
   managerSpaceId: ""
   # List of providers
