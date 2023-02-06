@@ -16,7 +16,9 @@ def _get_storage_index(space_id: str, number_of_available_storages: int) -> int:
     # converting from base 18
     space_id_int = int(space_id, 18)
 
-    return space_id_int % number_of_available_storages
+    # using division remainder causes uniform distribution between storages
+    storage_index = space_id_int % number_of_available_storages
+    return storage_index
 
 def _add_support_from_all(support_token: str, space_id: str) -> None:
     """
