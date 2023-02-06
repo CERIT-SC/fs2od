@@ -32,7 +32,7 @@ def process_url(url: str, headers, oneprovider=None):
     return url, headers
 
 
-def response_print(response, ok_statuses: tuple = tuple()):
+def response_print(response, ok_statuses: tuple = tuple()) -> None:
     if not response.ok and response.status_code not in ok_statuses:
         Logger.log(2, "Response isn't ok (response code = %s)" % response.status_code)
     debug_print(response, ok_statuses)
@@ -82,10 +82,10 @@ def put(url, headers=dict(), data=dict()):
     return response
 
 
-def post(url, headers=dict(), data=dict(), oneprovider=None):
+def post(url, headers=dict(), data=dict(), oneprovider=None, ok_statuses: tuple = tuple()):
     url, headers = process_url(url, headers, oneprovider)
     response = requests.post(url, headers=headers, data=data)
-    response_print(response)
+    response_print(response, ok_statuses)
     return response
 
 
