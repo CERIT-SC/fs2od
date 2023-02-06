@@ -3,26 +3,19 @@ from settings import Settings
 from utils import Logger
 
 
-def process_url(url: str, headers, oneprovider=None):
-    order = 0
+def process_url(url: str, headers, oneprovider_index: int = 0):
     if "oneprovider/" in url or "onepanel/" in url:
         # url of Oneprovider and Onepanel should be the same
-        if oneprovider:
-            # WIP
-            url = "https://cesnet-oneprovider-01.datahub.egi.eu/api/v3/" + url, headers
-        else:
-            if "[" in url and "]" in url:
-                order_index_start = url.index("[")
-                order_index_end = url.index("]")
+        # if oneprovider_index:
+        #     # WIP
+        #     url = "https://cesnet-oneprovider-01.datahub.egi.eu/api/v3/" + url, headers
 
-                order = int(url[order_index_start + 1:order_index_end])
-                url = url[:order_index_start] + url[order_index_end + 1:]
-            url = Settings.get().ONEPROVIDERS_API_URL[order] + url
+        url = Settings.get().ONEPROVIDERS_API_URL[oneprovider_index] + url
 
     if "oneprovider/" in url:
-        headers.update(Settings.get().ONEPROVIDERS_AUTH_HEADERS[order])
+        headers.update(Settings.get().ONEPROVIDERS_AUTH_HEADERS[oneprovider_index])
     elif "onepanel/" in url:
-        headers.update(Settings.get().ONEPANELS_AUTH_HEADERS[order])
+        headers.update(Settings.get().ONEPANELS_AUTH_HEADERS[oneprovider_index])
     elif "onezone/" in url:
         url = Settings.get().ONEZONE_API_URL + url
         headers.update(Settings.get().ONEZONE_AUTH_HEADERS)
@@ -50,8 +43,8 @@ def debug_print(response, ok_statuses: tuple = tuple()) -> None:
         Logger.log(1, "Response content:", pretty_print=response.json())
 
 
-def get(url, headers=dict(), ok_statuses: tuple = tuple()):
-    url, headers = process_url(url, headers)
+def get(url, headers=dict(), ok_statuses: tuple = tuple(), oneprovider_index: int = 0):
+    url, headers = process_url(url, headers, oneprovider_index=oneprovider_index)
     response = requests.get(url, headers=headers)
     # commented because not ok is sometimes right response
     # timeout_counter = 3
@@ -68,29 +61,29 @@ def get(url, headers=dict(), ok_statuses: tuple = tuple()):
     return response
 
 
-def patch(url, headers=dict(), data=dict()):
-    url, headers = process_url(url, headers)
+def patch(url, headers=dict(), data=dict(), oneprovider_index: int = 0):
+    url, headers = process_url(url, headers, oneprovider_index=oneprovider_index)
     response = requests.patch(url, headers=headers, data=data)
     response_print(response)
     return response
 
 
-def put(url, headers=dict(), data=dict()):
-    url, headers = process_url(url, headers)
+def put(url, headers=dict(), data=dict(), oneprovider_index: int = 0):
+    url, headers = process_url(url, headers, oneprovider_index=oneprovider_index)
     response = requests.put(url, headers=headers, data=data)
     response_print(response)
     return response
 
 
-def post(url, headers=dict(), data=dict(), oneprovider=None, ok_statuses: tuple = tuple()):
-    url, headers = process_url(url, headers, oneprovider)
+def post(url, headers=dict(), data=dict(), oneprovider_index: int = 0, ok_statuses: tuple = tuple()):
+    url, headers = process_url(url, headers, oneprovider_index=oneprovider_index)
     response = requests.post(url, headers=headers, data=data)
     response_print(response, ok_statuses)
     return response
 
 
-def delete(url, headers=dict(), data=dict()):
-    url, headers = process_url(url, headers)
+def delete(url, headers=dict(), data=dict(), oneprovider_index: int = 0):
+    url, headers = process_url(url, headers, oneprovider_index=oneprovider_index)
     response = requests.delete(url, headers=headers, data=data)
     response_print(response)
     return response

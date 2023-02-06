@@ -30,7 +30,7 @@ def _add_support_from_all(support_token: str, space_id: str) -> None:
         storage_id = storage_ids[_get_storage_index(space_id, len(storage_ids))]
 
         result_support = spaces.supportSpace(
-            support_token, Settings.get().config["implicitSpaceSize"], storage_id, space_id, space_index=index + 1
+            support_token, Settings.get().config["implicitSpaceSize"], storage_id, space_id, oneprovider_index=index + 1
         )
         time.sleep(2 * Settings.get().config["sleepFactor"])
 

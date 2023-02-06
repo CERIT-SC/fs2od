@@ -1,6 +1,5 @@
 import json
 import time
-import sys
 from settings import Settings
 from utils import Logger, Utils
 import request, tokens, files, metadata, dareg
@@ -12,11 +11,11 @@ Minimal size of a space. Smaller size cause "badValueTooLow" error on Oneprovder
 MINIMAL_SPACE_SIZE = 1048576
 
 
-def getSpaces(oneprovider_order_in_config: int = 0):
+def getSpaces(oneprovider_index: int = 0):
     Logger.log(4, "getSpaces():")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_all_spaces
-    url = f"oneprovider/spaces[{oneprovider_order_in_config}]"
-    response = request.get(url)
+    url = f"oneprovider/spaces"
+    response = request.get(url, oneprovider_index=oneprovider_index)
     return response.json()
 
 
@@ -96,13 +95,12 @@ def createSpaceForGroup(group_id, space_name):
         Logger.log(1, "Space %s can't be created" % space_name)
 
 
-def supportSpace(token, size, storage_id, space_id, **kwargs):
-    space_index = kwargs.get("space_index", 0)
+def supportSpace(token, size, storage_id, space_id, oneprovider_index: int = 0):
 
     Logger.log(4, "supportSpace(token, %s, %s)" % (size, storage_id))
     Logger.log(3, "Atempt to set up support to space %s" % space_id)
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/support_space
-    url = f"onepanel/provider/spaces[{space_index}]"
+    url = f"onepanel/provider/spaces"
     data = {
         "token": token["token"],
         "size": size,
@@ -121,7 +119,7 @@ def supportSpace(token, size, storage_id, space_id, **kwargs):
     }
 
     headers = dict({"Content-type": "application/json"})
-    response = request.post(url, headers=headers, data=json.dumps(data))
+    response = request.post(url, headers=headers, data=json.dumps(data), oneprovider_index=oneprovider_index)
     if response.ok:
         Logger.log(3, "Support of space %s successfully set on storage %s" % (space_id, storage_id))
         return response.json()["id"]
@@ -160,21 +158,22 @@ def setSpaceSize(space_id, size=None):
     last_oneprovider = 1 if not Settings.get().DATA_REPLICATION_ENABLED else len(Settings.get().ONEPANELS_AUTH_HEADERS)
 
     # goes down because response of provider 0 is important
-    for index in range(last_oneprovider - 1, -1, -1):
+    for oneprovider_index in range(last_oneprovider - 1, -1, -1):
         # based on https://onedata.org/#/home/api/stable/onepanel?anchor=operation/modify_space
-        url = f"onepanel/provider/spaces/[{index}]" + space_id
+        url = f"onepanel/provider/spaces/" + space_id
         data = {"size": size}
         headers = dict({"Content-type": "application/json"})
-        response = request.patch(url, headers=headers, data=json.dumps(data))
+        response = request.patch(url, headers=headers, data=json.dumps(data), oneprovider_index=oneprovider_index)
         if response.ok:
             # Logger.log(3, "New size (%s) set for space %s" % (size, space_id), space_id=space_id)
-            Logger.log(3, "New size (%s) set for storage of provider %s in space %s" % (size, index, space_id), space_id=space_id)
+            Logger.log(3, "New size (%s) set for storage of provider %s in space %s" % (size, oneprovider_index, space_id), space_id=space_id)
             # dareg.log(space_id, "info", "set new size %s" % size)
-            dareg.log(space_id, "info", "set new size %s for storage of provider %s" % (size, index))
+            dareg.log(space_id, "info", "set new size %s for storage of provider %s" % (size, oneprovider_index))
         else:
             Logger.log(
-                2, "New size (%s) can't be set for storage of provider %s of space %s" % (size, index, space_id), space_id=space_id
+                2, "New size (%s) can't be set for storage of provider %s of space %s" % (size, oneprovider_index, space_id), space_id=space_id
             )
+        time.sleep(1 * Settings.get().config["sleepFactor"])
     return response
 
 

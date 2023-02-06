@@ -3,9 +3,9 @@ from utils import Logger
 import request
 
 
-def getConfiguration(order: int = 0):
-    Logger.log(4, f"getConfiguration(order={order}):")
+def getConfiguration(index: int = 0):
+    Logger.log(4, f"getConfiguration(order={index}):")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_configuration
-    url = "oneprovider/configuration" + f"[{order}]"
-    response = request.get(url)
+    url = "oneprovider/configuration"
+    response = request.get(url, oneprovider_index=index)
     return response.json()
