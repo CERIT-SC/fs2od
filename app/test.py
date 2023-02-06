@@ -110,15 +110,15 @@ def _testOnezone():
     return 0
 
 
-def _testOneprovider(order: int = 0):
-    Logger.log(4, f"_testOneprovider(order={order}):")
+def _testOneprovider(oneprovider_order_in_config: int = 0):
+    Logger.log(4, f"_testOneprovider(order={oneprovider_order_in_config}):")
     # test noauth request, test if an attribute exists
-    if "build" not in oneprovider.getConfiguration(order):
-        Logger.log(1, f"Oneprovider doesn't return its configuration. (order={order})")
+    if "build" not in oneprovider.getConfiguration(oneprovider_order_in_config):
+        Logger.log(1, f"Oneprovider doesn't return its configuration. (order={oneprovider_order_in_config})")
         return 1
 
     # test auth request
-    if "error" in spaces.getSpaces(order):
+    if "error" in spaces.getSpaces(oneprovider_order_in_config):
         Logger.log(1, "Oneprovider doesn't respond to auth request.")
         return 2
 
