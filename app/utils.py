@@ -7,13 +7,16 @@ from settings import Settings
 
 class Utils:
     @staticmethod
-    def clearOnedataName(name):
+    def clearOnedataName(name: str):
         """
         Clear given name (e.g. replace not allowed characters).
         """
+        name = name.strip()
         name = name[0 : Settings.get().MAX_ONEDATA_NAME_LENGTH]
         name = name.replace("+", "_")
         name = name.replace("@", "_")
+        name_list = name.split()
+        name = "_".join(name_list)
         return name
 
     @staticmethod

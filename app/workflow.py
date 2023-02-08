@@ -5,7 +5,56 @@ from pprint import pprint
 from string import Template
 from settings import Settings
 from utils import Logger, Utils
-import spaces, storages, metadata, groups, tokens, shares, files, filesystem, dareg
+import spaces, storages, metadata, groups, tokens, shares, files, filesystem, dareg, qos
+
+
+def _get_storage_index(space_id: str, number_of_available_storages: int) -> int:
+    """
+    Returns index of storage which will support the space.
+    List of available storages of Oneproviders is provided in config.yml
+    """
+    # converting from base 18
+    space_id_int = int(space_id, 18)
+
+    # using division remainder causes uniform distribution between storages
+    storage_index = space_id_int % number_of_available_storages
+    return storage_index
+
+def _add_support_from_all(support_token: str, space_id: str) -> None:
+    """
+    Iterates through each of the supporting providers and adds their support to space.
+    """
+    supporting_providers = Settings.get().config["dataReplication"]["supportingProviders"]
+    for index in range(len(supporting_providers)):
+        storage_ids = supporting_providers[index]["storageIds"]
+        storage_id = storage_ids[_get_storage_index(space_id, len(storage_ids))]
+
+        result_support = spaces.supportSpace(
+            support_token, Settings.get().config["implicitSpaceSize"], storage_id, space_id, oneprovider_index=index + 1
+        )
+        time.sleep(2 * Settings.get().config["sleepFactor"])
+
+        if Settings.get().config["dareg"]["enabled"] and result_support:
+            dareg.log(space_id, "info", "supported")
+
+
+def _add_qos_requirement(space_id: str, replicas_number: int):
+    """
+    Adds Quality of Service requirement to replicate any storage to whole space.
+    """
+    file_id = spaces.getSpace(space_id)["fileId"]
+
+    requirement_id = qos.add_requirement(file_id, "anyStorage", replicas_number)["qosRequirementId"]
+    if requirement_id:
+        Logger.log(
+            3,
+            "QoS requirement %s was created for space %s with %s replicas" % (space_id, requirement_id, replicas_number)
+        )
+    else:
+        Logger.log(
+            1,
+            "QoS requirement could not be created for space %s" % space_id
+        )
 
 
 def registerSpace(base_path, directory):
@@ -30,9 +79,9 @@ def registerSpace(base_path, directory):
             dataset_name = Settings.get().config["datasetPrefix"] + directory.name
 
             if not Utils.isValidOnedataName(dataset_name):
-                Logger.log(2, "Invalid dataset name %s" % directory.name)
                 # try clear the name
                 dataset_name = Utils.clearOnedataName(dataset_name)
+                Logger.log(2, "Invalid dataset name %s. Renamed to %s" % (directory.name, dataset_name))
                 # and test it again
                 if not Utils.isValidOnedataName(dataset_name):
                     Logger.log(2, "Dataset name %s can't be cleared" % directory.name)
@@ -67,6 +116,14 @@ def registerSpace(base_path, directory):
 
                 if Settings.get().config["dareg"]["enabled"] and result_support:
                     dareg.log(space_id, "info", "supported")
+
+                if Settings.get().DATA_REPLICATION_ENABLED:
+                    Logger.log(
+                        3, "Setting up replication of space %s" % space_id
+                    )
+                    _add_support_from_all(support_token, space_id)
+                    _add_qos_requirement(space_id, Settings.get().DATA_REPLICATION_REPLICAS)
+
                 # HACK
                 if not result_support:
                     # delete space

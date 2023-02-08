@@ -66,9 +66,9 @@ continousFileImport:
   scanInterval: 10800
   # If set to True file modifications are detected. If set to False, only creations and deletions of files on
   # will be detected (files are treated as immutable).
-  detectModifications: False
+  detectModifications: True
   # If set to True file deletions are detected. If set to False, files deletions aren't detected.
-  detectDeletions: False
+  detectDeletions: True
 
 # Onedata POSIX like permissions which would be set to all directories and files
 initialPOSIXlikePermissions: "0775"
@@ -107,3 +107,28 @@ oneprovider:
 onepanel: 
   host: ""
   apiToken: ""
+
+## Setting data replication between possible spaces supporters
+dataReplication:
+  #
+  enabled: true
+  # Number of servers to which it will be replicated, source included
+  numberOfReplicas: 2
+  # all supporting providers will support this
+  managerSpaceId: ""
+  # List of providers
+  supportingProviders:
+    -
+      host: ""
+      apiToken: ""
+      onepanelApiToken: ""
+      storageIds:
+        - ""
+        # - ""
+    #-
+    #  host: ""
+    #  apiToken: ""
+    #  onepanelApiToken: ""
+    #    storageIds:
+    #      - ""
+    #      - ""

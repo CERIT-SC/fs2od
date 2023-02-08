@@ -3,7 +3,7 @@ import time
 import sys
 from settings import Settings
 from utils import Logger
-import spaces, storages, groups, request, tokens, oneprovider, onezone
+import spaces, storages, groups, request, tokens, oneprovider, onezone, dareg
 
 
 def safetyNotice(message):
@@ -110,29 +110,79 @@ def _testOnezone():
     return 0
 
 
-def _testOneprovider():
-    Logger.log(4, "_testOneprovider():")
+def _testOneprovider(oneprovider_index: int = 0):
+    Logger.log(4, f"_testOneprovider(order={oneprovider_index}):")
     # test noauth request, test if an attribute exists
-    if not "build" in oneprovider.getConfiguration():
-        Logger.log(1, "Oneprovider doesn't return its configuration.")
+    if "build" not in oneprovider.getConfiguration(oneprovider_index):
+        Logger.log(1, f"Oneprovider doesn't return its configuration. (order={oneprovider_index})")
         return 1
 
     # test auth request
-    if "error" in spaces.getSpaces():
+    if "error" in spaces.getSpaces(oneprovider_index):
         Logger.log(1, "Oneprovider doesn't respond to auth request.")
         return 2
 
     return 0
 
 
-def testConnection():
+def _testOneproviders(every_provider: bool = True) -> tuple:
+    """
+    Tests communication with each of provided Oneproviders
+    """
+    # defining two characteristic vectors (binary) - one for noauth request one for auth request
+    # because there is a need to check them separately, ternary vector would do the job too
+    # order of bits is reversed in the final vector
+    vector_noauth = 0
+    vector_auth = 0
+
+    # do not want to test if replication is off
+    provider_count = len(Settings.get().ONEPROVIDERS_API_URL) if \
+        every_provider or Settings.get().DATA_REPLICATION_ENABLED \
+        else 1
+
+    for index in range(provider_count):
+        result = _testOneprovider(index)
+        # if 1, it will set 1, if 2 or 0, it will stay as is
+        vector_noauth |= (result & 1)
+        result >>= 1
+        # if was 2, now will set to 1
+        vector_auth |= result
+        # shifting for the next iteration
+        vector_noauth <<= 1
+        vector_auth <<= 1
+
+    return vector_noauth, vector_auth
+
+
+def _test_dareg() -> int:
+    Logger.log(4, f"_test_dareg():")
+    if not Settings.get().DAREG_ENABLED:
+        return 0
+
+    if dareg.get_index() == b"":
+        Logger.log(1, f"DAREG does not return any answer.")
+        return 1
+
+    # TODO: check auth
+    return 0
+
+
+
+def testConnection(of_each_oneprovider: bool = False):
+    # testing Onezone
     result = _testOnezone()
-    result = result + _testOneprovider()
+    # testing Oneprovider(s)
+    noauth, auth = _testOneproviders(of_each_oneprovider)
+    # not using yet, discarding
+    result = result + noauth + auth
+    # testing DAREG
+    if of_each_oneprovider:
+        result += _test_dareg()
 
     if result == 0:
-        Logger.log(3, "Onezone and Oneprovider exist and respond.")
+        Logger.log(3, "Onezone, Oneprovider and DAREG, if enabled, exist and respond.")
     else:
-        Logger.log(1, "Error when communicating with Onezone and Oneprovider.")
+        Logger.log(1, "Error when communicating with Onezone, Oneprovider or DAREG.")
     return result
 
 

@@ -27,7 +27,6 @@ def register_dataset(space_id, name, path, invite_token=None, public_URL=None):
 
     response = requests.post(url, headers=headers, data=json.dumps(data))
     response_print(response)
-    debug_print(response)
 
 
 def update_dataset(space_id, invite_token=None, public_URL=None):
@@ -47,13 +46,17 @@ def update_dataset(space_id, invite_token=None, public_URL=None):
 
     response = requests.patch(url, headers=headers, data=json.dumps(data))
     response_print(response)
-    debug_print(response)
 
 
 def log(space_id, type, message):
     """
     Log a record to dataset.
     """
+
+    # TODO: Patch: not checking if dareg enabled
+    if not Settings.get().DAREG_ENABLED:
+        return
+
     url = Settings.get().config["dareg"]["host"] + "/logs/"
     headers = {
         "Authorization": "Token " + Settings.get().config["dareg"]["token"],
@@ -67,4 +70,17 @@ def log(space_id, type, message):
 
     response = requests.post(url, headers=headers, data=json.dumps(data))
     response_print(response)
-    debug_print(response)
+
+
+def get_index() -> bytes:
+    # TODO: change to get congig, something in json
+    """
+    Get index only for checking if online.
+    """
+    url = Settings.get().config["dareg"]["host"]
+    response = requests.get(url)
+    print(response.text)
+
+    response_print(response)
+
+    return response.content

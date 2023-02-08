@@ -65,12 +65,31 @@ class Settings:
                 self.ONEPANEL_API_KEY = self.config["onepanel"]["apiToken"]
 
                 self.ONEZONE_API_URL = self.ONEZONE_HOST + "/api/v3/"
-                self.ONEPROVIDER_API_URL = self.ONEPROVIDER_HOST + "/api/v3/"
+                self.ONEPROVIDER_API_URL: str = self.ONEPROVIDER_HOST + "/api/v3/"
+                self.ONEPROVIDERS_API_URL: list = [self.ONEPROVIDER_API_URL] + [
+                    provider["host"] + "/api/v3/"
+                    for provider in self.config["dataReplication"]["supportingProviders"]
+                ]
                 self.ONEPANEL_API_URL = self.ONEPANEL_HOST + "/api/v3/"
 
                 self.ONEZONE_AUTH_HEADERS = {"x-auth-token": self.ONEZONE_API_KEY}
-                self.ONEPROVIDER_AUTH_HEADERS = {"x-auth-token": self.ONEPROVIDER_API_KEY}
+                self.ONEPROVIDER_AUTH_HEADERS: dict = {"x-auth-token": self.ONEPROVIDER_API_KEY}
+
+                # all authentication headers for oneproviders in one place
+                self.ONEPROVIDERS_AUTH_HEADERS: list = [self.ONEPROVIDER_AUTH_HEADERS] + [
+                    {"x-auth-token": provider["apiToken"]}
+                    for provider in self.config["dataReplication"]["supportingProviders"]
+                ]
                 self.ONEPANEL_AUTH_HEADERS = {"x-auth-token": self.ONEPANEL_API_KEY}
+
+                self.ONEPANELS_AUTH_HEADERS: list = [self.ONEPANEL_AUTH_HEADERS] + [
+                    {"x-auth-token": provider["onepanelApiToken"]}
+                    for provider in self.config["dataReplication"]["supportingProviders"]
+                ]
+
+                self.DATA_REPLICATION_ENABLED: bool = self.config["dataReplication"]["enabled"]
+                self.DATA_REPLICATION_REPLICAS: bool = self.config["dataReplication"]["numberOfReplicas"]
+                self.DAREG_ENABLED: bool = self.config["dareg"]["enabled"]
 
                 # Onedata name must be 2-50 characters long
                 self.MIN_ONEDATA_NAME_LENGTH = 2
@@ -85,6 +104,10 @@ class Settings:
         sys.exit(1)
 
     @staticmethod
+    def _info(message: str) -> None:
+        print(f"[Info] {message}")
+
+    @staticmethod
     def _test_existence(dictionary, attribute, default=None):
         if attribute not in dictionary:
             if default == None:
@@ -93,8 +116,8 @@ class Settings:
             else:
                 dictionary[attribute] = default
                 if not type(attribute) is dict:
-                    print(
-                        "[Info] no attribute %s in configuration file, using its default value [%s]"
+                    Settings._info(
+                        "no attribute %s in configuration file, using its default value [%s]"
                         % (attribute, default)
                     )
 
@@ -162,6 +185,8 @@ class Settings:
         self._test_existence(self.config, "dareg", dict())
         self._test_existence(self.config["dareg"], "enabled", False)
         self._test_existence(self.config["dareg"], "host", "https://dareg.example.com")
+        # test if http/s
+        self.config["dareg"]["host"] = self._add_protocol_to_host_if_missing(self.config["dareg"]["host"])
         self._test_existence(self.config["dareg"], "token", "a_secret_token")
         self._test_existence(self.config["dareg"], "origin_instance_pk", 1)
 
@@ -180,3 +205,28 @@ class Settings:
         # test if http/s
         self.config["onepanel"]["host"] = self._add_protocol_to_host_if_missing(self.config["onepanel"]["host"])
         self._test_existence(self.config["onepanel"], "apiToken")
+
+        self._test_existence(self.config, "dataReplication", dict())
+        self._test_existence(self.config["dataReplication"], "enabled", False)
+        self._test_existence(self.config["dataReplication"], "managerSpaceId")
+        # list of dicts
+        self._test_existence(self.config["dataReplication"], "supportingProviders", list())
+        # if there are supporters, they must have host and token
+        for item in self.config["dataReplication"]["supportingProviders"]:
+            self._test_existence(item, "host")
+            # using python mutability and list referencing
+            item["host"] = self._add_protocol_to_host_if_missing(item["host"])
+            self._test_existence(item, "apiToken")
+            self._test_existence(item, "onepanelApiToken")
+            self._test_existence(item, "storageIds")
+
+            if len(item["storageIds"]) == 0:
+                self._failed("storage IDs not provided")
+        self._test_existence(self.config["dataReplication"], "numberOfReplicas", 1)
+
+        number_of_providers = len(self.config["dataReplication"]["supportingProviders"]) + 1
+        number_of_replicas = self.config["dataReplication"]["numberOfReplicas"]
+        if number_of_replicas > number_of_providers:
+            self._info(f"Number of replicas is higher than number of providers "
+                       f"({number_of_replicas} > {number_of_providers}). Decreasing to maximum possible.")
+            self.config["dataReplication"]["numberOfReplicas"] = number_of_providers
