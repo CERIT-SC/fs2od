@@ -104,8 +104,6 @@ def tokenExists(name):
         raise RuntimeError("Response was wrong in tokenExists(%s)" % name)
 
 def createInviteTokenToGroup(group_id, token_name) -> dict:
-    if Settings.get().TEST:
-        token_name = Settings.get().TEST_PREFIX + token_name
     Logger.log(4, "createInviteTokenToGroup(%s, %s):" % (group_id, token_name))
 
     if len(token_name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:

@@ -40,8 +40,6 @@ def createGroup(group_name):
 
 
 def createChildGroup(parent_group_id, group_name):
-    if Settings.get().TEST:
-        group_name = Settings.get().TEST_PREFIX + group_name
     Logger.log(4, "createChildGroup(%s, %s):" % (parent_group_id, group_name))
 
     if len(group_name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:

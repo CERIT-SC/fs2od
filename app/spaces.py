@@ -68,8 +68,6 @@ def stopAutoStorageImport(space_id):
 
 
 def createSpaceForGroup(group_id, space_name):
-    if Settings.get().TEST:
-        space_name = Settings.get().TEST_PREFIX + space_name
     Logger.log(4, "createSpaceForGroup(%s, %s):" % (group_id, space_name))
 
     if len(space_name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:

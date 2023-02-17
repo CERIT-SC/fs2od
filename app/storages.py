@@ -47,8 +47,6 @@ def getStorageDetails(storage_id):
 
 
 def createAndGetStorage(name, mountpoint):
-    if Settings.get().TEST:
-        name = Settings.get().TEST_PREFIX + name
     Logger.log(4, "createAndGetStorage(%s, %s):" % (name, mountpoint))
     resp = addStorage(name, mountpoint)
     if resp.status_code == 204:
