@@ -83,10 +83,14 @@ def createTemporarySupportToken(space_id):
 
     headers = dict({"Content-type": "application/json"})
     resp = request.post(url, headers=headers, data=json.dumps(data))
-    if resp.ok:
-        return resp.json()
-    else:
-        Logger.log(1, "Creating temporary token for support space %s failed" % space_id)
+    if not resp.ok:
+        Logger.log(1, f"Creating temporary token for support space {space_id} failed")
+        return
+
+    Logger.log(3, f"Created temporary token for support space {space_id}")
+    return resp.json()
+
+
 
 def tokenExists(name):
     response = getNamedTokenByName(name)
