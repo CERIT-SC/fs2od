@@ -9,7 +9,10 @@ import filesystem, test, sandbox
 
 
 def runScan(args):
-    test.testConnection(of_each_oneprovider=False)
+    if not args.no_test_connection:
+        result = test.testConnection(of_each_oneprovider=True)
+        if result:
+            sys.exit(1)
     filesystem.scanWatchedDirectories()
 
 
@@ -50,6 +53,10 @@ def main():
 
     parser_1 = subparsers.add_parser("scan", help="Scan watched directories and import to Onedata")
     parser_1.set_defaults(func=runScan)
+
+    parser_1.add_argument(
+        "--no-test-connection", required=False, action="store_true", help="If included, tests will not be performed"
+    )
 
     parser_2 = subparsers.add_parser("test", help="Do defined test workflow")
     subparser_2 = parser_2.add_subparsers(help="Name of test workflow which will be run")
