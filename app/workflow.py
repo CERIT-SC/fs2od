@@ -93,6 +93,8 @@ def registerSpace(base_path, directory) -> bool:
 
     space_name = Settings.get().TEST_PREFIX + dataset_name if Settings.get().TEST else dataset_name
 
+    actions_logger.new_actions_log()
+
     actions_logger.log_pre("space", dataset_name)
     # Create a new space
     space_id = spaces.createSpaceForGroup(
@@ -266,6 +268,8 @@ def registerSpace(base_path, directory) -> bool:
     if Settings.get().config["dareg"]["enabled"]:
         dareg.log(space_id, "info", "processing done")
     time.sleep(3 * Settings.get().config["sleepFactor"])
+
+    actions_logger.finish_actions_log()
 
 
 

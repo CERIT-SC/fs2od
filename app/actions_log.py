@@ -1,7 +1,13 @@
+from io import TextIOWrapper
+import os.path
 import sys
-from typing import Union, List
+from typing import Union, List, Optional, Tuple
+from utils import Logger, Utils
+import test
+import rollback_actions
 
-import requests
+ACTION_LOG_FILE = "actions_log.latest.log"
+ACTION_SEQUENCE_RENAMING_TRIES = 10
 
 
 class Action:
@@ -43,19 +49,37 @@ class ActionsLogger:
             ActionsLogger()
         return ActionsLogger.__instance
 
+    def new_actions_log(self):
+        Logger.log(4, "starting new actions log")
+        # if we have something in actions log, it means, that last action was not successful
+        # so first we must rollback()
+        if self.file:  # we have the file still opened
+            # no need to do rollback here, because it will close and stay on filesystem
+            self.close_file()
+        if len(self.log) != 0 or os.path.isfile(ACTION_LOG_FILE):
+            Logger.log(1, "found old actions log, rolling back")
+            self.rollback()
+
+        # buffering=1 means, it will flush the file after each line
+        self.file = open(ACTION_LOG_FILE, "w+", encoding="utf-8", buffering=1)
+
+
+
     def log_pre(self, object_type: str, name: str):
         self.log.append(create_object(object_type, name))
+        self.file.write(f"{object_type},{name},")
+        self.file.flush()
 
     def log_post(self, obtained_id: Union[str, dict, bool], only_check=False):
         if only_check:
             self.log.pop(-1)
 
         if not obtained_id:
-            self.rollback()
+            self.rollback(include_file=False)
             sys.exit(1)
 
         if only_check:
-
+            self.file.write(f"only_check\n")
             return
 
         last_object = self.log[-1]
@@ -65,11 +89,207 @@ class ActionsLogger:
 
         last_object.assign_id(obtained_id)
 
-    def print_actions_log(self):
-        print(self.log)
+        self.file.write(f"{obtained_id}\n")
 
-    def rollback(self):
-        pass
+    def close_file(self):
+        if type(self.file) == TextIOWrapper:
+            self.file.close()
+            self.file = None
+        with open(ACTION_LOG_FILE, "r", encoding="UTF-8") as file:
+            print(file.read())
+
+    def finish_actions_log(self):
+        self.close_file()
+        Logger.log(4, "actions log finished, removing file")
+
+        self.log = []
+        if os.path.isfile(ACTION_LOG_FILE):
+            os.remove(ACTION_LOG_FILE)
+        Logger.log(4, "actions log finished, removing file")
+
+    def print_actions_log(self):
+        for action in self.log:
+            print(action)
+
+    @staticmethod
+    def build_list_sequence(log_list: List[Action]) -> dict:
+        sequence = { "queue": [] }
+        for item in log_list:
+            sequence[item.type] = (item.name, item.id)
+            sequence["queue"].append(item.type)
+
+        return sequence
+
+    @staticmethod
+    def build_file_sequence(log_file_name: str) -> dict:
+        with open(log_file_name, "r", encoding="UTF-8") as file:
+            items = file.readlines()
+
+        sequence = {"queue": []}
+
+        for item in items:
+            item = item.strip()
+            item_list = item.split(",")
+
+            if len(item_list) < 2: # error on the line or blank
+                continue
+
+            item_type = item_list[0]
+            item_name = item_list[1]
+
+            # this is then the last line, on which failed
+            if len(item_list) == 2:
+                # means it have name, so keep
+                if item_name:
+                    sequence[item_type] = (item_name,None)
+                    sequence["queue"].append(item_type)
+                    continue
+
+            item_id = item_list[3]
+            # not needed, not reversible
+            if item_id == "only_check":
+                continue
+            sequence[item_type] = (item_name, item_id)
+            sequence["queue"].append(item_type)
+
+        return sequence
+
+    @staticmethod
+    def merge_sequences(sequence_1: dict, sequence_2: dict) -> dict:
+        queue_1 = sequence_1["queue"]
+        queue_2 = sequence_2["queue"]
+
+        if not queue_1 or not queue_2:
+            return {}
+
+        # different runs, different sequences
+        if queue_1[0] != queue_2[0]:
+            return {}
+
+        # common first command but another names and/or ids
+        if sequence_1[queue_1[0]] != sequence_2[queue_2[0]]:
+            return {}
+
+        final_queue = queue_1.copy() if len(queue_1) > len(queue_2) else queue_2.copy()
+        sequence_1.update(sequence_2)
+        sequence_1["queue"] = final_queue
+
+        return sequence_1
+    def build_sequence(self, include_file: bool = True) -> Union[Tuple[dict, dict], dict]:
+        """
+        Builds sequence how to approach rollback
+        There are be 3 possibilities:
+        - log from list
+        - log from file
+        - log from both, list and file
+        Computes what to do in any of cases
+        """
+        log_sequence = {}
+        file_sequence = {}
+
+        if self.log:
+            log_sequence = self.build_list_sequence(self.log)
+
+        if not include_file:
+            return log_sequence
+
+        if os.path.isfile(ACTION_LOG_FILE):
+            file_sequence = self.build_file_sequence(ACTION_LOG_FILE)
+
+        final_sequence = self.merge_sequences(log_sequence, file_sequence)
+
+        if not final_sequence:
+            return log_sequence, file_sequence
+
+        return final_sequence
+
+    @staticmethod
+    def serialize_sequence(sequence: dict) -> str:
+        sequence_queue = sequence["queue"]
+
+        serialized_out = ""
+
+        for action_type in sequence_queue:
+            action_name = sequence[action_type][0]
+            action_id = sequence[action_type][1]
+            serialized_out += f"{action_type},{action_name},{action_id}\n"
+
+        return serialized_out
+
+    @staticmethod
+    def write_sequence_to_file(sequence: dict) -> bool:
+        serialized_out = ActionsLogger.serialize_sequence(sequence)
+
+        filename = "rollback.sequence"
+        for try_number in range(ACTION_SEQUENCE_RENAMING_TRIES):
+            if not os.path.isfile(filename):
+                with open(filename, "w+", encoding="utf-8") as file:
+                    file.write(serialized_out)
+                return True
+
+            filename = "rollback_" + Utils.create_uuid(4) + ".sequence"
+
+        return False
+
+    @staticmethod
+    def rollback_actions(sequence: dict) -> bool:
+        if not sequence:
+            return True
+
+        # at the beginning we must test the connection
+        connection_status = test.testConnection()
+        # means if something not connected
+        Logger.log(3, "rollback - testing connection")
+        if connection_status != 0:
+            Logger.log(3, "rollback - connection failed, writing to file")
+            ActionsLogger.write_sequence_to_file(sequence)
+            return False
+
+        success = True
+        sequence_queue = sequence["queue"]
+
+        for action in sequence_queue:
+            if action == "token":
+                success = rollback_actions.action_token(sequence[action][0], sequence[action][1]) and success
+
+
+        return True
+
+        # TODO: resolve in rollback
+        """
+        # HACK
+        if not result_support:
+            # delete space
+            spaces.removeSpace(space_id)
+            time.sleep(2 * Settings.get().config["sleepFactor"])
+
+            # delete storage
+            storages.removeStorage(storage_id)
+            Logger.log(
+                1, "Space for %s not created (unsucessfull support)." % directory.name
+            )
+            if Settings.get().config["dareg"]["enabled"] and result_support:
+                dareg.log(space_id, "error", "removed")
+            return
+        """
+
+
+    def rollback(self, include_file: bool = True):
+        Logger.log(1, "starting rollback")
+        self.close_file()
+
+        sequence_1 = self.build_sequence(include_file)
+
+        if type(sequence_1) == tuple:
+            sequence_2 = sequence_1[1]
+            self.rollback_actions(sequence_2)
+            sequence_1 = sequence_1[0]
+
+        self.rollback_actions(sequence_1)
+
+
+        self.finish_actions_log()
+        Logger.log(1, "rollback finished")
 
 
 def get_actions_logger() -> ActionsLogger:
