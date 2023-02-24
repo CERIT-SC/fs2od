@@ -24,7 +24,7 @@ def create_object(object_type: str, object_name: str) -> Action:
 class ActionsLogger:
     __instance = None
 
-    def __int__(self):
+    def __init__(self):
         if ActionsLogger.__instance is not None:
             raise Exception(
                 "This class is a singleton! Created once, otherwise use ActionsLogger.get()"
