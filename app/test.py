@@ -125,7 +125,7 @@ def _testOneprovider(oneprovider_index: int = 0):
     return 0
 
 
-def _testOneproviders(every_provider: bool = True) -> tuple:
+def _testOneproviders(every_provider: bool = False) -> tuple:
     """
     Tests communication with each of provided Oneproviders
     """

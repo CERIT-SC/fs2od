@@ -10,7 +10,7 @@ import filesystem, test, sandbox
 
 def runScan(args):
     if not args.no_test_connection:
-        result = test.testConnection(of_each_oneprovider=True)
+        result = test.testConnection(of_each_oneprovider=False)
         if result:
             sys.exit(1)
     filesystem.scanWatchedDirectories()
@@ -29,7 +29,10 @@ def runTestRegisterSpace(args):
 
 
 def runTestConnection(args):
-    test.testConnection(of_each_oneprovider=True)
+    if args.ignore_disabled_status:
+        test.testConnection(of_each_oneprovider=True)
+    else:
+        test.testConnection(of_each_oneprovider=False)
 
 
 def runSandbox(args):
@@ -87,6 +90,9 @@ def main():
 
     parser_3 = subparsers.add_parser(
         "test-connection", help="Test if Onezone and Oneprovider is available"
+    )
+    parser_3.add_argument(
+        "--ignore-disabled-status", required=False, action="store_true", help="If included, tests will be performed regardless setup"
     )
     parser_3.set_defaults(func=runTestConnection)
 
