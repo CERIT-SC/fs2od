@@ -50,6 +50,10 @@ class ActionsLogger:
             self.rollback()
             sys.exit(1)
 
+        if only_check:
+
+            return
+
         last_object = self.log[-1]
 
         if last_object.type == "token":
