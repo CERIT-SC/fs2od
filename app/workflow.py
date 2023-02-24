@@ -149,24 +149,6 @@ def registerSpace(base_path, directory) -> bool:
         _add_support_from_all(support_token, space_id)
         _add_qos_requirement(space_id, Settings.get().DATA_REPLICATION_REPLICAS)
 
-    # TODO: resolve in rollback
-    """
-    # HACK
-    if not result_support:
-        # delete space
-        spaces.removeSpace(space_id)
-        time.sleep(2 * Settings.get().config["sleepFactor"])
-
-        # delete storage
-        storages.removeStorage(storage_id)
-        Logger.log(
-            1, "Space for %s not created (unsucessfull support)." % directory.name
-        )
-        if Settings.get().config["dareg"]["enabled"] and result_support:
-            dareg.log(space_id, "error", "removed")
-        return
-    """
-
     actions_logger.log_pre("group", space_name)
     # Create user group for space
     gid = groups.createChildGroup(
@@ -231,21 +213,26 @@ def registerSpace(base_path, directory) -> bool:
     file_id = spaces.get_space(space_id=space_id)["fileId"]
     actions_logger.log_post(file_id, only_check=True)
 
-    files.setFileAttributeRecursive(
+    actions_logger.log_pre("set_files_to_posix", "")
+    success = files.setFileAttributeRecursive(
         file_id=file_id,
         posix_mode=Settings.get().config["initialPOSIXlikePermissions"]
     )
+    actions_logger.log_post(success, only_check=True)
 
     # create public share
+    actions_logger.log_pre("share", dataset_name)
     share = shares.createAndGetShare(dataset_name, file_id)
     if not share:
         Logger.log(1, "Share for the space %s not created." % dataset_name)
-        return
+        return False
+    actions_logger.log_post(share["shareId"], only_check=True)
 
     if Settings.get().config["dareg"]["enabled"]:
         dareg.update_dataset(space_id, token["token"], share["publicUrl"])
 
     # add Share description
+    actions_logger.log_pre("share_update", "")
     with open("share_description_base.md", "r") as file:
         to_substitute = {
             "dataset_name": dataset_name,
@@ -254,7 +241,11 @@ def registerSpace(base_path, directory) -> bool:
         }
         src = Template(file.read())
         result = src.substitute(to_substitute)
-        shares.updateShare(share["shareId"], description=result)
+        response = shares.updateShare(
+            shid=share["shareId"],
+            description=result
+        )
+    actions_logger.log_post(response.ok, only_check=True)
 
     # write onedata parameter (publicURL) to file
     filesystem.setValueToYaml(
@@ -265,8 +256,10 @@ def registerSpace(base_path, directory) -> bool:
     )
 
     # set metadata for the space
+    actions_logger.log_pre("space_metadata", "")
     if Settings.get().config["importMetadata"]:
-        metadata.setSpaceMetadataFromYaml(space_id)
+        response = metadata.setSpaceMetadataFromYaml(space_id)
+    actions_logger.log_post(response.ok, only_check=True)
 
     path = base_path + os.sep + directory.name
     Logger.log(3, "Processing of %s done." % path)
