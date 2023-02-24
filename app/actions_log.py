@@ -42,7 +42,10 @@ class ActionsLogger:
     def log_pre(self, object_type: str, name: str):
         self.log.append(create_object(object_type, name))
 
-    def log_post(self, obtained_id: Union[str, dict, bool]):
+    def log_post(self, obtained_id: Union[str, dict, bool], only_check=False):
+        if only_check:
+            self.log.pop(-1)
+
         if not obtained_id:
             self.rollback()
             sys.exit(1)
@@ -51,21 +54,6 @@ class ActionsLogger:
 
         if last_object.type == "token":
             obtained_id = obtained_id["tokenId"]
-
-        if last_object.type == "group_to_space":
-            # only checking if returned right response, if not, doing rollback
-            self.log.pop(-1)
-            return
-
-        if last_object.type == "auto_storage_import":
-            # only checking if returned right response, if not, doing rollback
-            self.log.pop(-1)
-            return
-
-        if last_object.type == "file_id":
-            # only checking if returned right response, if not, doing rollback
-            self.log.pop(-1)
-            return
 
         last_object.assign_id(obtained_id)
 

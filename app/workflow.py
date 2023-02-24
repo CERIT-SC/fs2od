@@ -7,6 +7,7 @@ from settings import Settings
 from utils import Logger, Utils
 import spaces, storages, metadata, groups, tokens, shares, files, filesystem, dareg, qos, actions_log
 
+actions_logger = actions_log.get_actions_logger()
 
 def _get_storage_index(space_id: str, number_of_available_storages: int) -> int:
     """
@@ -58,7 +59,6 @@ def _add_qos_requirement(space_id: str, replicas_number: int):
 
 
 def registerSpace(base_path, directory) -> bool:
-    actions_logger = actions_log.get_actions_logger()
     # only directories should be processed
     full_path = base_path + os.sep + directory.name
     if not os.path.isdir(full_path):
@@ -109,7 +109,7 @@ def registerSpace(base_path, directory) -> bool:
     # Create support token
     actions_logger.log_pre("temporary_token", "")
     support_token = tokens.createTemporarySupportToken(space_id)
-    actions_logger.log_post(support_token)
+    actions_logger.log_post(support_token.get("token", ""), only_check=True)
 
     actions_logger.log_pre("storage", dataset_name)
     # Create storage for the space
@@ -136,7 +136,7 @@ def registerSpace(base_path, directory) -> bool:
         space_id=space_id
     )
     time.sleep(2 * Settings.get().config["sleepFactor"])
-    actions_logger.log_post(result_support)
+    actions_logger.log_post(result_support, only_check=True)
 
     if Settings.get().config["dareg"]["enabled"] and result_support:
         dareg.log(space_id, "info", "supported")
@@ -205,7 +205,7 @@ def registerSpace(base_path, directory) -> bool:
         gid=gid,
         privileges=privileges
     )
-    actions_logger.log_post(response.ok)
+    actions_logger.log_post(response.ok, only_check=True)
 
     if Settings.get().config["dareg"]["enabled"] and response: # response is valid object, removed todo
         dareg.log(space_id, "info", "group added to space")
@@ -224,12 +224,12 @@ def registerSpace(base_path, directory) -> bool:
     # first import of files to Onedata space
     response = spaces.startAutoStorageImport(space_id)
     time.sleep(3 * Settings.get().config["sleepFactor"])
-    actions_logger.log_post(response.ok)
+    actions_logger.log_post(response.ok, only_check=True)
 
     # set up permissions
     actions_logger.log_pre("file_id", "")
     file_id = spaces.get_space(space_id=space_id)["fileId"]
-    actions_logger.log_post(file_id)
+    actions_logger.log_post(file_id, only_check=True)
 
     files.setFileAttributeRecursive(
         file_id=file_id,
