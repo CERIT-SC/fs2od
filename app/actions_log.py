@@ -4,18 +4,21 @@ from typing import Union, List
 import requests
 
 
-class Object:
+class Action:
     def __init__(self, object_type: str, object_name: str):
         self.type = object_type
         self.name = object_name
         self.id = ""
 
+    def __str__(self):
+        return f"<action_logs.Action object, type={self.type}, name={self.name}>"
+
     def assign_id(self, object_id: str):
         self.id = object_id
 
 
-def create_object(object_type: str, object_name: str) -> Object:
-    return Object(object_type, object_name)
+def create_object(object_type: str, object_name: str) -> Action:
+    return Action(object_type, object_name)
 
 
 class ActionsLogger:
@@ -27,7 +30,8 @@ class ActionsLogger:
                 "This class is a singleton! Created once, otherwise use ActionsLogger.get()"
             )
         else:
-            self.log: List[Object] = []
+            self.log: List[Action] = []
+            self.file: Optional[TextIOWrapper] = None
             ActionsLogger.__instance = self
 
     @staticmethod
