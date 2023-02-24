@@ -62,6 +62,10 @@ class ActionsLogger:
             self.log.pop(-1)
             return
 
+        if last_object.type == "file_id":
+            # only checking if returned right response, if not, doing rollback
+            self.log.pop(-1)
+            return
 
         last_object.assign_id(obtained_id)
 

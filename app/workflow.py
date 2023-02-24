@@ -42,7 +42,7 @@ def _add_qos_requirement(space_id: str, replicas_number: int):
     """
     Adds Quality of Service requirement to replicate any storage to whole space.
     """
-    file_id = spaces.getSpace(space_id)["fileId"]
+    file_id = spaces.get_space(space_id)["fileId"]
 
     requirement_id = qos.add_requirement(file_id, "anyStorage", replicas_number)["qosRequirementId"]
     if requirement_id:
@@ -205,7 +205,7 @@ def registerSpace(base_path, directory) -> bool:
         gid=gid,
         privileges=privileges
     )
-    actions_logger.log_post(response)
+    actions_logger.log_post(response.ok)
 
     if Settings.get().config["dareg"]["enabled"] and response: # response is valid object, removed todo
         dareg.log(space_id, "info", "group added to space")
@@ -226,12 +226,14 @@ def registerSpace(base_path, directory) -> bool:
     time.sleep(3 * Settings.get().config["sleepFactor"])
     actions_logger.log_post(response.ok)
 
-    # TODO: tu som skoncil
-
     # set up permissions
-    file_id = spaces.getSpace(space_id)["fileId"]
+    actions_logger.log_pre("file_id", "")
+    file_id = spaces.get_space(space_id=space_id)["fileId"]
+    actions_logger.log_post(file_id)
+
     files.setFileAttributeRecursive(
-        file_id, Settings.get().config["initialPOSIXlikePermissions"]
+        file_id=file_id,
+        posix_mode=Settings.get().config["initialPOSIXlikePermissions"]
     )
 
     # create public share

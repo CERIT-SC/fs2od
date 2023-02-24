@@ -15,7 +15,7 @@ def getFileAttributes(file_id):
     return response.json()
 
 
-def setFileAttribute(file_id, posix_mode):
+def setFileAttribute(file_id, posix_mode) -> bool:
     """
     Set attributes to directory or file with given file_id. Only POSIX mode can be set up.
     """
@@ -28,17 +28,19 @@ def setFileAttribute(file_id, posix_mode):
     return response.ok
 
 
-def setFileAttributeRecursive(file_id, posix_mode):
+def setFileAttributeRecursive(file_id, posix_mode) -> bool:
     """
     Set attributes to directory or file with given file_id. Only POSIX mode can be set up.
     In case of directory attributes is set to all children.
+    Returns True if everything was successful, otherwise False
     """
     attributes = getFileAttributes(file_id)
+    successful = True
 
     if not "type" in attributes:
         # in case there is no file in space
-        # TODO - could this case happen? Check.
-        return
+        # TODO: could this case happen? Check.
+        return True
 
     if attributes["type"] == "dir":
         # node is directory

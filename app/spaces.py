@@ -27,7 +27,10 @@ def removeSpace(space_id):
     return response
 
 
-def getSpace(space_id):
+def get_space(space_id) -> dict:
+    """
+    Returns the basic information about space with given Id.
+    """
     Logger.log(4, "getSpace(%s):" % space_id)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_space
     url = "oneprovider/spaces/" + space_id
@@ -194,7 +197,7 @@ def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
 def enableContinuousImport(space_id):
     Logger.log(4, "enableContinuousImport(%s):" % space_id)
     # running file exists, permissions should be periodically set to new dirs and files have given permissions
-    file_id = getSpace(space_id)["fileId"]
+    file_id = get_space(space_id)["fileId"]
     files.setFileAttributeRecursive(file_id, Settings.get().config["initialPOSIXlikePermissions"])
 
     if not getContinuousImportStatus(space_id):
@@ -227,7 +230,7 @@ def disableContinuousImport(space_id):
             startAutoStorageImport(space_id)
 
             # permissions of all dirs and file should set to given permissions
-            file_id = getSpace(space_id)["fileId"]
+            file_id = get_space(space_id)["fileId"]
             files.setFileAttributeRecursive(
                 file_id, Settings.get().config["initialPOSIXlikePermissions"]
             )
