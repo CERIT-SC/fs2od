@@ -29,6 +29,9 @@ def getNamedToken(token_id):
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_named_token
     url = "onezone/tokens/named/" + token_id
     response = request.get(url)
+    # todo doklepat, neverit ze dostaneme stale token
+    if response.status_code == 404:
+        return False
     return response.json()
 
 # Onedata returns wrong answer, not using
@@ -130,7 +133,7 @@ def createInviteTokenToGroup(group_id, token_name) -> dict:
         data["name"] = new_token_name
         resp = request.post(url, headers=headers, data=json.dumps(data), ok_statuses=(400,))
         if resp:
-            Logger.log(4, f"Invite to group token was created with name {new_token_name}")
+            Logger.log(3, f"Invite to group token was created with name {new_token_name}")
             return resp.json()
         else:
             if resp.json()["error"]["details"]["key"] != "name":  # there is another problem, not with duplicate name
