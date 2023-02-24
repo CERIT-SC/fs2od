@@ -176,8 +176,8 @@ def testConnection(of_each_oneprovider: bool = False):
     # not using yet, discarding
     result = result + noauth + auth
     # testing DAREG
-    if of_each_oneprovider:
-        result += _test_dareg()
+
+    result += _test_dareg()
 
     if result == 0:
         Logger.log(3, "Onezone, Oneprovider and DAREG, if enabled, exist and respond.")
