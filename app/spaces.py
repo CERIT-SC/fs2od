@@ -164,6 +164,7 @@ def setSpaceSize(space_id, size=None):
 
     last_oneprovider = 1 if not Settings.get().DATA_REPLICATION_ENABLED else len(Settings.get().ONEPANELS_AUTH_HEADERS)
 
+    response = None
     # goes down because response of provider 0 is important
     for oneprovider_index in range(last_oneprovider - 1, -1, -1):
         # based on https://onedata.org/#/home/api/stable/onepanel?anchor=operation/modify_space
@@ -189,7 +190,7 @@ def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
     space_id = createSpaceForGroup(group_id, name)
     token = tokens.createNamedTokenForUser(space_id, name, Settings.get().config["serviceUserId"])
     time.sleep(3 * Settings.get().config["sleepFactor"])
-    supportSpace(token, capacity, storage_id)
+    supportSpace(token, capacity, storage_id, space_id)
     tokens.deleteNamedToken(token["tokenId"])
     return space_id
 
