@@ -130,8 +130,7 @@ def createInviteTokenToGroup(group_id, token_name) -> dict:
         data["name"] = new_token_name
         resp = request.post(url, headers=headers, data=json.dumps(data), ok_statuses=(400,))
         if resp:
-            # resolved fs2od#37
-            Logger.log(4, f"Invite to group token was created with name {new_token_name}" % token_name)
+            Logger.log(4, f"Invite to group token was created with name {new_token_name}")
             return resp.json()
         else:
             if resp.json()["error"]["details"]["key"] != "name":  # there is another problem, not with duplicate name
