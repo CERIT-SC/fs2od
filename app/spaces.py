@@ -44,6 +44,14 @@ def getSpaceDetails(space_id):
     return response.json()
 
 
+def getSpaceDetailsOnezone(space_id):
+    Logger.log(4, "getSpaceDetailsOnezone(%s):" % space_id)
+    # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_space
+    url = "onezone/spaces/" + space_id
+    response = request.get(url)
+    return response.json()
+
+
 def getAutoStorageImportInfo(space_id):
     Logger.log(4, "getAutoStorageImportInfo(%s):" % space_id)
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/get_auto_storage_import_info

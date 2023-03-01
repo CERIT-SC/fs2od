@@ -194,3 +194,29 @@ def setValuesToYaml(file_path, yaml_dict, new_values_dict):
             ryaml.dump(yaml_dict, f)
     else:
         Logger.log(1, "Metadata file doesn't exists." % file_path)
+
+
+def removeValuesFromYaml(file_path, yaml_dict):
+    """
+    Remove content of onedata tag in yaml.
+    """
+    if os.path.exists(file_path):
+
+        if yaml_dict.get(Settings.get().config["metadataFileTags"]["onedata"]):
+            yaml_dict[Settings.get().config["metadataFileTags"]["onedata"]] = None
+
+        # open yaml file
+        with open(file_path, "w") as f:
+            # store new yaml file
+            # Solving bad indentation of list
+            # https://stackoverflow.com/questions/25108581/python-yaml-dump-bad-indentation
+            # yaml.safe_dump(yaml_dict, f, sort_keys=False)
+
+            ryaml = ruamel.yaml.YAML()
+            ryaml.width = (
+                200  # count of characters on a line, if there is more chars, line is breaked
+            )
+            ryaml.indent(sequence=4, offset=2)
+            ryaml.dump(yaml_dict, f)
+    else:
+        Logger.log(1, "Metadata file doesn't exists." % file_path)

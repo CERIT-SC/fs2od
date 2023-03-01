@@ -23,6 +23,8 @@ def runTestRemoveGroups(args):
 def runTestRegisterSpace(args):
     test.registerSpace(args.register_space)
 
+def runTestRemoveAttrsFromFile(args):
+    test.scanWatchedDirectoriesToRemove()
 
 def runTestConnection(args):
     test.testConnection()
@@ -72,10 +74,16 @@ def main():
     parser_2_2.set_defaults(func=runTestRemoveGroups)
 
     parser_2_3 = subparser_2.add_parser(
+        "remove_tags_from_yaml",
+        help="Remove content of Onedata tag from metadata yaml files.",
+    )
+    parser_2_3.set_defaults(func=runTestRemoveAttrsFromFile)
+
+    parser_2_4 = subparser_2.add_parser(
         "register_space", help="Register space - create space (storage, group, token)."
     )
-    parser_2_3.add_argument("--path", required=True, type=str, help="Path to space")
-    parser_2_3.set_defaults(func=runTestRegisterSpace)
+    parser_2_4.add_argument("--path", required=True, type=str, help="Path to space")
+    parser_2_4.set_defaults(func=runTestRegisterSpace)
 
     parser_3 = subparsers.add_parser(
         "test-connection", help="Test if Onezone and Oneprovider is available"

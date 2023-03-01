@@ -1,9 +1,10 @@
 from pprint import pprint
 import time
 import sys
+import os
 from settings import Settings
 from utils import Logger
-import spaces, storages, groups, request, tokens, oneprovider, onezone
+import spaces, storages, groups, filesystem, tokens, oneprovider, onezone
 
 
 def safetyNotice(message):
@@ -134,6 +135,52 @@ def testConnection():
     else:
         Logger.log(1, "Error when communicating with Onezone and Oneprovider.")
     return result
+
+
+def scanWatchedDirectoriesToRemove():
+    Logger.log(4, "scanWatchedDirectories():")
+
+    for directory in Settings.get().config["watchedDirectories"]:
+        _scanWatchedDirectoryToRemove(directory)
+
+
+def _scanWatchedDirectoryToRemove(base_path):
+    Logger.log(4, "_scanWatchedDirectoryToRemove(%s):" % base_path)
+    Logger.log(3, "Start processing path %s" % base_path)
+
+    if not os.path.isdir(base_path):
+        Logger.log(1, "Directory %s can't be processed, it doesn't exist." % base_path)
+        return
+
+    _removingAttributesFromYaml(base_path)
+
+
+def _removingAttributesFromYaml(base_path):
+    Logger.log(4, "_removingAttributesFromYaml(%s):" % base_path)
+    sub_dirs = os.scandir(path=base_path)
+    # TODO - add condition to process only directories (no files)
+    for directory in sub_dirs:
+        _removeOnedataAttributes(base_path, directory)
+
+def _removeOnedataAttributes(base_path, directory):
+    full_path = base_path + os.sep + directory.name
+
+    # only directories should be processed
+    if not os.path.isdir(full_path):
+        Logger.log(
+            3,
+            "Value can't be removed, this isn't directory %s" % base_path + os.sep + directory.name,
+        )
+        return
+
+    # test if directory contains a yaml file
+    yml_file = filesystem.getMetaDataFile(directory)
+    if yml_file:
+        yml_content = filesystem.loadYaml(yml_file)
+
+        # test if yaml contains space_id
+        if filesystem.yamlContainsSpaceId(yml_content):
+            filesystem.removeValuesFromYaml(yml_file, yml_content)
 
 
 def registerSpace(path):
