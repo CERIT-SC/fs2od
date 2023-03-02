@@ -38,6 +38,12 @@ def get_space(space_id) -> dict:
     return response.json()
 
 
+def get_space_id_by_name(name: str) -> str:
+    for space in getSpaces():
+        if space["name"].startswith(name):
+            return space["spaceId"]
+    return ""
+
 def getSpaceDetails(space_id):
     Logger.log(4, "getSpaceDetails(%s):" % space_id)
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/get_space_details
