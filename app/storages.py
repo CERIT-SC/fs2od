@@ -43,7 +43,19 @@ def getStorageDetails(storage_id):
     Logger.log(4, "getStorageDetails(%s)" % storage_id)
     url = "onepanel/provider/storages/" + storage_id
     response = request.get(url)
+    # todo: doklepat, neverit ze dostaneme stale token
+    if response.status_code == 404:
+        return False
     return response.json()
+
+
+def get_storage_id_by_name(name: str) -> str:
+    for storage_id in getStorages()["ids"]:
+        storage = getStorageDetails(storage_id)
+        if storage["name"].startswith(name):
+            return storage_id
+
+    return ""
 
 
 def createAndGetStorage(name, mountpoint):
