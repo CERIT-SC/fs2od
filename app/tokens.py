@@ -29,7 +29,7 @@ def getNamedToken(token_id):
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_named_token
     url = "onezone/tokens/named/" + token_id
     response = request.get(url)
-    # todo doklepat, neverit ze dostaneme stale token
+    # todo: doklepat, neverit ze dostaneme stale token
     if response.status_code == 404:
         return False
     return response.json()
