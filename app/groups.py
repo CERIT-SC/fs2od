@@ -84,12 +84,25 @@ def createParentGroup(child_group_id, group_name):
     return group_id
 
 
-def getGroupDetails(group_id):
+def getGroupDetails(group_id: str):
     Logger.log(4, "getGroupDetails(%s):" % group_id)
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_group
     url = "onezone/groups/" + group_id
     response = request.get(url)
+    # todo: doklepat, neverit ze dostaneme stale token
+    if response.status_code == 404:
+        return False
     return response.json()
+
+
+def get_group_id_by_name(name: str) -> str:
+    # TODO: dohodnut sa ci chceme alebo nie
+    user_groups = listEffectiveUserGroups()
+    for group_id in user_groups:
+        group_name = getGroupDetails(group_id)["name"]
+        if group_name.startswith(name):
+            return group_id
+    return ""
 
 
 def removeGroup(group_id):
