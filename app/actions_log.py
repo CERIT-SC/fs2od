@@ -272,6 +272,23 @@ class ActionsLogger:
         return False
 
     @staticmethod
+    def move_storage_deleting_after_space(sequence: dict) -> dict:
+        queue: list = sequence["queue"]
+
+        if "storage" not in queue and "space" not in queue:
+            return sequence
+
+        storage_index = queue.index("storage")
+        space_index = queue.index("space")
+
+        queue.pop(storage_index)
+        queue.insert(space_index, "storage")
+
+        sequence["queue"] = queue
+
+        return sequence
+
+    @staticmethod
     def rollback_actions(sequence: dict) -> bool:
         """
         Provides real rollback. Testing connection at the beginning. If connected successfully, does rollback.
@@ -279,6 +296,8 @@ class ActionsLogger:
         """
         if not sequence:
             return True
+
+        sequence = ActionsLogger.move_storage_deleting_after_space(sequence)
 
         # at the beginning we must test the connection
         Logger.log(3, "rollback - testing connection")
