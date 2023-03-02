@@ -25,7 +25,7 @@ def action_space(space_name: str, space_id: str) -> bool:
 
     Logger.log(3, f"rollback - getting space from id {space_id}")
     if space_id:
-        space = spaces.get_space(space_id)  # space got, no need to change space id
+        space = spaces.get_space_from_onezone(space_id)  # space got, no need to change space id
 
     if not space:
         Logger.log(3, f"rollback - id is not correct, getting from name {space_name}")
@@ -53,6 +53,7 @@ def action_storage(storage_name: str, storage_id: str) -> bool:
     :return: True if successful, otherwise False
     """
     Logger.log(3, f"rollback - removing storage with name {storage_name} and id {storage_id}")
+    time.sleep(4 * Settings.get().config["sleepFactor"])
 
     if not storage_name and not storage_id:
         Logger.log(1, f"rollback - no storage name nor storage id was provided")
