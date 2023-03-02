@@ -341,6 +341,7 @@ class ActionsLogger:
         If include_file is False, log from file will be skipped
         """
         Logger.log(1, "starting rollback")
+        time.sleep(5 * Settings.get().config["sleepFactor"])
         self.close_file()
 
         sequence_1 = self.build_sequence(include_file)
