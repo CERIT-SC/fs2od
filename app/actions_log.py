@@ -1,8 +1,9 @@
+import time
 from io import TextIOWrapper
 import os.path
 import sys
 from typing import Union, List, Optional, Tuple
-from utils import Logger, Utils
+from utils import Logger, Utils, Settings
 import test
 import rollback_actions
 
@@ -78,10 +79,14 @@ class ActionsLogger:
         """
         After action run, appends obtained id to log
         """
+
+        now_testing = self.log[-1].type
+
         if only_check:
             self.log.pop(-1)
 
         if not obtained_id:
+            Logger.log(1, f"Did not get id for {now_testing}. Doing rollback.")
             self.rollback(include_file=False)
             sys.exit(1)
 
