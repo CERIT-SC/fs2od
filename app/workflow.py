@@ -272,8 +272,6 @@ def registerSpace(base_path, directory) -> bool:
     actions_logger.finish_actions_log()
 
 
-
-
 # TODO - WIP
 def deleteSpaceWithAllStuff(spaceId):
     Logger.log(1, "Not fully implemeted yet")
