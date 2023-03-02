@@ -38,6 +38,20 @@ def get_space(space_id) -> dict:
     return response.json()
 
 
+def get_space_from_onezone(space_id) -> dict:
+    """
+    Returns the basic information about space with given Id.
+    """
+    Logger.log(4, "get_space_from_onezone(%s):" % space_id)
+    # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_space
+    url = "onezone/spaces/" + space_id
+    response = request.get(url)
+    # todo: spytat sa ze preco to robi cez onezone a onepanel inac
+    if response.status_code == 404:
+        return {}
+    return response.json()
+
+
 def get_space_id_by_name(name: str) -> str:
     for space in getSpaces():
         if space["name"].startswith(name):
