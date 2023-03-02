@@ -95,7 +95,7 @@ def registerSpace(base_path, directory) -> bool:
 
     actions_logger.new_actions_log()
 
-    actions_logger.log_pre("space", dataset_name)
+    actions_logger.log_pre("space", space_name)
     # Create a new space
     space_id = spaces.createSpaceForGroup(
         group_id=Settings.get().config["managerGroupId"],
@@ -113,7 +113,7 @@ def registerSpace(base_path, directory) -> bool:
     support_token = tokens.createTemporarySupportToken(space_id)
     actions_logger.log_post(support_token.get("token", ""), only_check=True)
 
-    actions_logger.log_pre("storage", dataset_name)
+    actions_logger.log_pre("storage", space_name)
     # Create storage for the space
     storage_id = storages.createAndGetStorage(
         name=space_name,
