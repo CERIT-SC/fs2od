@@ -132,9 +132,10 @@ def createInviteTokenToGroup(group_id, token_name) -> dict:
     for try_number in range(TOKEN_RENAMING_TRIES):  # will be defined globally
         data["name"] = new_token_name
         resp = request.post(url, headers=headers, data=json.dumps(data), ok_statuses=(400,))
-        if resp:
-            Logger.log(3, f"Invite to group token was created with name {new_token_name}")
-            return resp.json()
+        if resp.ok:
+            response_json = resp.json()
+            Logger.log(3, f"Invite to group token was created with name {new_token_name} and id {response_json['tokenId']}")
+            return response_json
         else:
             if resp.json()["error"]["details"]["key"] != "name":  # there is another problem, not with duplicate name
                 request.response_print(resp.json())  # TODO: temporary
