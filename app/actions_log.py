@@ -237,9 +237,9 @@ class ActionsLogger:
             return True
 
         # at the beginning we must test the connection
+        Logger.log(3, "rollback - testing connection")
         connection_status = test.testConnection()
         # means if something not connected
-        Logger.log(3, "rollback - testing connection")
         if connection_status != 0:
             Logger.log(3, "rollback - connection failed, writing to file")
             ActionsLogger.write_sequence_to_file(sequence)
@@ -258,27 +258,19 @@ class ActionsLogger:
             elif action == "space":
                 success = rollback_actions.action_space(sequence[action][0], sequence[action][1]) and success
 
+        if not success:
+            Logger.log(1, "rollback - rollback was not completed successfully, need to check logs")
+            return success
 
-        return True
+        Logger.log(3, "rollback - rollback was successful")
+        return success
 
-        # TODO: resolve in rollback
+        # TODO: ako zakomponovat do rollbacku
         """
-        # HACK
-        if not result_support:
-            # delete space
-            spaces.removeSpace(space_id)
-            time.sleep(2 * Settings.get().config["sleepFactor"])
-
-            # delete storage
-            storages.removeStorage(storage_id)
-            Logger.log(
-                1, "Space for %s not created (unsucessfull support)." % directory.name
-            )
-            if Settings.get().config["dareg"]["enabled"] and result_support:
-                dareg.log(space_id, "error", "removed")
-            return
+        
+        if Settings.get().config["dareg"]["enabled"] and result_support:
+            dareg.log(space_id, "error", "removed")
         """
-
 
     def rollback(self, include_file: bool = True):
         Logger.log(1, "starting rollback")
