@@ -343,7 +343,7 @@ class ActionsLogger:
         First signal to do rollback. Creates sequences and runs them
         If include_file is False, log from file will be skipped
         """
-        Logger.log(1, "starting rollback")
+        Logger.log(2, "starting rollback")
         time.sleep(5 * Settings.get().config["sleepFactor"])
         self.close_file()
 
@@ -357,7 +357,7 @@ class ActionsLogger:
         self.rollback_actions(sequence_1)
 
         self.finish_actions_log()
-        Logger.log(1, "rollback finished")
+        Logger.log(2, "rollback finished")
 
 
 def get_actions_logger() -> ActionsLogger:
