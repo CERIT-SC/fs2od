@@ -75,9 +75,10 @@ class ActionsLogger:
         self.file.write(f"{object_type},{name},")
         self.file.flush()
 
-    def log_post(self, obtained_id: Union[str, dict, bool], only_check=False):
+    def log_post(self, obtained_id: Union[str, dict, bool], only_check=False) -> bool:
         """
         After action run, appends obtained id to log
+        Returns False when rollback was run, otherwise True
         """
 
         now_testing = self.log[-1].type
@@ -88,11 +89,11 @@ class ActionsLogger:
         if not obtained_id:
             Logger.log(1, f"Did not get id for {now_testing}. Doing rollback.")
             self.rollback(include_file=False)
-            sys.exit(1)
+            return False
 
         if only_check:
             self.file.write(f"only_check\n")
-            return
+            return True
 
         last_object = self.log[-1]
 
@@ -102,6 +103,7 @@ class ActionsLogger:
         last_object.assign_id(obtained_id)
 
         self.file.write(f"{obtained_id}\n")
+        return True
 
     def close_file(self):
         if type(self.file) == TextIOWrapper:
@@ -275,7 +277,7 @@ class ActionsLogger:
     def move_storage_deleting_after_space(sequence: dict) -> dict:
         queue: list = sequence["queue"]
 
-        if "storage" not in queue and "space" not in queue:
+        if "storage" not in queue or "space" not in queue:
             return sequence
 
         storage_index = queue.index("storage")
