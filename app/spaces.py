@@ -55,7 +55,7 @@ def startAutoStorageImport(space_id):
     Logger.log(4, "startAutoStorageImport(%s):" % space_id)
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/force_start_auto_storage_import_scan
     url = "onepanel/provider/spaces/" + space_id + "/storage-import/auto/force-start"
-    response = request.post(url)
+    response = request.post(url, ok_statuses=(409,))
     return response
 
 
