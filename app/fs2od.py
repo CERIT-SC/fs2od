@@ -88,44 +88,45 @@ def main():
     parser_2_3.add_argument("--path", required=True, type=str, help="Path to space")
     parser_2_3.set_defaults(func=runTestRegisterSpace)
 
-    parser_3 = subparsers.add_parser(
-        "test-connection", help="Test if Onezone and Oneprovider is available"
+    parser_2_4 = subparser_2.add_parser(
+        "connection",
+        help="Tests connection to OneZone, OneProviders and dareg defined in config.",
     )
-    parser_3.add_argument(
+    parser_2_4.add_argument(
         "--ignore-disabled-status", required=False, action="store_true", help="If included, tests will be performed regardless setup"
     )
-    parser_3.set_defaults(func=runTestConnection)
+    parser_2_4.set_defaults(func=runTestConnection)
 
-    parser_4 = subparsers.add_parser(
+    parser_3 = subparsers.add_parser(
         "sandbox", help="Run manually a workflow specifed in the file sandbox.py"
     )
-    parser_4.add_argument(
+    parser_3.add_argument(
         "--var1",
         default="",
         required=False,
         type=str,
         help="Variable which will be set up in sandbox.",
     )
-    parser_4.add_argument(
+    parser_3.add_argument(
         "--var2",
         default="",
         required=False,
         type=str,
         help="Variable which will be set up in sandbox.",
     )
-    parser_4.add_argument(
+    parser_3.add_argument(
         "--var3",
         default="",
         required=False,
         type=str,
         help="Variable which will be set up in sandbox.",
     )
-    parser_4.set_defaults(func=runSandbox)
+    parser_3.set_defaults(func=runSandbox)
 
-    parser_5 = subparsers.add_parser(
+    parser_4 = subparsers.add_parser(
         "check-running", help="Only check and change continous import status"
     )
-    parser_5.set_defaults(func=runCheck)
+    parser_4.set_defaults(func=runCheck)
 
     args = parser.parse_args()
 
