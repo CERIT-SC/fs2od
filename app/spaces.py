@@ -12,7 +12,7 @@ MINIMAL_SPACE_SIZE = 1048576
 
 
 def getSpaces(oneprovider_index: int = 0):
-    Logger.log(4, "getSpaces():")
+    Logger.log(4, f"getSpaces(order={oneprovider_index}):")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_all_spaces
     url = f"oneprovider/spaces"
     response = request.get(url, oneprovider_index=oneprovider_index)
