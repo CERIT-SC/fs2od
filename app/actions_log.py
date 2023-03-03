@@ -243,6 +243,7 @@ class ActionsLogger:
         Serializes sequence to log-file-like string
         """
         sequence_queue = sequence["queue"]
+        sequence_queue = sequence_queue[::-1]
 
         serialized_out = ""
 
