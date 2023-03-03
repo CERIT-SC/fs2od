@@ -133,7 +133,6 @@ def registerSpace(base_path, directory) -> bool:
     if not space_id or not support_token:
         Logger.log(1, "Space for %s not created." % directory.name)
         return False
-
     actions_logger.log_pre("space_support", "")
     # set up space support on the provider
     result_support = spaces.supportSpace(

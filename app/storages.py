@@ -23,6 +23,7 @@ def getLastStorage():
 
 def addStorage(name, mountpoint):
     Logger.log(4, "addStorage(%s, %s):" % (name, mountpoint))
+    # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/get_storages
 
     if len(name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:
         Logger.log(1, "Too short storage name %s." % name)
