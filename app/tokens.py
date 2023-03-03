@@ -36,9 +36,19 @@ def getNamedToken(token_id):
 
 # Onedata returns wrong answer, not using
 def getNamedTokenByName(name):
+    # todo: nemusi fungovat, potrebujeme user id
     Logger.log(4, "getNamedTokenByName(%s):" % name)
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_named_token_of_current_user_by_name
     url = "onezone/user/tokens/" + "named/name/" + name
+    response = request.get(url)
+    return response
+
+
+def get_users_named_token_by_name(name: str):
+    Logger.log(4, f"get_users_named_token_by_name({name}):")
+    # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_named_token_of_user_by_name
+    user_id = Settings.get().config["serviceUserId"]
+    url = "onezone/users/" + user_id + "/tokens/named/name/" + name
     response = request.get(url)
     return response
 

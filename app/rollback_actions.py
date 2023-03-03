@@ -140,7 +140,7 @@ def action_token(token_name: str, token_id: str) -> bool:
 
     if not token:
         Logger.log(3, f"rollback - id is not correct, getting from name {token_name}")
-        response = tokens.getNamedTokenByName(token_name)
+        response = tokens.get_users_named_token_by_name(token_name)
 
         # it is ok, because we do not have to delete token
         if response.status_code == 404:
@@ -148,7 +148,7 @@ def action_token(token_name: str, token_id: str) -> bool:
             return True
 
         # TODO response moze dat aj iny status code, crash chance
-        token_id = response["id"]
+        token_id = response.json()["id"]
 
     Logger.log(3, f"rollback - removing token with id {token_id}")
     response = tokens.deleteNamedToken(token_id)
