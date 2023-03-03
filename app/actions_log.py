@@ -169,7 +169,7 @@ class ActionsLogger:
                     sequence["queue"].append(item_type)
                     continue
 
-            item_id = item_list[3]
+            item_id = item_list[2]
             # not needed, not reversible
             if item_id == "only_check":
                 continue
