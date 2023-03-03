@@ -9,6 +9,7 @@ import spaces, storages, metadata, groups, tokens, shares, files, filesystem, da
 
 actions_logger = actions_log.get_actions_logger()
 
+
 def _get_storage_index(space_id: str, number_of_available_storages: int) -> int:
     """
     Returns index of storage which will support the space.
@@ -20,6 +21,7 @@ def _get_storage_index(space_id: str, number_of_available_storages: int) -> int:
     # using division remainder causes uniform distribution between storages
     storage_index = space_id_int % number_of_available_storages
     return storage_index
+
 
 def _add_support_from_all(support_token: str, space_id: str) -> None:
     """
@@ -101,7 +103,8 @@ def registerSpace(base_path, directory) -> bool:
         group_id=Settings.get().config["managerGroupId"],
         space_name=space_name
     )
-    actions_logger.log_post(space_id)
+    is_ok = actions_logger.log_post(space_id)
+    if not is_ok: return False
 
     if Settings.get().config["dareg"]["enabled"] and space_id:
         dareg.register_dataset(space_id, dataset_name, base_path)
@@ -111,7 +114,8 @@ def registerSpace(base_path, directory) -> bool:
     # Create support token
     actions_logger.log_pre("temporary_token", "")
     support_token = tokens.createTemporarySupportToken(space_id)
-    actions_logger.log_post(support_token.get("token", ""), only_check=True)
+    is_ok = actions_logger.log_post(support_token.get("token", ""), only_check=True)
+    if not is_ok: return False
 
     actions_logger.log_pre("storage", space_name)
     # Create storage for the space
@@ -119,7 +123,8 @@ def registerSpace(base_path, directory) -> bool:
         name=space_name,
         mountpoint=os.path.join(base_path, directory.name)
     )
-    actions_logger.log_post(storage_id)
+    is_ok = actions_logger.log_post(storage_id)
+    if not is_ok: return False
 
     if Settings.get().config["dareg"]["enabled"] and storage_id:
         dareg.log(space_id, "info", "created storage %s" % storage_id)
@@ -138,7 +143,8 @@ def registerSpace(base_path, directory) -> bool:
         space_id=space_id
     )
     time.sleep(2 * Settings.get().config["sleepFactor"])
-    actions_logger.log_post(result_support, only_check=True)
+    is_ok = actions_logger.log_post(result_support, only_check=True)
+    if not is_ok: return False
 
     if Settings.get().config["dareg"]["enabled"] and result_support:
         dareg.log(space_id, "info", "supported")
@@ -157,7 +163,8 @@ def registerSpace(base_path, directory) -> bool:
         parent_group_id=Settings.get().config["userGroupId"],
         group_name=space_name
     )
-    actions_logger.log_post(gid)
+    is_ok = actions_logger.log_post(gid)
+    if not is_ok: return False
 
     if Settings.get().config["dareg"]["enabled"] and gid:
         dareg.log(space_id, "info", "created group %s" % gid)
@@ -169,7 +176,8 @@ def registerSpace(base_path, directory) -> bool:
         group_id=gid,
         token_name=space_name
     )
-    actions_logger.log_post(token)
+    is_ok = actions_logger.log_post(token)
+    if not is_ok: return False
 
     if Settings.get().config["dareg"]["enabled"] and token:
         dareg.log(space_id, "info", "created invite token")
@@ -189,9 +197,10 @@ def registerSpace(base_path, directory) -> bool:
         gid=gid,
         privileges=privileges
     )
-    actions_logger.log_post(response.ok, only_check=True)
+    is_ok = actions_logger.log_post(response.ok, only_check=True)
+    if not is_ok: return False
 
-    if Settings.get().config["dareg"]["enabled"] and response: # response is valid object, removed todo
+    if Settings.get().config["dareg"]["enabled"] and response:  # response is valid object, removed todo
         dareg.log(space_id, "info", "group added to space")
     time.sleep(1 * Settings.get().config["sleepFactor"])
 
@@ -203,24 +212,26 @@ def registerSpace(base_path, directory) -> bool:
     filesystem.setValuesToYaml(yml_file, yml_content, yaml_onedata_dict)
     time.sleep(3 * Settings.get().config["sleepFactor"])
 
-
     actions_logger.log_pre("auto_storage_import", "")
     # first import of files to Onedata space
     response = spaces.startAutoStorageImport(space_id)
     time.sleep(3 * Settings.get().config["sleepFactor"])
-    actions_logger.log_post(response.ok, only_check=True)
+    is_ok = actions_logger.log_post(response.ok, only_check=True)
+    if not is_ok: return False
 
     # set up permissions
     actions_logger.log_pre("file_id", "")
     file_id = spaces.get_space(space_id=space_id)["fileId"]
-    actions_logger.log_post(file_id, only_check=True)
+    is_ok = actions_logger.log_post(file_id, only_check=True)
+    if not is_ok: return False
 
     actions_logger.log_pre("set_files_to_posix", "")
     success = files.setFileAttributeRecursive(
         file_id=file_id,
         posix_mode=Settings.get().config["initialPOSIXlikePermissions"]
     )
-    actions_logger.log_post(success, only_check=True)
+    is_ok = actions_logger.log_post(success, only_check=True)
+    if not is_ok: return False
 
     # create public share
     actions_logger.log_pre("share", dataset_name)
@@ -228,7 +239,8 @@ def registerSpace(base_path, directory) -> bool:
     if not share:
         Logger.log(1, "Share for the space %s not created." % dataset_name)
         return False
-    actions_logger.log_post(share["shareId"], only_check=True)
+    is_ok = actions_logger.log_post(share["shareId"], only_check=True)
+    if not is_ok: return False
 
     if Settings.get().config["dareg"]["enabled"]:
         dareg.update_dataset(space_id, token["token"], share["publicUrl"])
@@ -247,7 +259,8 @@ def registerSpace(base_path, directory) -> bool:
             shid=share["shareId"],
             description=result
         )
-    actions_logger.log_post(response.ok, only_check=True)
+    is_ok = actions_logger.log_post(response.ok, only_check=True)
+    if not is_ok: return False
 
     # write onedata parameter (publicURL) to file
     filesystem.setValueToYaml(
@@ -261,7 +274,8 @@ def registerSpace(base_path, directory) -> bool:
     actions_logger.log_pre("space_metadata", "")
     if Settings.get().config["importMetadata"]:
         response = metadata.setSpaceMetadataFromYaml(space_id)
-    actions_logger.log_post(response.ok, only_check=True)
+    is_ok = actions_logger.log_post(response.ok, only_check=True)
+    if not is_ok: return False
 
     path = base_path + os.sep + directory.name
     Logger.log(3, "Processing of %s done." % path)
