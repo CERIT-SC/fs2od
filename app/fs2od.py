@@ -90,7 +90,7 @@ def main():
 
     parser_2_4 = subparser_2.add_parser(
         "connection",
-        help="Tests connection to OneZone, OneProviders and dareg defined in config.",
+        help="Tests connection to Onezone, Oneproviders and dareg defined in config.",
     )
     parser_2_4.add_argument(
         "--ignore-disabled-status", required=False, action="store_true", help="If included, tests will be performed regardless setup"
