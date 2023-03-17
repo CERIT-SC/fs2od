@@ -108,9 +108,14 @@ class Settings:
         print(f"[Info] {message}")
 
     @staticmethod
-    def _test_existence(dictionary, attribute, default=None):
+    def _test_existence(dictionary, attribute, default=None) -> bool:
+        """
+        Tests existence of a value.
+        If default value not provided and value not present, exits application.
+        Returns False if default value was used, otherwise True
+        """
         if attribute not in dictionary:
-            if default == None:
+            if default is None:
                 print("[Error] attribute %s not set in configuration file" % attribute)
                 sys.exit(1)
             else:
@@ -120,6 +125,33 @@ class Settings:
                         "no attribute %s in configuration file, using its default value [%s]"
                         % (attribute, default)
                     )
+                    return False
+
+        return True
+
+    @staticmethod
+    def _test_if_empty(dictionary, attribute, default=None) -> bool:
+        """
+        Tests if value is not empty.
+        If default value not provided and value empty, exits application.
+        Returns False if default value was used, otherwise True
+        """
+        if type(dictionary[attribute]) in (int, bool, float):
+            return True
+
+        if not dictionary[attribute]:
+            if default is None:
+                print(f"[Error] attribute {attribute} is empty")
+                sys.exit(1)
+            else:
+                dictionary[attribute] = default
+
+                Settings._info(
+                    f"attribute {attribute} is empty, using default value [{default}]"
+                    )
+                return False
+
+        return True
 
     @staticmethod
     def _add_protocol_to_host_if_missing(host: str, allowed_protocols: tuple = ("https", "http")) -> str:
