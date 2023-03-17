@@ -148,7 +148,6 @@ def registerSpace(base_path, directory) -> bool:
     if Settings.get().config["dareg"]["enabled"] and result_support:
         dareg.log(space_id, "info", "supported")
 
-    # TODO:
     if Settings.get().DATA_REPLICATION_ENABLED:
         Logger.log(
             3, "Setting up replication of space %s" % space_id
@@ -199,7 +198,7 @@ def registerSpace(base_path, directory) -> bool:
     is_ok = actions_logger.log_post(response.ok, only_check=True)
     if not is_ok: return False
 
-    if Settings.get().config["dareg"]["enabled"] and response:  # response is valid object, removed todo
+    if Settings.get().config["dareg"]["enabled"] and response:
         dareg.log(space_id, "info", "group added to space")
     time.sleep(1 * Settings.get().config["sleepFactor"])
 

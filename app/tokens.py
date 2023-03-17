@@ -34,9 +34,10 @@ def getNamedToken(token_id):
         return False
     return response.json()
 
+
 # Onedata returns wrong answer, not using
+# nemusi fungovat, potrebujeme user id
 def getNamedTokenByName(name):
-    # todo: nemusi fungovat, potrebujeme user id
     Logger.log(4, "getNamedTokenByName(%s):" % name)
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_named_token_of_current_user_by_name
     url = "onezone/user/tokens/" + "named/name/" + name
@@ -104,7 +105,6 @@ def createTemporarySupportToken(space_id):
     return resp.json()
 
 
-
 def tokenExists(name):
     response = getNamedTokenByName(name)
     # print(response.status_code, response.text)
@@ -115,6 +115,7 @@ def tokenExists(name):
         return False
     else:
         raise RuntimeError("Response was wrong in tokenExists(%s)" % name)
+
 
 def createInviteTokenToGroup(group_id, token_name) -> dict:
     Logger.log(4, "createInviteTokenToGroup(%s, %s):" % (group_id, token_name))
