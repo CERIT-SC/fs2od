@@ -78,7 +78,8 @@ def startAutoStorageImport(space_id):
     Logger.log(4, "startAutoStorageImport(%s):" % space_id)
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/force_start_auto_storage_import_scan
     url = "onepanel/provider/spaces/" + space_id + "/storage-import/auto/force-start"
-    response = request.post(url)
+    
+    response = request.post(url, ok_statuses=(409,))
 
     if response.ok:
         Logger.log(3, f"Auto storage import for space {space_id} started")
@@ -192,14 +193,15 @@ def setSpaceSize(space_id, size=None):
         data = {"size": size}
         headers = dict({"Content-type": "application/json"})
         response = request.patch(url, headers=headers, data=json.dumps(data), oneprovider_index=oneprovider_index)
+        provider_domain_name = Settings.get().ONEPROVIDERS_DOMAIN_NAMES[oneprovider_index]
         if response.ok:
             # Logger.log(3, "New size (%s) set for space %s" % (size, space_id), space_id=space_id)
-            Logger.log(3, "New size (%s) set for storage of provider %s in space %s" % (size, oneprovider_index, space_id), space_id=space_id)
+            Logger.log(3, "New size (%s) set for storage of provider %s in space %s" % (size, provider_domain_name, space_id), space_id=space_id)
             # dareg.log(space_id, "info", "set new size %s" % size)
-            dareg.log(space_id, "info", "set new size %s for storage of provider %s" % (size, oneprovider_index))
+            dareg.log(space_id, "info", "set new size %s for storage of provider %s" % (size, provider_domain_name))
         else:
             Logger.log(
-                2, "New size (%s) can't be set for storage of provider %s of space %s" % (size, oneprovider_index, space_id), space_id=space_id
+                2, "New size (%s) can't be set for storage of provider %s of space %s" % (size, provider_domain_name, space_id), space_id=space_id
             )
         time.sleep(1 * Settings.get().config["sleepFactor"])
     return response
