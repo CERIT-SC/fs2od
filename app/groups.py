@@ -95,7 +95,6 @@ def getGroupDetails(group_id: str):
 
 
 def get_group_id_by_name(name: str) -> str:
-    # TODO: dohodnut sa ci chceme alebo nie
     user_groups = listEffectiveUserGroups()
     for group_id in user_groups:
         group_name = getGroupDetails(group_id)["name"]
