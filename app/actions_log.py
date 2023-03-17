@@ -1,7 +1,6 @@
 import time
 from io import TextIOWrapper
 import os.path
-import sys
 from typing import Union, List, Optional, Tuple
 from utils import Logger, Utils, Settings
 import test
@@ -330,13 +329,6 @@ class ActionsLogger:
 
         Logger.log(3, "rollback - rollback was successful")
         return success
-
-        # TODO: ako zakomponovat do rollbacku
-        """
-        
-        if Settings.get().config["dareg"]["enabled"] and result_support:
-            dareg.log(space_id, "error", "removed")
-        """
 
     def rollback(self, include_file: bool = True) -> None:
         """
