@@ -155,7 +155,8 @@ def setSpaceSize(space_id, size=None):
         Logger.log(3, "Space size fixed (%s -> %s)" % (size, MINIMAL_SPACE_SIZE))
         size = MINIMAL_SPACE_SIZE
 
-    last_oneprovider = 1 if not Settings.get().DATA_REPLICATION_ENABLED else len(Settings.get().ONEPANELS_AUTH_HEADERS)
+    last_oneprovider = 1 if not Settings.get().DATA_REPLICATION_ENABLED \
+        else len(Settings.get().ONEPROVIDERS_AUTH_HEADERS)
 
     # goes down because response of provider 0 is important
     for oneprovider_index in range(last_oneprovider - 1, -1, -1):

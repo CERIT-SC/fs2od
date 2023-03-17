@@ -20,17 +20,19 @@ def _get_storage_index(space_id: str, number_of_available_storages: int) -> int:
     storage_index = space_id_int % number_of_available_storages
     return storage_index
 
+
 def _add_support_from_all(support_token: str, space_id: str) -> None:
     """
     Iterates through each of the supporting providers and adds their support to space.
     """
-    supporting_providers = Settings.get().config["dataReplication"]["supportingProviders"]
-    for index in range(len(supporting_providers)):
-        storage_ids = supporting_providers[index]["storageIds"]
+    supporting_providers_storages = Settings.get().ONEPROVIDERS_STORAGE_IDS
+
+    for index in range(1, len(supporting_providers_storages)):
+        storage_ids = supporting_providers_storages[index]
         storage_id = storage_ids[_get_storage_index(space_id, len(storage_ids))]
 
         result_support = spaces.supportSpace(
-            support_token, Settings.get().config["implicitSpaceSize"], storage_id, space_id, oneprovider_index=index + 1
+            support_token, Settings.get().config["implicitSpaceSize"], storage_id, space_id, oneprovider_index=index
         )
         time.sleep(2 * Settings.get().config["sleepFactor"])
 
@@ -116,7 +118,6 @@ def registerSpace(base_path, directory):
 
                 if Settings.get().config["dareg"]["enabled"] and result_support:
                     dareg.log(space_id, "info", "supported")
-
                 if Settings.get().DATA_REPLICATION_ENABLED:
                     Logger.log(
                         3, "Setting up replication of space %s" % space_id
