@@ -36,8 +36,8 @@ def action_space(space_name: str, space_id: str) -> bool:
             search_successful = True
             break
 
-        Logger.log(3, f"rollback - id is not correct, getting from name {space_name}")
-        space_id = spaces.get_space_id_by_name(space_name)
+        Logger.log(3, f"rollback - id is not correct, not rolling back {space_name}")
+        # space_id = spaces.get_space_id_by_name(space_name)
 
         if space_id:
             search_successful = True
@@ -88,8 +88,8 @@ def action_storage(storage_name: str, storage_id: str) -> bool:
             search_successful = True
             break
 
-        Logger.log(3, f"rollback - id is not correct, getting from name {storage_name}")
-        storage_id = storages.get_storage_id_by_name(storage_name)
+        Logger.log(3, f"rollback - id is not correct, not rolling back {storage_name}")
+        # storage_id = storages.get_storage_id_by_name(storage_name)
 
         if storage_id:
             search_successful = True
@@ -136,8 +136,8 @@ def action_group(group_name: str, group_id: str):
             search_successful = True
             break
 
-        Logger.log(3, f"rollback - id is not correct, getting from name {group_name}")
-        group_id = groups.get_group_id_by_name(group_name)
+        Logger.log(3, f"rollback - id is not correct, not rolling back {group_name}")
+        # group_id = groups.get_group_id_by_name(group_name)
 
         if group_id:
             search_successful = True
