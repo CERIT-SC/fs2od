@@ -27,14 +27,14 @@ def removeSpace(space_id):
     return response
 
 
-def get_space(space_id) -> dict:
+def get_space(space_id, ok_statuses: tuple = (200, )) -> dict:
     """
     Returns the basic information about space with given Id.
     """
     Logger.log(4, "getSpace(%s):" % space_id)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_space
     url = "oneprovider/spaces/" + space_id
-    response = request.get(url)
+    response = request.get(url, ok_statuses=ok_statuses)
     return response.json()
 
 

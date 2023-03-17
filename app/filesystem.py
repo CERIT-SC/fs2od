@@ -77,7 +77,7 @@ def setupContinuousImport(base_path):
             if space_id:
                 # test if such space exists
                 try:
-                    space_name = spaces.get_space(space_id)["name"]
+                    space_name = spaces.get_space(space_id, ok_statuses=(400, ))["name"]
                 except KeyError:
                     Logger.log(1, "Space ID %s found in %s isn't correct." % (space_id, yml_file))
                     return
