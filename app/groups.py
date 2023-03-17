@@ -89,8 +89,7 @@ def getGroupDetails(group_id: str):
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_group
     url = "onezone/groups/" + group_id
     response = request.get(url)
-    # todo: doklepat, neverit ze dostaneme stale token
-    if response.status_code == 404:
+    if not response.ok:
         return False
     return response.json()
 
