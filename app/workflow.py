@@ -83,25 +83,27 @@ def registerSpace(base_path, directory) -> bool:
     Logger.log(3, f"Creating space from {full_path}")
     dataset_name = Settings.get().config["datasetPrefix"] + directory.name
 
+    if Settings.get().TEST:
+        dataset_name = Settings.get().TEST_PREFIX + dataset_name
+
     if not Utils.isValidOnedataName(dataset_name):
         # try clear the name
+        dataset_name_old = dataset_name
         dataset_name = Utils.clearOnedataName(dataset_name)
-        Logger.log(2, f"Invalid dataset name {directory.name}. Changing to {dataset_name}")
+        Logger.log(2, f"Invalid dataset name {dataset_name_old}. Changing to {dataset_name}")
 
     # and test it again
     if not Utils.isValidOnedataName(dataset_name):
         Logger.log(2, f"Dataset name {directory.name} can't be cleared")
         return False
 
-    space_name = Settings.get().TEST_PREFIX + dataset_name if Settings.get().TEST else dataset_name
-
     actions_logger.new_actions_log()
 
-    actions_logger.log_pre("space", space_name)
+    actions_logger.log_pre("space", dataset_name)
     # Create a new space
     space_id = spaces.createSpaceForGroup(
         group_id=Settings.get().config["managerGroupId"],
-        space_name=space_name
+        space_name=dataset_name
     )
     is_ok = actions_logger.log_post(space_id)
     if not is_ok: return False
@@ -117,10 +119,10 @@ def registerSpace(base_path, directory) -> bool:
     is_ok = actions_logger.log_post(support_token.get("token", ""), only_check=True)
     if not is_ok: return False
 
-    actions_logger.log_pre("storage", space_name)
+    actions_logger.log_pre("storage", dataset_name)
     # Create storage for the space
     storage_id = storages.createAndGetStorage(
-        name=space_name,
+        name=dataset_name,
         mountpoint=os.path.join(base_path, directory.name)
     )
     is_ok = actions_logger.log_post(storage_id)
@@ -155,11 +157,11 @@ def registerSpace(base_path, directory) -> bool:
         _add_support_from_all(support_token, space_id)
         _add_qos_requirement(space_id, Settings.get().DATA_REPLICATION_REPLICAS)
 
-    actions_logger.log_pre("group", space_name)
+    actions_logger.log_pre("group", dataset_name)
     # Create user group for space
     gid = groups.createChildGroup(
         parent_group_id=Settings.get().config["userGroupId"],
-        group_name=space_name
+        group_name=dataset_name
     )
     is_ok = actions_logger.log_post(gid)
     if not is_ok: return False
@@ -168,11 +170,11 @@ def registerSpace(base_path, directory) -> bool:
         dareg.log(space_id, "info", "created group %s" % gid)
     time.sleep(1 * Settings.get().config["sleepFactor"])
 
-    actions_logger.log_pre("token", space_name)
+    actions_logger.log_pre("token", dataset_name)
     # Create invite token for the user group
     token = tokens.createInviteTokenToGroup(
         group_id=gid,
-        token_name=space_name
+        token_name=dataset_name
     )
     is_ok = actions_logger.log_post(token)
     if not is_ok: return False
