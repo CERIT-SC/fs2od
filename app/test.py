@@ -167,7 +167,6 @@ def _test_dareg() -> int:
     return 0
 
 
-
 def testConnection(of_each_oneprovider: bool = False):
     # testing Onezone
     result = _testOnezone()

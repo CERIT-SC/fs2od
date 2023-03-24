@@ -23,6 +23,7 @@ def getLastStorage():
 
 def addStorage(name, mountpoint):
     Logger.log(4, "addStorage(%s, %s):" % (name, mountpoint))
+    # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/get_storages
 
     if len(name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:
         Logger.log(1, "Too short storage name %s." % name)
@@ -43,12 +44,22 @@ def getStorageDetails(storage_id):
     Logger.log(4, "getStorageDetails(%s)" % storage_id)
     url = "onepanel/provider/storages/" + storage_id
     response = request.get(url)
+    # todo: doklepat, neverit ze dostaneme stale token
+    if response.status_code == 404:
+        return False
     return response.json()
 
 
+def get_storage_id_by_name(name: str) -> str:
+    for storage_id in getStorages()["ids"]:
+        storage = getStorageDetails(storage_id)
+        if storage["name"].startswith(name):
+            return storage_id
+
+    return ""
+
+
 def createAndGetStorage(name, mountpoint):
-    if Settings.get().TEST:
-        name = Settings.get().TEST_PREFIX + name
     Logger.log(4, "createAndGetStorage(%s, %s):" % (name, mountpoint))
     resp = addStorage(name, mountpoint)
     if resp.status_code == 204:

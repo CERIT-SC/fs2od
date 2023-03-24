@@ -29,13 +29,27 @@ def getNamedToken(token_id):
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_named_token
     url = "onezone/tokens/named/" + token_id
     response = request.get(url)
+    # todo: doklepat, neverit ze dostaneme stale token
+    if response.status_code == 404:
+        return False
     return response.json()
 
+
 # Onedata returns wrong answer, not using
+# nemusi fungovat, potrebujeme user id
 def getNamedTokenByName(name):
     Logger.log(4, "getNamedTokenByName(%s):" % name)
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_named_token_of_current_user_by_name
     url = "onezone/user/tokens/" + "named/name/" + name
+    response = request.get(url)
+    return response
+
+
+def get_users_named_token_by_name(name: str):
+    Logger.log(4, f"get_users_named_token_by_name({name}):")
+    # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_named_token_of_user_by_name
+    user_id = Settings.get().config["serviceUserId"]
+    url = "onezone/users/" + user_id + "/tokens/named/name/" + name
     response = request.get(url)
     return response
 
@@ -83,10 +97,13 @@ def createTemporarySupportToken(space_id):
 
     headers = dict({"Content-type": "application/json"})
     resp = request.post(url, headers=headers, data=json.dumps(data))
-    if resp.ok:
-        return resp.json()
-    else:
-        Logger.log(1, "Creating temporary token for support space %s failed" % space_id)
+    if not resp.ok:
+        Logger.log(1, f"Creating temporary token for support space {space_id} failed")
+        return
+
+    Logger.log(3, f"Created temporary token for support space {space_id}")
+    return resp.json()
+
 
 def tokenExists(name):
     response = getNamedTokenByName(name)
@@ -99,9 +116,8 @@ def tokenExists(name):
     else:
         raise RuntimeError("Response was wrong in tokenExists(%s)" % name)
 
+
 def createInviteTokenToGroup(group_id, token_name) -> dict:
-    if Settings.get().TEST:
-        token_name = Settings.get().TEST_PREFIX + token_name
     Logger.log(4, "createInviteTokenToGroup(%s, %s):" % (group_id, token_name))
 
     if len(token_name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:
@@ -127,8 +143,10 @@ def createInviteTokenToGroup(group_id, token_name) -> dict:
     for try_number in range(TOKEN_RENAMING_TRIES):  # will be defined globally
         data["name"] = new_token_name
         resp = request.post(url, headers=headers, data=json.dumps(data), ok_statuses=(400,))
-        if resp:
-            return resp.json()
+        if resp.ok:
+            response_json = resp.json()
+            Logger.log(3, f"Invite to group token was created with name {new_token_name} and id {response_json['tokenId']}")
+            return response_json
         else:
             if resp.json()["error"]["details"]["key"] != "name":  # there is another problem, not with duplicate name
                 request.response_print(resp.json())  # TODO: temporary
