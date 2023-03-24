@@ -170,7 +170,7 @@ def revokeSpaceSupport(space_id):
 def setSpaceSize(space_id, size=None):
     """
     Set a new given size to space with given space_id.
-    If size is not set, it set up a new size of space to be equal to actuall space occupancy.
+    If size is not set, it set up a new size of space to be equal to actual space occupancy.
     """
     Logger.log(4, "setSpaceSize(%s, %s):" % (space_id, str(size)))
     # if size not set, get spaceOccupancy
@@ -183,11 +183,14 @@ def setSpaceSize(space_id, size=None):
         Logger.log(3, "Space size fixed (%s -> %s)" % (size, MINIMAL_SPACE_SIZE))
         size = MINIMAL_SPACE_SIZE
 
-    last_oneprovider = 1 if not Settings.get().DATA_REPLICATION_ENABLED else len(Settings.get().ONEPANELS_AUTH_HEADERS)
+    number_of_affected_providers = 1
+    # when data replication is enabled, setting space size (size of support) for each of supporting providers
+    if Settings.get().DATA_REPLICATION_ENABLED:
+        number_of_affected_providers = len(Settings.get().ONEPROVIDERS_AUTH_HEADERS)
 
     response = None
     # goes down because response of provider 0 is important
-    for oneprovider_index in range(last_oneprovider - 1, -1, -1):
+    for oneprovider_index in range(number_of_affected_providers - 1, -1, -1):
         # based on https://onedata.org/#/home/api/stable/onepanel?anchor=operation/modify_space
         url = f"onepanel/provider/spaces/" + space_id
         data = {"size": size}

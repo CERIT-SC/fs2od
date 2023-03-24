@@ -55,20 +55,25 @@ class Settings:
                 self.TEST_PREFIX = self.config["testModePrefix"]
 
                 # Setup the access Onedata variables
-                self.ONEZONE_HOST = self.config["onezone"]["host"]
-                self.ONEZONE_API_KEY = self.config["onezone"]["apiToken"]
+                self.ONEZONE_HOST = self.config["restAccess"]["onezone"]["host"]
+                self.ONEZONE_API_KEY = self.config["restAccess"]["onezone"]["apiToken"]
 
-                self.ONEPROVIDER_HOST = self.config["oneprovider"]["host"]
-                self.ONEPROVIDER_API_KEY = self.config["oneprovider"]["apiToken"]
+                providers: list = self.config["restAccess"]["oneproviders"]
+                for provider_index in range(len(providers)):
+                    if providers[provider_index]["isPrimary"]:
+                        self.MAIN_ONEPROVIDER_HOST = providers[provider_index]["host"]
+                        self.MAIN_ONEPROVIDER_API_KEY = providers[provider_index]["apiToken"]
 
-                self.ONEPANEL_HOST = self.config["onepanel"]["host"]
-                self.ONEPANEL_API_KEY = self.config["onepanel"]["apiToken"]
+                        # now we have the certainty that when iterating through providers,
+                        # we will not access main provider
+                        providers.pop(provider_index)
+                        break
 
                 self.ONEZONE_API_URL = self.ONEZONE_HOST + "/api/v3/"
-                self.ONEPROVIDER_API_URL: str = self.ONEPROVIDER_HOST + "/api/v3/"
+                self.ONEPROVIDER_API_URL: str = self.MAIN_ONEPROVIDER_HOST + "/api/v3/"
                 self.ONEPROVIDERS_API_URL: list = [self.ONEPROVIDER_API_URL] + [
                     provider["host"] + "/api/v3/"
-                    for provider in self.config["dataReplication"]["supportingProviders"]
+                    for provider in self.config["restAccess"]["oneproviders"]
                 ]
 
                 self.ONEPROVIDERS_DOMAIN_NAMES: list = [
@@ -77,18 +82,16 @@ class Settings:
                 self.ONEPANEL_API_URL = self.ONEPANEL_HOST + "/api/v3/"
 
                 self.ONEZONE_AUTH_HEADERS = {"x-auth-token": self.ONEZONE_API_KEY}
-                self.ONEPROVIDER_AUTH_HEADERS: dict = {"x-auth-token": self.ONEPROVIDER_API_KEY}
+                self.ONEPROVIDER_AUTH_HEADERS: dict = {"x-auth-token": self.MAIN_ONEPROVIDER_API_KEY}
 
                 # all authentication headers for oneproviders in one place
                 self.ONEPROVIDERS_AUTH_HEADERS: list = [self.ONEPROVIDER_AUTH_HEADERS] + [
                     {"x-auth-token": provider["apiToken"]}
-                    for provider in self.config["dataReplication"]["supportingProviders"]
+                    for provider in self.config["restAccess"]["oneproviders"]
                 ]
-                self.ONEPANEL_AUTH_HEADERS = {"x-auth-token": self.ONEPANEL_API_KEY}
 
-                self.ONEPANELS_AUTH_HEADERS: list = [self.ONEPANEL_AUTH_HEADERS] + [
-                    {"x-auth-token": provider["onepanelApiToken"]}
-                    for provider in self.config["dataReplication"]["supportingProviders"]
+                self.ONEPROVIDERS_STORAGE_IDS = [[]] + [
+                    provider["storageIds"] for provider in providers
                 ]
 
                 self.DATA_REPLICATION_ENABLED: bool = self.config["dataReplication"]["enabled"]
@@ -112,9 +115,14 @@ class Settings:
         print(f"[Info] {message}")
 
     @staticmethod
-    def _test_existence(dictionary, attribute, default=None):
+    def _test_existence(dictionary, attribute, default=None) -> bool:
+        """
+        Tests existence of a value.
+        If default value not provided and value not present, exits application.
+        Returns False if default value was used, otherwise True
+        """
         if attribute not in dictionary:
-            if default == None:
+            if default is None:
                 print("[Error] attribute %s not set in configuration file" % attribute)
                 sys.exit(1)
             else:
@@ -124,6 +132,33 @@ class Settings:
                         "no attribute %s in configuration file, using its default value [%s]"
                         % (attribute, default)
                     )
+                    return False
+
+        return True
+
+    @staticmethod
+    def _test_if_empty(dictionary, attribute, default=None) -> bool:
+        """
+        Tests if value is not empty.
+        If default value not provided and value empty, exits application.
+        Returns False if default value was used, otherwise True
+        """
+        if type(dictionary[attribute]) in (int, bool, float):
+            return True
+
+        if not dictionary[attribute]:
+            if default is None:
+                print(f"[Error] attribute {attribute} is empty")
+                sys.exit(1)
+            else:
+                dictionary[attribute] = default
+
+                Settings._info(
+                    f"attribute {attribute} is empty, using default value [{default}]"
+                    )
+                return False
+
+        return True
 
     @staticmethod
     def _add_protocol_to_host_if_missing(host: str, allowed_protocols: tuple = ("https", "http")) -> str:
@@ -204,41 +239,46 @@ class Settings:
         self._test_existence(self.config["dareg"], "token", "a_secret_token")
         self._test_existence(self.config["dareg"], "origin_instance_pk", 1)
 
-        self._test_existence(self.config, "onezone")
-        self._test_existence(self.config["onezone"], "host")
+        self._test_existence(self.config, "restAccess")
+        self._test_existence(self.config["restAccess"], "onezone")
+        self._test_existence(self.config["restAccess"]["onezone"], "host")
+        self._test_if_empty(self.config["restAccess"]["onezone"], "host")
         # test if http/s
-        self.config["onezone"]["host"] = self._add_protocol_to_host_if_missing(self.config["onezone"]["host"])
-        self._test_existence(self.config["onezone"], "apiToken")
-        self._test_existence(self.config, "oneprovider")
-        self._test_existence(self.config["oneprovider"], "host")
-        # test if http/s
-        self.config["oneprovider"]["host"] = self._add_protocol_to_host_if_missing(self.config["oneprovider"]["host"])
-        self._test_existence(self.config["oneprovider"], "apiToken")
-        self._test_existence(self.config, "onepanel")
-        self._test_existence(self.config["onepanel"], "host")
-        # test if http/s
-        self.config["onepanel"]["host"] = self._add_protocol_to_host_if_missing(self.config["onepanel"]["host"])
-        self._test_existence(self.config["onepanel"], "apiToken")
+        self.config["restAccess"]["onezone"]["host"] = self._add_protocol_to_host_if_missing(
+            self.config["restAccess"]["onezone"]["host"]
+        )
+        self._test_existence(self.config["restAccess"]["onezone"], "apiToken")
 
-        self._test_existence(self.config, "dataReplication", dict())
-        self._test_existence(self.config["dataReplication"], "enabled", False)
-        self._test_existence(self.config["dataReplication"], "managerSpaceId")
-        # list of dicts
-        self._test_existence(self.config["dataReplication"], "supportingProviders", list())
-        # if there are supporters, they must have host and token
-        for item in self.config["dataReplication"]["supportingProviders"]:
-            self._test_existence(item, "host")
-            # using python mutability and list referencing
-            item["host"] = self._add_protocol_to_host_if_missing(item["host"])
-            self._test_existence(item, "apiToken")
-            self._test_existence(item, "onepanelApiToken")
-            self._test_existence(item, "storageIds")
+        self._test_existence(self.config["restAccess"], "oneproviders")
+        self._test_if_empty(self.config["restAccess"], "oneproviders")
 
-            if len(item["storageIds"]) == 0:
-                self._failed("storage IDs not provided")
+        have_primary_provider = False
+        for provider in self.config["restAccess"]["oneproviders"]:
+            self._test_existence(provider, "host")
+            self._test_if_empty(provider, "host")
+            # test if http/s
+            provider["host"] = self._add_protocol_to_host_if_missing(provider["host"])
+            self._test_existence(provider, "apiToken")
+            self._test_if_empty(provider, "apiToken")
+
+            this_is_primary = self._test_existence(provider, "isPrimary", False)
+            if not this_is_primary:
+                self._test_existence(provider, "storageIds")
+                self._test_if_empty(provider, "storageIds")
+                for storage_index in range(len(provider["storageIds"])):
+                    self._test_if_empty(provider["storageIds"], storage_index)
+            else:
+                if have_primary_provider:
+                    self._failed("more primary providers set, program can have only one")
+
+                have_primary_provider = True
+
+        if not have_primary_provider:
+            self._failed("primary provider not provided")
+
         self._test_existence(self.config["dataReplication"], "numberOfReplicas", 1)
 
-        number_of_providers = len(self.config["dataReplication"]["supportingProviders"]) + 1
+        number_of_providers = len(self.config["restAccess"]["oneproviders"])
         number_of_replicas = self.config["dataReplication"]["numberOfReplicas"]
         if number_of_replicas > number_of_providers:
             self._info(f"Number of replicas is higher than number of providers "
