@@ -267,8 +267,11 @@ class Settings:
                 self._test_if_empty(provider, "storageIds")
                 for storage_index in range(len(provider["storageIds"])):
                     self._test_if_empty(provider["storageIds"], storage_index)
+            else:
+                if have_primary_provider:
+                    self._failed("more primary providers set, program can have only one")
 
-            have_primary_provider = this_is_primary or have_primary_provider
+                have_primary_provider = True
 
         if not have_primary_provider:
             self._failed("primary provider not provided")
