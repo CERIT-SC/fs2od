@@ -27,13 +27,14 @@ def _add_support_from_all(support_token: str, space_id: str) -> None:
     """
     Iterates through each of the supporting providers and adds their support to space.
     """
-    supporting_providers = Settings.get().config["dataReplication"]["supportingProviders"]
-    for index in range(len(supporting_providers)):
-        storage_ids = supporting_providers[index]["storageIds"]
+    supporting_providers_storages = Settings.get().ONEPROVIDERS_STORAGE_IDS
+
+    for index in range(1, len(supporting_providers_storages)):
+        storage_ids = supporting_providers_storages[index]
         storage_id = storage_ids[_get_storage_index(space_id, len(storage_ids))]
 
         result_support = spaces.supportSpace(
-            support_token, Settings.get().config["implicitSpaceSize"], storage_id, space_id, oneprovider_index=index + 1
+            support_token, Settings.get().config["implicitSpaceSize"], storage_id, space_id, oneprovider_index=index
         )
         time.sleep(2 * Settings.get().config["sleepFactor"])
 
@@ -214,9 +215,9 @@ def registerSpace(base_path, directory) -> bool:
 
     actions_logger.log_pre("auto_storage_import", "")
     # first import of files to Onedata space
-    response = spaces.startAutoStorageImport(space_id)
+    status = spaces.startAutoStorageImport(space_id)
     time.sleep(3 * Settings.get().config["sleepFactor"])
-    is_ok = actions_logger.log_post(response.ok, only_check=True)
+    is_ok = actions_logger.log_post(status, only_check=True)
     if not is_ok: return False
 
     # set up permissions

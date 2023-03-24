@@ -315,13 +315,13 @@ class ActionsLogger:
 
         for action in sequence_queue:
             if action == "token":
-                success = rollback_actions.action_token(sequence[action][0], sequence[action][1]) and success
+                success = actions_rollback.action_token(sequence[action][0], sequence[action][1]) and success
             elif action == "group":
-                success = rollback_actions.action_group(sequence[action][0], sequence[action][1]) and success
+                success = actions_rollback.action_group(sequence[action][0], sequence[action][1]) and success
             elif action == "storage":
-                success = rollback_actions.action_storage(sequence[action][0], sequence[action][1]) and success
+                success = actions_rollback.action_storage(sequence[action][0], sequence[action][1]) and success
             elif action == "space":
-                success = rollback_actions.action_space(sequence[action][0], sequence[action][1]) and success
+                success = actions_rollback.action_space(sequence[action][0], sequence[action][1]) and success
 
         if not success:
             Logger.log(1, "rollback - rollback was not completed successfully, need to check logs")

@@ -12,10 +12,8 @@ def process_url(url: str, headers, oneprovider_index: int = 0):
 
         url = Settings.get().ONEPROVIDERS_API_URL[oneprovider_index] + url
 
-    if "oneprovider/" in url:
+    if "oneprovider/" in url or "onepanel/" in url:
         headers.update(Settings.get().ONEPROVIDERS_AUTH_HEADERS[oneprovider_index])
-    elif "onepanel/" in url:
-        headers.update(Settings.get().ONEPANELS_AUTH_HEADERS[oneprovider_index])
     elif "onezone/" in url:
         url = Settings.get().ONEZONE_API_URL + url
         headers.update(Settings.get().ONEZONE_AUTH_HEADERS)
