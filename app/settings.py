@@ -79,7 +79,6 @@ class Settings:
                 self.ONEPROVIDERS_DOMAIN_NAMES: list = [
                     self._get_domain_name_from_url(api_url) for api_url in self.ONEPROVIDERS_API_URL
                 ]
-                self.ONEPANEL_API_URL = self.ONEPANEL_HOST + "/api/v3/"
 
                 self.ONEZONE_AUTH_HEADERS = {"x-auth-token": self.ONEZONE_API_KEY}
                 self.ONEPROVIDER_AUTH_HEADERS: dict = {"x-auth-token": self.MAIN_ONEPROVIDER_API_KEY}
