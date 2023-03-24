@@ -26,6 +26,8 @@ def process_url(url: str, headers, oneprovider_index: int = 0):
 def response_print(response, ok_statuses: tuple = tuple()) -> None:
     if not response.ok and response.status_code not in ok_statuses:
         Logger.log(2, "Response isn't ok (response code = %s)" % response.status_code)
+    if not response.ok and response.status_code in ok_statuses:
+        Logger.log(5, "Response isn't ok (response code = %s)" % response.status_code)
     debug_print(response, ok_statuses)
 
 

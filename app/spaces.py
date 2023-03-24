@@ -12,7 +12,7 @@ MINIMAL_SPACE_SIZE = 1048576
 
 
 def getSpaces(oneprovider_index: int = 0):
-    Logger.log(4, "getSpaces():")
+    Logger.log(4, f"getSpaces(order={oneprovider_index}):")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_all_spaces
     url = f"oneprovider/spaces"
     response = request.get(url, oneprovider_index=oneprovider_index)
@@ -27,12 +27,35 @@ def removeSpace(space_id):
     return response
 
 
-def getSpace(space_id):
+def get_space(space_id, ok_statuses: tuple = (200, )) -> dict:
+    """
+    Returns the basic information about space with given Id.
+    """
     Logger.log(4, "getSpace(%s):" % space_id)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_space
     url = "oneprovider/spaces/" + space_id
-    response = request.get(url)
+    response = request.get(url, ok_statuses=ok_statuses)
     return response.json()
+
+
+def get_space_from_onezone(space_id) -> dict:
+    """
+    Returns the basic information about space with given Id.
+    """
+    Logger.log(4, "get_space_from_onezone(%s):" % space_id)
+    # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_space
+    url = "onezone/spaces/" + space_id
+    response = request.get(url)
+    if response.status_code == 404:
+        return {}
+    return response.json()
+
+
+def get_space_id_by_name(name: str) -> str:
+    for space in getSpaces():
+        if space["name"].startswith(name):
+            return space["spaceId"]
+    return ""
 
 
 def getSpaceDetails(space_id):
@@ -55,7 +78,14 @@ def startAutoStorageImport(space_id):
     Logger.log(4, "startAutoStorageImport(%s):" % space_id)
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/force_start_auto_storage_import_scan
     url = "onepanel/provider/spaces/" + space_id + "/storage-import/auto/force-start"
-    response = request.post(url)
+    
+    response = request.post(url, ok_statuses=(409,))
+
+    if response.ok:
+        Logger.log(3, f"Auto storage import for space {space_id} started")
+    else:
+        Logger.log(1, f"Auto storage import for space {space_id} failed")
+
     return response
 
 
@@ -68,8 +98,6 @@ def stopAutoStorageImport(space_id):
 
 
 def createSpaceForGroup(group_id, space_name):
-    if Settings.get().TEST:
-        space_name = Settings.get().TEST_PREFIX + space_name
     Logger.log(4, "createSpaceForGroup(%s, %s):" % (group_id, space_name))
 
     if len(space_name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:
@@ -158,6 +186,7 @@ def setSpaceSize(space_id, size=None):
     last_oneprovider = 1 if not Settings.get().DATA_REPLICATION_ENABLED \
         else len(Settings.get().ONEPROVIDERS_AUTH_HEADERS)
 
+    response = None
     # goes down because response of provider 0 is important
     for oneprovider_index in range(last_oneprovider - 1, -1, -1):
         # based on https://onedata.org/#/home/api/stable/onepanel?anchor=operation/modify_space
@@ -165,14 +194,15 @@ def setSpaceSize(space_id, size=None):
         data = {"size": size}
         headers = dict({"Content-type": "application/json"})
         response = request.patch(url, headers=headers, data=json.dumps(data), oneprovider_index=oneprovider_index)
+        provider_domain_name = Settings.get().ONEPROVIDERS_DOMAIN_NAMES[oneprovider_index]
         if response.ok:
             # Logger.log(3, "New size (%s) set for space %s" % (size, space_id), space_id=space_id)
-            Logger.log(3, "New size (%s) set for storage of provider %s in space %s" % (size, oneprovider_index, space_id), space_id=space_id)
+            Logger.log(3, "New size (%s) set for storage of provider %s in space %s" % (size, provider_domain_name, space_id), space_id=space_id)
             # dareg.log(space_id, "info", "set new size %s" % size)
-            dareg.log(space_id, "info", "set new size %s for storage of provider %s" % (size, oneprovider_index))
+            dareg.log(space_id, "info", "set new size %s for storage of provider %s" % (size, provider_domain_name))
         else:
             Logger.log(
-                2, "New size (%s) can't be set for storage of provider %s of space %s" % (size, oneprovider_index, space_id), space_id=space_id
+                2, "New size (%s) can't be set for storage of provider %s of space %s" % (size, provider_domain_name, space_id), space_id=space_id
             )
         time.sleep(1 * Settings.get().config["sleepFactor"])
     return response
@@ -183,7 +213,7 @@ def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
     space_id = createSpaceForGroup(group_id, name)
     token = tokens.createNamedTokenForUser(space_id, name, Settings.get().config["serviceUserId"])
     time.sleep(3 * Settings.get().config["sleepFactor"])
-    supportSpace(token, capacity, storage_id)
+    supportSpace(token, capacity, storage_id, space_id)
     tokens.deleteNamedToken(token["tokenId"])
     return space_id
 
@@ -191,7 +221,7 @@ def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
 def enableContinuousImport(space_id):
     Logger.log(4, "enableContinuousImport(%s):" % space_id)
     # running file exists, permissions should be periodically set to new dirs and files have given permissions
-    file_id = getSpace(space_id)["fileId"]
+    file_id = get_space(space_id)["fileId"]
     files.setFileAttributeRecursive(file_id, Settings.get().config["initialPOSIXlikePermissions"])
 
     if not getContinuousImportStatus(space_id):
@@ -224,7 +254,7 @@ def disableContinuousImport(space_id):
             startAutoStorageImport(space_id)
 
             # permissions of all dirs and file should set to given permissions
-            file_id = getSpace(space_id)["fileId"]
+            file_id = get_space(space_id)["fileId"]
             files.setFileAttributeRecursive(
                 file_id, Settings.get().config["initialPOSIXlikePermissions"]
             )
