@@ -4,7 +4,7 @@ import os.path
 from typing import Union, List, Optional, Tuple
 from utils import Logger, Utils, Settings
 import test
-import rollback_actions
+import actions_rollback
 
 ACTION_LOG_FILE = "actions_log.latest.log"
 ACTION_SEQUENCE_RENAMING_TRIES = 10
