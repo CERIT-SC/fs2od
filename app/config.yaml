@@ -108,12 +108,14 @@ restAccess:
       host: ""
       apiToken: ""
       isPrimary: True # exactly one have to be primary
-    - host: ""
+    -
+      host: ""
       apiToken: ""
       storageIds: # all supporting providers must have storage IDs (at least one)
         - ""
         # - ""
-    #- host: ""
+    #-
+    #  host: ""
     #  apiToken: ""
     #  storageIds:
     #    - ""
