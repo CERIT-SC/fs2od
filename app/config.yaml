@@ -98,29 +98,15 @@ dareg:
   origin_instance_pk: 1
 
 # REST API access (hostnames and tokens) to Onedata services
-# API token to Oneprovider must contain access to Onepanel in the same time
-restAccess:
-  onezone:
-    host: ""
-    apiToken: ""
-  oneproviders:
-    -
-      host: ""
-      apiToken: ""
-      isPrimary: True # exactly one have to be primary
-    -
-      host: ""
-      apiToken: ""
-      storageIds: # all supporting providers must have storage IDs (at least one)
-        - ""
-        # - ""
-    #-
-    #  host: ""
-    #  apiToken: ""
-    #  storageIds:
-    #    - ""
-    #    # - ""
-
+onezone:
+  host: ""
+  apiToken: ""
+oneprovider: 
+  host: ""
+  apiToken: ""
+onepanel: 
+  host: ""
+  apiToken: ""
 
 ## Setting data replication between possible spaces supporters
 dataReplication:
@@ -128,3 +114,21 @@ dataReplication:
   enabled: true
   # Number of servers to which it will be replicated, source included
   numberOfReplicas: 2
+  # all supporting providers will support this
+  managerSpaceId: ""
+  # List of providers
+  supportingProviders:
+    -
+      host: ""
+      apiToken: ""
+      onepanelApiToken: ""
+      storageIds:
+        - ""
+        # - ""
+    #-
+    #  host: ""
+    #  apiToken: ""
+    #  onepanelApiToken: ""
+    #    storageIds:
+    #      - ""
+    #      - ""
