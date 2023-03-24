@@ -27,7 +27,7 @@ def removeSpace(space_id):
     return response
 
 
-def get_space(space_id, ok_statuses: tuple = (200, )) -> dict:
+def get_space(space_id, ok_statuses: tuple = (200,)) -> dict:
     """
     Returns the basic information about space with given Id.
     """
@@ -74,19 +74,23 @@ def getAutoStorageImportInfo(space_id):
     return response.json()
 
 
-def startAutoStorageImport(space_id):
+def startAutoStorageImport(space_id) -> bool:
     Logger.log(4, "startAutoStorageImport(%s):" % space_id)
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/force_start_auto_storage_import_scan
     url = "onepanel/provider/spaces/" + space_id + "/storage-import/auto/force-start"
     
     response = request.post(url, ok_statuses=(409,))
 
+    status = response.ok or response.status_code == 409
+
     if response.ok:
         Logger.log(3, f"Auto storage import for space {space_id} started")
+    elif response.status_code == 409:
+        Logger.log(3, f"Auto storage import for space {space_id} is currently executed")
     else:
         Logger.log(1, f"Auto storage import for space {space_id} failed")
 
-    return response
+    return status
 
 
 def stopAutoStorageImport(space_id):
@@ -124,7 +128,6 @@ def createSpaceForGroup(group_id, space_name):
 
 
 def supportSpace(token, size, storage_id, space_id, oneprovider_index: int = 0):
-
     Logger.log(4, "supportSpace(token, %s, %s)" % (size, storage_id))
     Logger.log(3, "Atempt to set up support to space %s" % space_id)
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/support_space
@@ -170,7 +173,7 @@ def revokeSpaceSupport(space_id):
 def setSpaceSize(space_id, size=None):
     """
     Set a new given size to space with given space_id.
-    If size is not set, it set up a new size of space to be equal to actuall space occupancy.
+    If size is not set, it set up a new size of space to be equal to actual space occupancy.
     """
     Logger.log(4, "setSpaceSize(%s, %s):" % (space_id, str(size)))
     # if size not set, get spaceOccupancy
@@ -183,11 +186,14 @@ def setSpaceSize(space_id, size=None):
         Logger.log(3, "Space size fixed (%s -> %s)" % (size, MINIMAL_SPACE_SIZE))
         size = MINIMAL_SPACE_SIZE
 
-    last_oneprovider = 1 if not Settings.get().DATA_REPLICATION_ENABLED else len(Settings.get().ONEPANELS_AUTH_HEADERS)
+    number_of_affected_providers = 1
+    # when data replication is enabled, setting space size (size of support) for each of supporting providers
+    if Settings.get().DATA_REPLICATION_ENABLED:
+        number_of_affected_providers = len(Settings.get().ONEPROVIDERS_AUTH_HEADERS)
 
     response = None
     # goes down because response of provider 0 is important
-    for oneprovider_index in range(last_oneprovider - 1, -1, -1):
+    for oneprovider_index in range(number_of_affected_providers - 1, -1, -1):
         # based on https://onedata.org/#/home/api/stable/onepanel?anchor=operation/modify_space
         url = f"onepanel/provider/spaces/" + space_id
         data = {"size": size}
@@ -196,12 +202,14 @@ def setSpaceSize(space_id, size=None):
         provider_domain_name = Settings.get().ONEPROVIDERS_DOMAIN_NAMES[oneprovider_index]
         if response.ok:
             # Logger.log(3, "New size (%s) set for space %s" % (size, space_id), space_id=space_id)
-            Logger.log(3, "New size (%s) set for storage of provider %s in space %s" % (size, provider_domain_name, space_id), space_id=space_id)
+            Logger.log(3, "New size (%s) set for storage of provider %s in space %s" % (
+            size, provider_domain_name, space_id), space_id=space_id)
             # dareg.log(space_id, "info", "set new size %s" % size)
             dareg.log(space_id, "info", "set new size %s for storage of provider %s" % (size, provider_domain_name))
         else:
             Logger.log(
-                2, "New size (%s) can't be set for storage of provider %s of space %s" % (size, provider_domain_name, space_id), space_id=space_id
+                2, "New size (%s) can't be set for storage of provider %s of space %s" % (
+                size, provider_domain_name, space_id), space_id=space_id
             )
         time.sleep(1 * Settings.get().config["sleepFactor"])
     return response
@@ -285,8 +293,8 @@ def setContinuousImport(space_id, continuousScanEnabled):
     autoStorageImportInfo = getAutoStorageImportInfo(space_id)["status"]
     # test if import was completed
     if (
-        Settings.get().config["continousFileImport"]["enabled"]
-        and autoStorageImportInfo == "completed"
+            Settings.get().config["continousFileImport"]["enabled"]
+            and autoStorageImportInfo == "completed"
     ):
         # https://onedata.org/#/home/api/21.02.0-alpha21/onepanel?anchor=operation/modify_space
         url = "onepanel/provider/spaces/" + space_id
