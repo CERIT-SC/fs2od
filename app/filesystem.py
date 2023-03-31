@@ -52,9 +52,9 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
 
     # set continous file import on all spaces
     # TODO, #5 - when config['continousFileImport']['enabled'] is set to False, all import should be stopped
+    time.sleep(1 * Settings.get().config["sleepFactor"])
     if Settings.get().config["continousFileImport"]["enabled"]:
-        time.sleep(1 * Settings.get().config["sleepFactor"])
-        setup_continuous_import(directory)
+        _auto_set_continuous_import(space_id, directory)
     else:
         spaces.disableContinuousImport(space_id)
 
@@ -74,7 +74,7 @@ def _scanWatchedDirectory(base_path: str, only_check: bool) -> None:
     for directory_item in directory_items:
         #  checks if this item is a directory or file, if it is file , not interesting for us
         if not os.path.isdir(directory_item):
-            Logger.log(4, f"Skipping item, because it is file {directory_item.path}")
+            Logger.log(4, f"Skipping item, because it is a file {directory_item.path}")
             continue
 
         _process_possible_space(directory_item, only_check)
@@ -98,6 +98,19 @@ def getMetaDataFile(directory: os.DirEntry) -> str:
     # no metadata file found
     Logger.log(4, "No file with metadata found in %s " % directory.path)
     return ""
+
+
+def _auto_set_continuous_import(space_id: str, directory: os.DirEntry):
+    running_file = (
+        directory.path
+        + os.sep
+        + Settings.get().config["continousFileImport"]["runningFileName"]
+    )
+    # test if directory contains running file
+    if os.path.isfile(running_file):
+        spaces.enableContinuousImport(space_id)
+    else:
+        spaces.disableContinuousImport(space_id)
 
 
 def setup_continuous_import(directory: os.DirEntry):
@@ -125,16 +138,7 @@ def setup_continuous_import(directory: os.DirEntry):
         Logger.log(1, "Space ID %s found in %s isn't correct." % (space_id, yml_file))
         return
 
-    running_file = (
-        directory.path
-        + os.sep
-        + Settings.get().config["continousFileImport"]["runningFileName"]
-    )
-    # test if directory contains running file
-    if os.path.isfile(running_file):
-        spaces.enableContinuousImport(space_id)
-    else:
-        spaces.disableContinuousImport(space_id)
+    _auto_set_continuous_import(space_id, directory)
 
 
 def yamlContainsSpaceId(yml_content: dict) -> str:
