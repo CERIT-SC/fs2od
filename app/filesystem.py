@@ -1,10 +1,13 @@
 from pprint import pprint
 import os
 import time
+from typing import Any
 import ruamel.yaml
 from settings import Settings
 from utils import Logger
-import spaces, workflow
+import spaces
+import workflow
+import support
 
 
 def scanWatchedDirectories(only_check: bool = False) -> None:
@@ -15,6 +18,21 @@ def scanWatchedDirectories(only_check: bool = False) -> None:
 
     for directory in Settings.get().config["watchedDirectories"]:  # level of config file directory
         _scanWatchedDirectory(directory, only_check)
+
+
+def _process_denied_providers(space_id: str, yaml_file_path: str, yaml_dict: dict, directory: os.DirEntry) -> bool:
+    denied_providers = get_token_from_yaml(yaml_dict, "deniedProviders", None)
+
+    if denied_providers is None:
+        return True  # it is good it is not in file
+
+    if not denied_providers:  # empty list
+        return True
+
+    if "primary" not in denied_providers:
+        return True  # TODO: yet doing nothing, need to create logic
+
+    support.remove_support_primary(space_id, yaml_file_path, yaml_dict, directory)
 
 
 def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
@@ -57,6 +75,10 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
         _auto_set_continuous_import(space_id, directory)
     else:
         spaces.disableContinuousImport(space_id)
+
+    _process_denied_providers(space_id, yml_file, yml_content, directory)
+
+    return True
 
 
 def _scanWatchedDirectory(base_path: str, only_check: bool) -> None:
