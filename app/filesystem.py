@@ -158,24 +158,24 @@ def loadYaml(file_path: str) -> dict:
     Loads yaml file from file_path and returns it in form of dictionary.
     If file does not exist or cannot be loaded, returns empty dict.
     """
-    if os.path.exists(file_path):
-        with open(file_path, "r") as stream:
-            # configuration = yaml.safe_load(stream) # pyyaml
-            yaml = ruamel.yaml.YAML(typ="safe")
-            configuration = yaml.load(stream)
-            # if load empty file
-            if not configuration:
-                configuration = dict()
-
-            Logger.log(5, "Configuration:", pretty_print=configuration)
-            return configuration
-    else:
+    if not os.path.exists(file_path):
         Logger.log(1, "File %s doesn't exists." % file_path)
+        return dict()
 
-    return dict()
+    with open(file_path, "r") as stream:
+        # configuration = yaml.safe_load(stream) # pyyaml
+        yaml = ruamel.yaml.YAML(typ="safe")
+        configuration = yaml.load(stream)
+        # if load empty file
+        if not configuration:
+            configuration = dict()
+
+        Logger.log(5, "Configuration:", pretty_print=configuration)
+
+    return configuration
 
 
-def getSpaceIDfromYaml(yaml_dict):
+
     """
     Return space_id from YAML file.
     or None when file doesn't contain it.
