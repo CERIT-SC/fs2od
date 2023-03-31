@@ -39,72 +39,74 @@ class Settings:
         """
         Load configuration from given YAML file.
         """
-        if os.path.exists(config_file):
-            with open(config_file, "r") as stream:
-                try:
-                    yaml = ruamel.yaml.YAML(typ="safe")
-                    self.config = yaml.load(stream)
-                except Exception as e:
-                    print("[Error] exception occured during loading config file", config_file)
-                    print(str(e))
-                    sys.exit(1)
-
-            self.check_configuration()
-
-            self.debug = self.config["verboseLevel"]
-
-            self.TEST = self.config["testMode"]
-            self.TEST_PREFIX = self.config["testModePrefix"]
-
-            # Setup the access Onedata variables
-            self.ONEZONE_HOST = self.config["restAccess"]["onezone"]["host"]
-            self.ONEZONE_API_KEY = self.config["restAccess"]["onezone"]["apiToken"]
-
-            providers: list = self.config["restAccess"]["oneproviders"]
-            for provider_index in range(len(providers)):
-                if providers[provider_index]["isPrimary"]:
-                    self.MAIN_ONEPROVIDER_HOST = providers[provider_index]["host"]
-                    self.MAIN_ONEPROVIDER_API_KEY = providers[provider_index]["apiToken"]
-
-                    # now we have the certainty that when iterating through providers,
-                    # we will not access main provider
-                    providers.pop(provider_index)
-                    break
-
-            self.ONEZONE_API_URL = self.ONEZONE_HOST + "/api/v3/"
-            self.ONEPROVIDER_API_URL: str = self.MAIN_ONEPROVIDER_HOST + "/api/v3/"
-            self.ONEPROVIDERS_API_URL: list = [self.ONEPROVIDER_API_URL] + [
-                provider["host"] + "/api/v3/"
-                for provider in self.config["restAccess"]["oneproviders"]
-            ]
-
-            self.ONEPROVIDERS_DOMAIN_NAMES: list = [
-                self._get_domain_name_from_url(api_url) for api_url in self.ONEPROVIDERS_API_URL
-            ]
-
-            self.ONEZONE_AUTH_HEADERS = {"x-auth-token": self.ONEZONE_API_KEY}
-            self.ONEPROVIDER_AUTH_HEADERS: dict = {"x-auth-token": self.MAIN_ONEPROVIDER_API_KEY}
-
-            # all authentication headers for oneproviders in one place
-            self.ONEPROVIDERS_AUTH_HEADERS: list = [self.ONEPROVIDER_AUTH_HEADERS] + [
-                {"x-auth-token": provider["apiToken"]}
-                for provider in self.config["restAccess"]["oneproviders"]
-            ]
-
-            self.ONEPROVIDERS_STORAGE_IDS = [[]] + [
-                provider["storageIds"] for provider in providers
-            ]
-
-            self.DATA_REPLICATION_ENABLED: bool = self.config["dataReplication"]["enabled"]
-            self.DATA_REPLICATION_REPLICAS: bool = self.config["dataReplication"]["numberOfReplicas"]
-            self.DAREG_ENABLED: bool = self.config["dareg"]["enabled"]
-
-            # Onedata name must be 2-50 characters long
-            self.MIN_ONEDATA_NAME_LENGTH = 2
-            self.MAX_ONEDATA_NAME_LENGTH = 50
-        else:
+        if not os.path.exists(config_file):
             print("[Error] config file %s doesn't exists" % config_file)
             sys.exit(1)
+        with open(config_file, "r") as stream:
+            try:
+                yaml = ruamel.yaml.YAML(typ="safe")
+                self.config = yaml.load(stream)
+            except Exception as e:
+                print("[Error] exception occured during loading config file", config_file)
+                print(str(e))
+                sys.exit(1)
+
+        self.check_configuration()
+
+        self.debug = self.config["verboseLevel"]
+
+        self.TEST = self.config["testMode"]
+        self.TEST_PREFIX = self.config["testModePrefix"]
+
+        # Setup the access Onedata variables
+        self.ONEZONE_HOST = self.config["restAccess"]["onezone"]["host"]
+        self.ONEZONE_API_KEY = self.config["restAccess"]["onezone"]["apiToken"]
+
+        providers: list = self.config["restAccess"]["oneproviders"]
+        for provider_index in range(len(providers)):
+            if providers[provider_index]["isPrimary"]:
+                self.MAIN_ONEPROVIDER_HOST = providers[provider_index]["host"]
+                self.MAIN_ONEPROVIDER_API_KEY = providers[provider_index]["apiToken"]
+
+                # now we have the certainty that when iterating through providers,
+                # we will not access main provider
+                providers.pop(provider_index)
+                break
+
+        self.ONEZONE_API_URL = self.ONEZONE_HOST + "/api/v3/"
+        self.ONEPROVIDER_API_URL: str = self.MAIN_ONEPROVIDER_HOST + "/api/v3/"
+        self.ONEPROVIDERS_API_URL: list = [self.ONEPROVIDER_API_URL] + [
+            provider["host"] + "/api/v3/"
+            for provider in self.config["restAccess"]["oneproviders"]
+        ]
+
+        self.ONEPROVIDERS_DOMAIN_NAMES: list = [
+            self._get_domain_name_from_url(api_url) for api_url in self.ONEPROVIDERS_API_URL
+        ]
+
+        self.ONEZONE_AUTH_HEADERS = {"x-auth-token": self.ONEZONE_API_KEY}
+        self.ONEPROVIDER_AUTH_HEADERS: dict = {"x-auth-token": self.MAIN_ONEPROVIDER_API_KEY}
+
+        # all authentication headers for oneproviders in one place
+        self.ONEPROVIDERS_AUTH_HEADERS: list = [self.ONEPROVIDER_AUTH_HEADERS] + [
+            {"x-auth-token": provider["apiToken"]}
+            for provider in self.config["restAccess"]["oneproviders"]
+        ]
+
+        self.ONEPROVIDERS_STORAGE_IDS = [[]] + [
+            provider["storageIds"] for provider in providers
+        ]
+
+        self.DATA_REPLICATION_ENABLED: bool = self.config["dataReplication"]["enabled"]
+        self.DATA_REPLICATION_REPLICAS: bool = self.config["dataReplication"]["numberOfReplicas"]
+        self.DAREG_ENABLED: bool = self.config["dareg"]["enabled"]
+
+        # Onedata name must be 2-50 characters long
+        self.MIN_ONEDATA_NAME_LENGTH = 2
+        self.MAX_ONEDATA_NAME_LENGTH = 50
+
+        self.TIME_UNTIL_REMOVED = self.config["dataReplication"]["timeUntilRemoved"]
+        self.TIME_FORMATTING_STRING = "%d.%m.%Y %H:%M"
 
     @staticmethod
     def _failed(message):
