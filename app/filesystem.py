@@ -13,11 +13,56 @@ def scanWatchedDirectories(only_check: bool = False) -> None:
     """
     Logger.log(4, "scanWatchedDirectories():")
 
-    for directory in Settings.get().config["watchedDirectories"]:
+    for directory in Settings.get().config["watchedDirectories"]:  # level of config file directory
         _scanWatchedDirectory(directory, only_check)
 
 
-def _scanWatchedDirectory(base_path, only_check):
+def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
+    # test if directory contains a yaml file
+    yml_file = getMetaDataFile(directory)
+    if not yml_file:
+        Logger.log(4, "Not processing directory %s (not contains yaml)." % directory.name)
+        return False
+
+    yml_content = loadYaml(yml_file)
+    space_id = yamlContainsSpaceId(yml_content)
+
+    # test if yaml contains space_id, if no, create new space
+    if not space_id:
+        if only_check:
+            Logger.log(3,
+                       f"Checked for SpaceID in {directory.name}, not found in yaml, only_check was enabled, skipping")
+            return True
+
+        #  creating space, if everything goes good, status should be true
+        status = workflow.registerSpace(directory)
+        if not status:
+            # if no status, enough info was provided by registerSpace, not logging more
+            return False
+
+        # after creating space, asking for information one more time
+        yml_content = loadYaml(yml_file)
+        space_id = yamlContainsSpaceId(yml_content)
+
+    if not spaces.space_exists(space_id):
+        Logger.log(4, "SpaceID for %s found in yaml file, but does not exist anymore." % directory.name)
+        return False
+
+    Logger.log(4, f"Space in {directory.name} with ID {space_id} exists, setting up continuous file import")
+
+    # set continous file import on all spaces
+    # TODO, #5 - when config['continousFileImport']['enabled'] is set to False, all import should be stopped
+    if Settings.get().config["continousFileImport"]["enabled"]:
+        time.sleep(1 * Settings.get().config["sleepFactor"])
+        setupContinuousImport(directory)
+    else:
+        spaces.disableContinuousImport(space_id)
+
+
+def _scanWatchedDirectory(base_path: str, only_check: bool) -> None:
+    """
+    Scan if directory contains subdirectories which can be processed
+    """
     Logger.log(4, "_scanWatchedDirectory(%s):" % base_path)
     Logger.log(3, "Start processing path %s" % base_path)
 
@@ -25,17 +70,14 @@ def _scanWatchedDirectory(base_path, only_check):
         Logger.log(1, "Directory %s can't be processed, it doesn't exist." % base_path)
         return
 
-    if not only_check:
-        # creating of spaces and all related stuff
-        _creatingOfSpaces(base_path)
-    else:
-        Logger.log(3, "Only check and change continous scan status")
+    directory_items = os.scandir(path=base_path)
+    for directory_item in directory_items:
+        #  checks if this item is a directory or file, if it is file , not interesting for us
+        if not os.path.isdir(directory_item):
+            Logger.log(4, f"Skipping item, because it is file {directory_item.path}")
+            continue
 
-    # set continous file import on all spaces
-    # TODO, #5 - when config['continousFileImport']['enabled'] is set to False, all import should be stopped
-    if Settings.get().config["continousFileImport"]["enabled"]:
-        time.sleep(1 * Settings.get().config["sleepFactor"])
-        setupContinuousImport(base_path)
+        _process_possible_space(directory_item, only_check)
 
     Logger.log(3, "Finish processing path %s" % base_path)
 
