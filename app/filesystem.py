@@ -54,7 +54,7 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
     # TODO, #5 - when config['continousFileImport']['enabled'] is set to False, all import should be stopped
     if Settings.get().config["continousFileImport"]["enabled"]:
         time.sleep(1 * Settings.get().config["sleepFactor"])
-        setupContinuousImport(directory)
+        setup_continuous_import(directory)
     else:
         spaces.disableContinuousImport(space_id)
 
@@ -106,40 +106,41 @@ def _creatingOfSpaces(base_path):
     for directory in sub_dirs:
         workflow.registerSpace(base_path, directory)
 
-
-def setupContinuousImport(base_path):
-    Logger.log(4, "setupContinuousImport(%s):" % base_path)
+def setup_continuous_import(directory: os.DirEntry):
+    Logger.log(4, "setupContinuousImport(%s):" % directory.path)
     # TODO, #6 - to be replaced by walk through files in Onedata instead of in POSIX
-    sub_dirs = os.scandir(path=base_path)
-    for directory in sub_dirs:
-        # only directories should be processed
-        if not directory.is_dir():
-            continue
+    if not directory.is_dir():
+        Logger.log(4, f"Directory with path {directory.path} does not exist")
+        return
 
-        # test if directory contains a yaml file
-        yml_file = getMetaDataFile(directory)
-        if yml_file:
-            yml_content = loadYaml(yml_file)
-            # test if yaml contains space_id
-            space_id = yamlContainsSpaceId(yml_content)
-            if space_id:
-                # test if such space exists
-                try:
-                    space_name = spaces.get_space(space_id, ok_statuses=(400, ))["name"]
-                except KeyError:
-                    Logger.log(1, "Space ID %s found in %s isn't correct." % (space_id, yml_file))
-                    return
+    # test if directory contains a yaml file
+    yml_file = getMetaDataFile(directory)
+    if not yml_file:
+        Logger.log(4, f"YML file in {directory.path} does not exist")
+        return
 
-                running_file = (
-                    directory.path
-                    + os.sep
-                    + Settings.get().config["continousFileImport"]["runningFileName"]
-                )
-                # test if directory contains running file
-                if os.path.isfile(running_file):
-                    spaces.enableContinuousImport(space_id)
-                else:
-                    spaces.disableContinuousImport(space_id)
+    yml_content = loadYaml(yml_file)
+    # test if yaml contains space_id
+    space_id = yamlContainsSpaceId(yml_content)
+    if not space_id:
+        Logger.log(4, f"Space id not found in {yml_file}")
+        return
+
+    # test if such space exists
+    if not spaces.space_exists(space_id):
+        Logger.log(1, "Space ID %s found in %s isn't correct." % (space_id, yml_file))
+        return
+
+    running_file = (
+        directory.path
+        + os.sep
+        + Settings.get().config["continousFileImport"]["runningFileName"]
+    )
+    # test if directory contains running file
+    if os.path.isfile(running_file):
+        spaces.enableContinuousImport(space_id)
+    else:
+        spaces.disableContinuousImport(space_id)
 
 
 def yamlContainsSpaceId(yml_content: dict) -> str:
