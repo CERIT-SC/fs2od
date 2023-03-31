@@ -21,7 +21,7 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
     # test if directory contains a yaml file
     yml_file = getMetaDataFile(directory)
     if not yml_file:
-        Logger.log(4, "Not processing directory %s (not contains yaml)." % directory.name)
+        Logger.log(4, f"Not processing directory {directory.name} (not contains yaml).")
         return False
 
     yml_content = loadYaml(yml_file)
@@ -45,7 +45,7 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
         space_id = yamlContainsSpaceId(yml_content)
 
     if not spaces.space_exists(space_id):
-        Logger.log(4, "SpaceID for %s found in yaml file, but does not exist anymore." % directory.name)
+        Logger.log(3, "SpaceID for %s found in yaml file, but does not exist anymore." % directory.name)
         return False
 
     Logger.log(4, f"Space in {directory.name} with ID {space_id} exists, setting up continuous file import")
@@ -146,7 +146,7 @@ def yamlContainsSpaceId(yml_content: dict) -> str:
     Test if yaml contains space_id.
     If so, returns it, otherwise returns empty string.
     """
-    yml_spa_space_id = getSpaceIDfromYaml(yml_content)
+    yml_spa_space_id = get_token_from_yaml(yml_content, "space")
     if not yml_spa_space_id:
         return ""
     else:
@@ -175,15 +175,15 @@ def loadYaml(file_path: str) -> dict:
     return configuration
 
 
-
+def get_token_from_yaml(yaml_dict: dict, token: str, default_value: Any = None) -> Any:
     """
     Return space_id from YAML file.
     or None when file doesn't contain it.
     """
     if yaml_dict:
-        onedata_part = yaml_dict.get(Settings.get().config["metadataFileTags"]["onedata"])
+        onedata_part: dict = yaml_dict.get(Settings.get().config["metadataFileTags"]["onedata"])
         if onedata_part:
-            return onedata_part.get(Settings.get().config["metadataFileTags"]["space"])
+            return onedata_part.get(Settings.get().config["metadataFileTags"][token], default_value)
 
     Logger.log(3, "No onedata tag in YAML")
     return None
