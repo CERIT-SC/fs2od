@@ -1,5 +1,7 @@
+import datetime
 import os
 import sys
+from typing import Union
 import ruamel.yaml
 from urllib.parse import urlparse
 
@@ -195,6 +197,46 @@ class Settings:
 
         return host_object.netloc
 
+    @staticmethod
+    def _convert_time_string_to_datetime(time_string: str) -> Union[datetime.timedelta, str]:
+        if not time_string:
+            return "never"
+        if time_string == "never" or time_string == "now":
+            return time_string
+
+        error_count = 0
+        years = 0
+        months = 0
+        days = 0
+        hours = 0
+
+        times = time_string.split()
+
+        for time in times:
+            time_type = time[-1]
+            time = time[:-1]
+
+            try:
+                time_int = int(time)
+            except ValueError:
+                error_count += 1
+            else:
+                if time_type == "y":
+                    years += time_int
+                elif time_type == "m":
+                    months += time_int
+                elif time_type == "d":
+                    days += time_int
+                elif time_type == "h":
+                    hours += time_int
+
+        days += years * 365
+        days += months * 30
+
+        if (days + hours) == 0 and error_count:
+            return "never"
+
+        return datetime.timedelta(days=days, hours=hours)
 
     def check_configuration(self):
         self._test_existence(self.config, "watchedDirectories")
@@ -213,6 +255,8 @@ class Settings:
         self._test_existence(self.config["metadataFileTags"], "space", "Space")
         self._test_existence(self.config["metadataFileTags"], "publicURL", "PublicURL")
         self._test_existence(self.config["metadataFileTags"], "inviteToken", "InviteToken")
+        self._test_existence(self.config["metadataFileTags"], "deniedProviders", "DeniedProviders")
+        self._test_existence(self.config["metadataFileTags"], "removingTime", "RemovingTime")
 
         self._test_existence(self.config, "institutionName")
         self._test_existence(self.config, "datasetPrefix", "")
@@ -284,6 +328,9 @@ class Settings:
             self._failed("primary provider not provided")
 
         self._test_existence(self.config["dataReplication"], "numberOfReplicas", 1)
+        self._test_existence(self.config["dataReplication"], "timeUntilRemoved", "never")
+        self.config["dataReplication"]["timeUntilRemoved"] = self._convert_time_string_to_datetime(
+            self.config["dataReplication"]["timeUntilRemoved"])
 
         number_of_providers = len(self.config["restAccess"]["oneproviders"])
         number_of_replicas = self.config["dataReplication"]["numberOfReplicas"]

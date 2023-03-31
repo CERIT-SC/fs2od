@@ -16,6 +16,8 @@ metadataFileTags:
   space: Space
   publicURL: PublicURL
   inviteToken: InviteToken
+  deniedProviders: DeniedProviders
+  removingTime: RemovingTime
 
 # Name of institution importing datasets to Onedata
 institutionName: MUNI ICS
@@ -128,3 +130,10 @@ dataReplication:
   enabled: true
   # Number of servers to which it will be replicated, source included
   numberOfReplicas: 2
+  # Time to wait from finding out that must remove from primary Oneprovider until actual deletion is processed
+  # Possible time descriptors are: y for years, m for months, d for days, h for hours
+  # Numbers concatenate with decorators, between two decorator types have to be spaces
+  # Everything will be summed up. Month has 30 days.
+  # Special values: never and now - BE AWARE OF VALUE `now`, IT WILL REMOVE FILES IMMEDIATELY!!!
+  # Examples: "7d 5h", "10y", "2m", "3h 5h" (will be summed up to 8 hours)
+  timeUntilRemoved: "7d"
