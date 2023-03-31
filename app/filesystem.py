@@ -7,7 +7,10 @@ from utils import Logger
 import spaces, workflow
 
 
-def scanWatchedDirectories(only_check=False):
+def scanWatchedDirectories(only_check: bool = False) -> None:
+    """
+    Goes through each directory in config file, tests if exists and if so, scans for new datasets
+    """
     Logger.log(4, "scanWatchedDirectories():")
 
     for directory in Settings.get().config["watchedDirectories"]:
@@ -37,8 +40,12 @@ def _scanWatchedDirectory(base_path, only_check):
     Logger.log(3, "Finish processing path %s" % base_path)
 
 
-def getMetaDataFile(directory):
-    Logger.log(4, "getMetaDataFile(%s):" % directory)
+def getMetaDataFile(directory: os.DirEntry) -> str:
+    """
+    Gets metadata file based on provided directory and names of possible yaml files provided in configfile.
+    If metadata file found, returns path to it, otherwise empty string.
+    """
+    Logger.log(4, "getMetaDataFile(%s):" % directory.path)
     for file in Settings.get().config["metadataFiles"]:
         yml_file = directory.path + os.sep + file
         # check if given metadata file exists in directory
@@ -47,9 +54,8 @@ def getMetaDataFile(directory):
             return yml_file
 
     # no metadata file found
-    Logger.log(4, "No file with metadata found in %s " % directory)
-    return None
-
+    Logger.log(4, "No file with metadata found in %s " % directory.path)
+    return ""
 
 def _creatingOfSpaces(base_path):
     Logger.log(4, "_creatingOfSpaces(%s):" % base_path)
@@ -94,18 +100,23 @@ def setupContinuousImport(base_path):
                     spaces.disableContinuousImport(space_id)
 
 
-def yamlContainsSpaceId(yml_content):
+def yamlContainsSpaceId(yml_content: dict) -> str:
     """
     Test if yaml contains space_id.
+    If so, returns it, otherwise returns empty string.
     """
     yml_spa_space_id = getSpaceIDfromYaml(yml_content)
     if not yml_spa_space_id:
-        return False
+        return ""
     else:
         return yml_spa_space_id
 
 
-def loadYaml(file_path):
+def loadYaml(file_path: str) -> dict:
+    """
+    Loads yaml file from file_path and returns it in form of dictionary.
+    If file does not exist or cannot be loaded, returns empty dict.
+    """
     if os.path.exists(file_path):
         with open(file_path, "r") as stream:
             # configuration = yaml.safe_load(stream) # pyyaml
@@ -119,6 +130,8 @@ def loadYaml(file_path):
             return configuration
     else:
         Logger.log(1, "File %s doesn't exists." % file_path)
+
+    return dict()
 
 
 def getSpaceIDfromYaml(yaml_dict):
