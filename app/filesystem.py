@@ -35,7 +35,7 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
             return True
 
         #  creating space, if everything goes good, status should be true
-        status = workflow.registerSpace(directory)
+        status = workflow.register_space(directory)
         if not status:
             # if no status, enough info was provided by registerSpace, not logging more
             return False

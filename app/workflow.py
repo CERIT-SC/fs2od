@@ -61,9 +61,10 @@ def _add_qos_requirement(space_id: str, replicas_number: int):
         )
 
 
-def registerSpace(base_path, directory) -> bool:
+def register_space(directory: os.DirEntry) -> bool:
     # only directories should be processed
-    full_path = base_path + os.sep + directory.name
+    full_path = os.path.abspath(directory.path)
+    base_path = os.path.dirname(full_path)
     if not os.path.isdir(full_path):
         Logger.log(3, f"Space can't be created, this isn't directory {full_path}")
         return False
@@ -124,7 +125,7 @@ def registerSpace(base_path, directory) -> bool:
     # Create storage for the space
     storage_id = storages.createAndGetStorage(
         name=dataset_name,
-        mountpoint=os.path.join(base_path, directory.name)
+        mountpoint=full_path
     )
     is_ok = actions_logger.log_post(storage_id)
     if not is_ok: return False
@@ -285,6 +286,8 @@ def registerSpace(base_path, directory) -> bool:
     time.sleep(3 * Settings.get().config["sleepFactor"])
 
     actions_logger.finish_actions_log()
+
+    return True
 
 
 # TODO - WIP

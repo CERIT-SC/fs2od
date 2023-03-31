@@ -1,3 +1,4 @@
+import os
 from pprint import pprint
 import time
 import sys
@@ -198,4 +199,4 @@ def registerSpace(path):
     base_path = temp[0]
     directory = temp[1]
 
-    workflow.registerSpace(base_path, directory)
+    workflow.register_space(os.path.join(base_path, directory))
