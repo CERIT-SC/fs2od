@@ -114,29 +114,33 @@ class Settings:
         print(f"[Info] {message}")
 
     @staticmethod
-    def _test_existence(dictionary, attribute, default=None) -> bool:
+    def _test_existence(dictionary, attribute, default=None, parent_name: str = "") -> bool:
         """
         Tests existence of a value.
         If default value not provided and value not present, exits application.
         Returns False if default value was used, otherwise True
         """
+        message_about_parent = ""
+        if parent_name:
+            message_about_parent = f" for {parent_name}"
+
         if attribute not in dictionary:
             if default is None:
-                print("[Error] attribute %s not set in configuration file" % attribute)
+                print(f"[Error] attribute {attribute} not set in configuration file{message_about_parent}")
                 sys.exit(1)
             else:
                 dictionary[attribute] = default
                 if not type(attribute) is dict:
                     Settings._info(
-                        "no attribute %s in configuration file, using its default value [%s]"
-                        % (attribute, default)
+                        f"no attribute {attribute}{message_about_parent}"
+                        f" in configuration file, using its default value [{default}]"
                     )
                     return False
 
         return True
 
     @staticmethod
-    def _test_if_empty(dictionary, attribute, default=None) -> bool:
+    def _test_if_empty(dictionary, attribute, default=None, parent_name: str = "") -> bool:
         """
         Tests if value is not empty.
         If default value not provided and value empty, exits application.
@@ -144,16 +148,19 @@ class Settings:
         """
         if type(dictionary[attribute]) in (int, bool, float):
             return True
+        message_about_parent = ""
+        if parent_name:
+            message_about_parent = f" for {parent_name}"
 
         if not dictionary[attribute]:
             if default is None:
-                print(f"[Error] attribute {attribute} is empty")
+                print(f"[Error] attribute {attribute} is empty{message_about_parent}")
                 sys.exit(1)
             else:
                 dictionary[attribute] = default
 
                 Settings._info(
-                    f"attribute {attribute} is empty, using default value [{default}]"
+                    f"attribute {attribute} is empty{message_about_parent}, using default value [{default}]"
                     )
                 return False
 
@@ -240,8 +247,8 @@ class Settings:
 
         self._test_existence(self.config, "restAccess")
         self._test_existence(self.config["restAccess"], "onezone")
-        self._test_existence(self.config["restAccess"]["onezone"], "host")
-        self._test_if_empty(self.config["restAccess"]["onezone"], "host")
+        self._test_existence(self.config["restAccess"]["onezone"], "host", parent_name="onezone")
+        self._test_if_empty(self.config["restAccess"]["onezone"], "host", parent_name="onezone")
         # test if http/s
         self.config["restAccess"]["onezone"]["host"] = self._add_protocol_to_host_if_missing(
             self.config["restAccess"]["onezone"]["host"]
@@ -252,20 +259,21 @@ class Settings:
         self._test_if_empty(self.config["restAccess"], "oneproviders")
 
         have_primary_provider = False
-        for provider in self.config["restAccess"]["oneproviders"]:
-            self._test_existence(provider, "host")
-            self._test_if_empty(provider, "host")
+        for key, provider in enumerate(self.config["restAccess"]["oneproviders"]):
+            self._test_existence(provider, "host", parent_name=f"oneprovider {key}")
+            self._test_if_empty(provider, "host", parent_name=f"oneprovider {key}")
             # test if http/s
             provider["host"] = self._add_protocol_to_host_if_missing(provider["host"])
-            self._test_existence(provider, "apiToken")
-            self._test_if_empty(provider, "apiToken")
+            self._test_existence(provider, "apiToken", parent_name=f"oneprovider {key}")
+            self._test_if_empty(provider, "apiToken", parent_name=f"oneprovider {key}")
 
-            this_is_primary = self._test_existence(provider, "isPrimary", False)
+
+            this_is_primary = self._test_existence(provider, "isPrimary", False, parent_name=f"oneprovider {key}")
             if not this_is_primary:
-                self._test_existence(provider, "storageIds")
-                self._test_if_empty(provider, "storageIds")
+                self._test_existence(provider, "storageIds", parent_name=f"oneprovider {key}")
+                self._test_if_empty(provider, "storageIds", parent_name=f"oneprovider {key}")
                 for storage_index in range(len(provider["storageIds"])):
-                    self._test_if_empty(provider["storageIds"], storage_index)
+                    self._test_if_empty(provider["storageIds"], storage_index, parent_name=f"oneprovider {key}")
             else:
                 if have_primary_provider:
                     self._failed("more primary providers set, program can have only one")
