@@ -99,12 +99,6 @@ def getMetaDataFile(directory: os.DirEntry) -> str:
     Logger.log(4, "No file with metadata found in %s " % directory.path)
     return ""
 
-def _creatingOfSpaces(base_path):
-    Logger.log(4, "_creatingOfSpaces(%s):" % base_path)
-    sub_dirs = os.scandir(path=base_path)
-    # TODO - add condition to process only directories (no files)
-    for directory in sub_dirs:
-        workflow.registerSpace(base_path, directory)
 
 def setup_continuous_import(directory: os.DirEntry):
     Logger.log(4, "setupContinuousImport(%s):" % directory.path)
