@@ -207,6 +207,14 @@ def setValueToYaml(file_path, yaml_dict, valueType, value):
             yaml_dict[Settings.get().config["metadataFileTags"]["onedata"]][
                 Settings.get().config["metadataFileTags"]["inviteToken"]
             ] = value
+        if valueType == "DeniedProviders":
+            yaml_dict[Settings.get().config["metadataFileTags"]["onedata"]][
+                Settings.get().config["metadataFileTags"]["deniedProviders"]
+            ] = value
+        if valueType == "RemovingTime":
+            yaml_dict[Settings.get().config["metadataFileTags"]["onedata"]][
+                Settings.get().config["metadataFileTags"]["removingTime"]
+            ] = value
 
         # open yaml file
         with open(file_path, "w") as f:
