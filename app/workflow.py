@@ -211,6 +211,7 @@ def register_space(directory: os.DirEntry) -> bool:
     yaml_onedata_dict = dict()
     yaml_onedata_dict[Settings.get().config["metadataFileTags"]["space"]] = space_id
     yaml_onedata_dict[Settings.get().config["metadataFileTags"]["inviteToken"]] = token["token"]
+    yaml_onedata_dict[Settings.get().config["metadataFileTags"]["deniedProviders"]] = []
     filesystem.setValuesToYaml(yml_file, yml_content, yaml_onedata_dict)
     time.sleep(3 * Settings.get().config["sleepFactor"])
 
