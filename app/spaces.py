@@ -38,6 +38,13 @@ def get_space(space_id, ok_statuses: tuple = (200,)) -> dict:
     return response.json()
 
 
+def space_exists(space_id: str) -> bool:
+    Logger.log(4, f"space_exists({space_id}):")
+    response_dict = get_space(space_id, ok_statuses=(200, 403))
+
+    return not bool(response_dict.get("error", False))
+
+
 def get_space_from_onezone(space_id) -> dict:
     """
     Returns the basic information about space with given Id.
