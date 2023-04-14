@@ -11,6 +11,32 @@ from utils import Logger, Settings
 MAX_TRANSFER_COMPLETED_CHECKS = 10
 
 
+def _remove_running_file_if_existent(space_id: str, directory: os.DirEntry) -> bool:
+    """
+    Removes file responsible for auto continuous import.
+    If file was removed, returns True.
+    When did not exist or could not have been removed, returns False
+    """
+    Logger.log(4, f"_remove_running_file_if_existent(space_id={space_id},directory_path={directory.path})")
+    continuous_file_import_file = os.path.join(
+        directory,
+        Settings.get().config["continousFileImport"]["runningFileName"]
+    )
+    if not os.path.isfile(continuous_file_import_file):
+        return False
+
+    Logger.log(4, f"Running file in {directory.path} found. Removing it and disabling auto continuous import. "
+                  f"Removing this dataset will be done in the next run.")
+    try:
+        os.remove(continuous_file_import_file)
+    except Exception:
+        Logger.log(4, f"Running file in directory {directory.path} could not be removed. "
+                      f"To preserve data complete, removing will no execute.")
+        return False
+
+    return True
+
+
 def _remove_directory_from_filesystem(directory: os.DirEntry) -> bool:
     try:
         filesystem.remove_folder(directory)
@@ -235,4 +261,12 @@ def remove_support_primary(space_id: str, yaml_file_path: str, yaml_dict: dict, 
         remove = True
 
     if remove:
+        removed_running = _remove_running_file_if_existent(space_id, directory)
+        if removed_running:
+            Logger.log(4, f"Running file for {directory.path} was removed, removing directory will be done in next run.")
+            spaces.disableContinuousImport(space_id)
+            return
+
         remove_support_primary_NOW(space_id, directory)
+
+
