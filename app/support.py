@@ -48,6 +48,66 @@ def _remove_directory_from_filesystem(directory: os.DirEntry) -> bool:
         return True
 
 
+def _wait_for_transfers_to_complete(space_id: str, transfers_ids: list) -> bool:
+    completed = False
+    for try_index in range(MAX_TRANSFER_COMPLETED_CHECKS):
+        time.sleep(15 * Settings.get().config["sleepFactor"])
+        Logger.log(5, f"Checking for completed transfers, try {try_index + 1}/{MAX_TRANSFER_COMPLETED_CHECKS}.")
+
+        for transfer_index in range(len(transfers_ids) - 1, -1, -1):  # going down for easier removal from list
+            status_dict = transfers.get_transfer_status(
+                transfer_id=transfers_ids[transfer_index],
+                status_type_if_not_found="replicationStatus"
+            )
+
+            # transfer should be here, because was created few seconds ago. If not, internal error
+            if not status_dict or "replicationStatus" not in status_dict:
+                Logger.log(3, f"There was a problem with transfer of id {transfers_ids[transfer_index]} "
+                              f"for space with id {space_id}, not processing further.")
+                transfers_ids.pop(transfer_index)
+
+            replication_status = status_dict["replicationStatus"]
+            Logger.log(5, f"Status of transfer with id {transfers_ids[transfer_index]}: {replication_status}")
+            if replication_status == "failed":
+                Logger.log(3,
+                           f"Status of transfer with id {transfers_ids[transfer_index]} for space with id {space_id} "
+                           f"failed and file dont should have not to be synced.")
+
+            if replication_status in ("skipped", "completed", "cancelled", "failed", "not_found"):
+                transfers_ids.pop(transfer_index)
+
+        if not transfers_ids:  # all transfers were completed
+            Logger.log(5, f"All transfers for space with id {space_id} were completed.")
+            completed = True
+            break
+
+    return completed
+
+
+def _transfer_file_to_providers(file_id: str, provider_ids: list, path_to_file: str):
+    transfers_ids = []
+
+    for provider_id in provider_ids:
+        Logger.log(5, f"Trying to transfer {path_to_file} to provider with id {provider_id}.")
+        transfer_info = transfers.createTransfer(
+            type="replication",
+            replicating_provider_id=provider_id,
+            dataSourceType="file",
+            file_id=file_id
+        )
+        if not transfer_info:
+            Logger.log(3, f"Transfer of {path_to_file} to provider with id {provider_id} "
+                          f"not successful.")
+            continue
+
+        Logger.log(5, f"Transfer of {path_to_file} to provider with id {provider_id} started.")
+        transfers_ids.append(transfer_info["transferId"])
+
+    time.sleep(5 * Settings.get().config["sleepFactor"])
+
+    return transfers_ids
+
+
 def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry) -> bool:
     Logger.log(4, f"_sync_information_about_space_removal(space_id={space_id},directory_path={directory.path})")
     # test if directory contains a yaml file
