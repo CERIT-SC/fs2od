@@ -34,14 +34,21 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
 
     # getting space information from provider
     space_information = spaces.get_space(space_id)
-    if not space_information or "name" not in space_information or "providers" not in space_information:
+    if not space_information or "fileId" not in space_information or "providers" not in space_information:
         Logger.log(4, f"Not removing space in {directory.path} with id {space_id} (cannot connect to Oneprovider).")
         return False
 
-    space_name = space_information["name"]
+    space_file_id = space_information["fileId"]
     config_file_name = os.path.basename(yaml_file)
 
-    file_id = files.lookup_file_id(space_name + "/" + config_file_name)
+    # file_id = files.lookup_file_id(space_name + "/" + config_file_name)
+    # not using it anymore, problem when two datasets with the same name
+
+    file_id = files.get_id_of_file_in_directory(
+        directory_file_id=space_file_id,
+        searched_file_name=config_file_name
+    )
+
     if not file_id:
         Logger.log(4, f"Not removing space in {directory.path} with id {space_id} (file ID was not provided).")
         return False
