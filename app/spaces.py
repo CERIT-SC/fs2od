@@ -173,15 +173,22 @@ def supportSpace(token, size, storage_id, space_id, oneprovider_index: int = 0):
         return False
 
 
-def revokeSpaceSupport(space_id):
+def revoke_space_support(space_id: str, oneprovider_index: int = 0) -> bool:
+    """
+    Revokes space support for Oneprovider. If none given in parameter, revoking for primary Oneprovider
+    Returns true or false based on successfulness of this operation.
+    Not revoking support due to non-existent space id on this provider is considered as successful operation
+    """
     Logger.log(4, "revokeSpaceSupport(%s):" % space_id)
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/revoke_space_support
     url = "onepanel/provider/spaces/" + space_id
-    response = request.delete(url)
-    if response.ok:
-        Logger.log(3, "Space %s support revoked" % space_id)
+    response = request.delete(url, ok_statuses=(204, 404), oneprovider_index=oneprovider_index)
+    if response.ok or response.status_code == 404:
+        Logger.log(3, f"Space {space_id} support revoked")
+        return True
     else:
-        Logger.log(1, "Error when revoking space %s support" % space_id)
+        Logger.log(1, f"Error when revoking space {space_id} support")
+        return False
 
 
 def setSpaceSize(space_id, size=None):
