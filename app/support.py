@@ -266,12 +266,14 @@ def remove_support_primary(space_id: str, yaml_file_path: str, yaml_dict: dict, 
         if time_delta == "never" or time_delta == "now":
             removing_time = time_delta
             removing_time_string = time_delta
+            removing_time_log = time_delta
         else:
             removing_time = datetime.datetime.now() + time_delta
-            removing_time_string = removing_time.strftime(Settings.get().TIME_FORMATTING_STRING)
+            removing_time_string = removing_time.isoformat()
+            removing_time_log = removing_time.strftime(Settings.get().TIME_FORMATTING_STRING)
 
         Logger.log(2, f"Found space with id {space_id} and path {directory.path} to remove, "
-                      f"WILL BE REMOVED {removing_time_string.upper()}!")
+                      f"WILL BE REMOVED {removing_time_log.upper()}!")
 
         # TODO: send email
 
@@ -282,12 +284,15 @@ def remove_support_primary(space_id: str, yaml_file_path: str, yaml_dict: dict, 
 
     else:
         removing_time_string = removing_time
+        removing_time_log = removing_time
         if removing_time != "never" and removing_time != "now":
             try:
-                removing_time = datetime.datetime.strptime(removing_time, Settings.get().TIME_FORMATTING_STRING)
+                removing_time = datetime.datetime.fromisoformat(removing_time)
+                removing_time_log = removing_time.strftime(Settings.get().TIME_FORMATTING_STRING)
             except ValueError:
                 removing_time = "never"
                 removing_time_string = "never"
+                removing_time_log = "never"
 
     if removing_time == "never":
         filesystem.setValueToYaml(
@@ -305,7 +310,7 @@ def remove_support_primary(space_id: str, yaml_file_path: str, yaml_dict: dict, 
 
         if removing_time > time_now:
             Logger.log(4, f"Space in {directory.name} with id {space_id} "
-                          f"will be removed at {removing_time_string}, not now")
+                          f"will be removed at {removing_time_log}, not now")
             filesystem.setValueToYaml(
                 file_path=yaml_file_path,
                 yaml_dict=yaml_dict,
@@ -313,7 +318,7 @@ def remove_support_primary(space_id: str, yaml_file_path: str, yaml_dict: dict, 
                 value=removing_time_string
             )
         else:
-            Logger.log(4, f"Space with id {space_id} will be removed now, should have been at {removing_time_string}")
+            Logger.log(4, f"Space with id {space_id} will be removed now, should have been at {removing_time_log}")
             remove = True
 
     if removing_time == "now":
