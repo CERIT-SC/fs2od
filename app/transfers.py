@@ -19,7 +19,7 @@ def get_transfer_status(transfer_id: str, status_type_if_not_found: str = "trans
     >>> status = status["replicationStatus"] # now can be anything from documentation
     """
     Logger.log(4, f"get_transfer_status(transfer_id={transfer_id},status_type={status_type_if_not_found}):")
-    # https://onedata.org/#/home/api/stable/oneprovider
+    # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_transfer_status
     url = "oneprovider/transfers/" + transfer_id
     response = request.get(url, ok_statuses=(200, 404))
 
@@ -29,6 +29,37 @@ def get_transfer_status(transfer_id: str, status_type_if_not_found: str = "trans
         return {status_type_if_not_found: "not_found"}
     else:
         return {}
+
+
+def get_all_transfer_ids(space_id: str, oneprovider_index: int = 0) -> list:
+    """
+    Returns list of ids of all running transfers.
+    If there are no running transfers or Oneprovider cannot response, returns empty list
+    """
+    Logger.log(4, f"get_transfer_status(space_id={space_id})")
+    # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_all_transfers
+
+    url = "oneprovider/spaces/" + space_id + "/transfers"
+
+    transfer_ids = []
+    find_transfers = True
+    page_token = ""
+    while find_transfers:
+        response = request.get(url + page_token, oneprovider_index=oneprovider_index)
+
+        if not response.ok:
+            Logger.log(4, f"Getting transfers for space with id {space_id} was not successful.:")
+            return []
+
+        response_dict: dict = response.json()
+        transfer_ids.extend(response_dict["transfers"])
+
+        if not response_dict.get("nextPageToken", ""):
+            find_transfers = False
+        else:
+            page_token = f"?page_token={response_dict['page_token']}"
+
+    return transfer_ids
 
 
 # WIP
