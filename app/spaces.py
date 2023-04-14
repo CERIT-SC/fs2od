@@ -33,7 +33,7 @@ def get_space(space_id, ok_statuses: tuple = (200,)) -> dict:
     If response is not ok, but accepted by ok_statuses, returns {"spaceId": "allowed_ok_status"}
     Otherwise returns empty dict
     """
-    Logger.log(4, "getSpace(%s):" % space_id)
+    Logger.log(4, f"get_space({space_id},ok_statuses={ok_statuses}):")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_space
     url = "oneprovider/spaces/" + space_id
     response = request.get(url, ok_statuses=ok_statuses)
@@ -56,7 +56,7 @@ def get_space_from_onezone(space_id) -> dict:
     """
     Returns the basic information about space with given Id.
     """
-    Logger.log(4, "get_space_from_onezone(%s):" % space_id)
+    Logger.log(4, f"get_space_from_onezone({space_id}):")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_space
     url = "onezone/spaces/" + space_id
     response = request.get(url)
@@ -66,6 +66,7 @@ def get_space_from_onezone(space_id) -> dict:
 
 
 def get_space_id_by_name(name: str) -> str:
+    Logger.log(4, f"get_space_id_by_name({name}):")
     for space in getSpaces():
         if space["name"].startswith(name):
             return space["spaceId"]
@@ -179,7 +180,7 @@ def revoke_space_support(space_id: str, oneprovider_index: int = 0) -> bool:
     Returns true or false based on successfulness of this operation.
     Not revoking support due to non-existent space id on this provider is considered as successful operation
     """
-    Logger.log(4, "revokeSpaceSupport(%s):" % space_id)
+    Logger.log(4, f"revokeSpaceSupport(space_id={space_id},oneprovider_index={oneprovider_index}):")
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/revoke_space_support
     url = "onepanel/provider/spaces/" + space_id
     response = request.delete(url, ok_statuses=(204, 404), oneprovider_index=oneprovider_index)
