@@ -92,12 +92,12 @@ def lookup_file_id(path) -> str:
     '/MySpace/dir/readme.txt'
     Return empty string if path doesn't exist.
     """
-    Logger.log(4, "lookupFileId(%s):" % path)
+    Logger.log(4, "lookup_file_id(%s):" % path)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=tag/File-Path-Resolution
     url = "oneprovider/lookup-file-id/" + path
     response = request.post(url)
     if response.ok:
         return response.json()["fileId"]
     else:
-        Logger.log(2, "lookupFileId return not ok response: %s" % response.text)
+        Logger.log(2, "lookup_file_id return not ok response: %s" % response.text)
         return ""

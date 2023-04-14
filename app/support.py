@@ -41,7 +41,7 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
     space_name = space_information["name"]
     config_file_name = os.path.basename(yaml_file)
 
-    file_id = files.lookupFileId(space_name + "/" + config_file_name)
+    file_id = files.lookup_file_id(space_name + "/" + config_file_name)
     if not file_id:
         Logger.log(4, f"Not removing space in {directory.path} with id {space_id} (file ID was not provided).")
         return False
