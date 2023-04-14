@@ -31,6 +31,7 @@ def get_space(space_id, ok_statuses: tuple = (200,)) -> dict:
     """
     Returns the basic information about space with given id.
     If response is not ok, but accepted by ok_statuses, returns {"spaceId": "allowed_ok_status"}
+    joined with response from server
     Otherwise returns empty dict
     """
     Logger.log(4, f"get_space({space_id},ok_statuses={ok_statuses}):")
@@ -40,7 +41,9 @@ def get_space(space_id, ok_statuses: tuple = (200,)) -> dict:
     if response.ok:
         return response.json()
     elif response.status_code in ok_statuses:
-        return {"spaceId": "allowed_ok_status"}
+        response = response.json()
+        response["spaceId"] = "allowed_ok_status"
+        return response
     else:
         return {}
 
