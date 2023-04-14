@@ -86,18 +86,18 @@ def downloadFileContent(file_id):
         return response.content
 
 
-def lookupFileId(path):
+def lookup_file_id(path) -> str:
     """
     Return file_id of file with given path in format e.g.
     '/MySpace/dir/readme.txt'
-    Return None if path doesn't exist.
+    Return empty string if path doesn't exist.
     """
     Logger.log(4, "lookupFileId(%s):" % path)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=tag/File-Path-Resolution
     url = "oneprovider/lookup-file-id/" + path
     response = request.post(url)
     if response.ok:
-        return response.json()
+        return response.json()["fileId"]
     else:
         Logger.log(2, "lookupFileId return not ok response: %s" % response.text)
-        return None
+        return ""
