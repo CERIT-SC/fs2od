@@ -163,6 +163,10 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
         transfers_ids = transfers.get_all_transfer_ids(space_id)
         completed = _wait_for_transfers_to_complete(space_id, transfers_ids)
 
+        # thinking about situation, when will not be removed from filesystem, but we need to keep the system integrity
+        if completed:
+            os.remove(yaml_file)
+
         return completed
 
     # now, there is everything prepared for removal, starting to edit filesystem
@@ -203,6 +207,8 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
             valueType="RemovingTime",
             value="transfers"
         )
+    else:
+        os.remove(yaml_file)
 
     return completed
 
@@ -222,8 +228,12 @@ def remove_support_primary_NOW(space_id: str, directory: os.DirEntry) -> bool:
         Logger.log(2, f"Could not revoke space support for space with id {space_id}."
                       f"Continuing anyway, because it will not influence replication.")
 
-    status = filesystem.remove_folder(directory)
-    Logger.log(2, f"Directory {directory.path} for space with id {space_id} removed: {status}")
+    if Settings.get().REMOVE_FROM_FILESYSTEM:
+        status = filesystem.remove_folder(directory)
+        Logger.log(2, f"Directory {directory.path} for space with id {space_id} removed: {status}")
+    else:
+        Logger.log(2, f"Support of primary provider for space with id {space_id} in {directory.path} was revoked, "
+                      f"but dataset was not removed from filesystem as set in configuration file")
 
     return status
 

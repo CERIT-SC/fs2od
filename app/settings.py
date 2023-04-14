@@ -18,7 +18,7 @@ class Settings:
         """
         Virtually private constructor.
         """
-        if Settings.__instance != None:
+        if Settings.__instance is not None:
             raise Exception(
                 "This class is a singleton! Created once, otherwise use Settings.get_instance()"
             )
@@ -107,6 +107,7 @@ class Settings:
 
         self.TIME_UNTIL_REMOVED = self.config["dataReplication"]["timeUntilRemoved"]
         self.TIME_FORMATTING_STRING = "%d.%m.%Y %H:%M"
+        self.REMOVE_FROM_FILESYSTEM = self.config["dataReplication"]["removeFromFilesystem"]
 
     @staticmethod
     def _failed(message):
@@ -313,7 +314,6 @@ class Settings:
             self._test_existence(provider, "apiToken", parent_name=f"oneprovider {key}")
             self._test_if_empty(provider, "apiToken", parent_name=f"oneprovider {key}")
 
-
             this_is_primary = self._test_existence(provider, "isPrimary", False, parent_name=f"oneprovider {key}")
             if not this_is_primary:
                 self._test_existence(provider, "storageIds", parent_name=f"oneprovider {key}")
@@ -333,6 +333,7 @@ class Settings:
         self._test_existence(self.config["dataReplication"], "timeUntilRemoved", "never")
         self.config["dataReplication"]["timeUntilRemoved"] = self._convert_time_string_to_datetime(
             self.config["dataReplication"]["timeUntilRemoved"])
+        self._test_existence(self.config["dataReplication"], "removeFromFilesystem", False)
 
         number_of_providers = len(self.config["restAccess"]["oneproviders"])
         number_of_replicas = self.config["dataReplication"]["numberOfReplicas"]

@@ -134,6 +134,11 @@ dataReplication:
   # Possible time descriptors are: y for years, m for months, d for days, h for hours
   # Numbers concatenate with decorators, between two decorator types have to be spaces
   # Everything will be summed up. Month has 30 days.
-  # Special values: never and now - BE AWARE OF VALUE `now`, IT WILL REMOVE FILES IMMEDIATELY!!!
+  # Special values: never, now and transfers - BE AWARE OF VALUE `now`, IT WILL REMOVE FILES IMMEDIATELY!!!
+  # Value transfers is only for system, never you ever do change to transfers, you can lose your data forever
+  # without even noticing
   # Examples: "7d 5h", "10y", "2m", "3h 5h" (will be summed up to 8 hours)
   timeUntilRemoved: "7d"
+  # if remove from filesystem is True, when time is up for disconnecting actual provider from the space support,
+  # it will physically remove data from its filesystem. This operation is irreversible and you can lose your data.
+  removeFromFilesystem: false
