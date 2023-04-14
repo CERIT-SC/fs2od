@@ -9,7 +9,7 @@ def get_configuration(index: int = 0) -> dict:
     On success returns dict with information
     Otherwise returns empty dict
     """
-    Logger.log(4, f"getConfiguration(order={index}):")
+    Logger.log(4, f"get_configuration(order={index}):")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_configuration
     url = "oneprovider/configuration"
     response = request.get(url, oneprovider_index=index)
