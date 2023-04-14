@@ -114,7 +114,7 @@ def _testOnezone():
 def _testOneprovider(oneprovider_index: int = 0):
     Logger.log(4, f"_testOneprovider(order={oneprovider_index}):")
     # test noauth request, test if an attribute exists
-    if "build" not in oneprovider.getConfiguration(oneprovider_index):
+    if "build" not in oneprovider.get_configuration(oneprovider_index):
         Logger.log(1, f"Oneprovider doesn't return its configuration. (order={oneprovider_index})")
         return 1
 
