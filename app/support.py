@@ -155,6 +155,16 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
 
     provider_ids.remove(primary_provider_id)
 
+    # finding out if did not get processed before
+    # if so, trying to check if there are running transfers
+    # if so, tries to delete in another run, if no, removes straightly
+    removing_time = filesystem.get_token_from_yaml(yaml_dict, "removingTime", None)
+    if removing_time == "transfers":
+        transfers_ids = transfers.get_all_transfer_ids(space_id)
+        completed = _wait_for_transfers_to_complete(space_id, transfers_ids)
+
+        return completed
+
     # now, there is everything prepared for removal, starting to edit filesystem
 
     filesystem.setValueToYaml(  # store information about space removal
@@ -178,57 +188,21 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
 
     time.sleep(3 * Settings.get().config["sleepFactor"])
 
-    transfers_ids = []
+    transfers_ids = _transfer_file_to_providers(file_id, provider_ids, yaml_file)
 
-    for provider_id in provider_ids:
-        Logger.log(5, f"Trying to transfer {directory.path}/{config_file_name} to provider with id {provider_id}.")
-        transfer_info = transfers.createTransfer(
-            type="replication",
-            replicating_provider_id=provider_id,
-            dataSourceType="file",
-            file_id=file_id
+    completed = _wait_for_transfers_to_complete(space_id, transfers_ids)
+
+    if not completed:
+        # if not all transfers were completed, not storing transfer ids, but in next run waiting to complete all
+        # redoing all transfers again can cause congestion, because in each run there are n new transfers where
+        # n = number of supporting providers
+        # only checking if every transfer is completed
+        filesystem.setValueToYaml(
+            file_path=yaml_file,
+            yaml_dict=yaml_dict,
+            valueType="RemovingTime",
+            value="transfers"
         )
-        if not transfer_info:
-            Logger.log(3, f"Transfer of {directory.path}/{config_file_name} to provider with id {provider_id} "
-                          f"not successful.")
-            continue
-
-        Logger.log(5, f"Transfer of {directory.path}/{config_file_name} to provider with id {provider_id} started.")
-        transfers_ids.append(transfer_info["transferId"])
-
-    time.sleep(5 * Settings.get().config["sleepFactor"])
-
-    completed = False
-    for try_index in range(MAX_TRANSFER_COMPLETED_CHECKS):
-        Logger.log(5, f"Checking for completed transfers, try {try_index + 1}/{MAX_TRANSFER_COMPLETED_CHECKS}.")
-
-        for transfer_index in range(len(transfers_ids) - 1, -1, -1):  # going down for easier removal from list
-            status_dict = transfers.get_transfer_status(
-                transfer_id=transfers_ids[transfer_index],
-                status_type_if_not_found="replicationStatus"
-            )
-
-            # transfer should be here, because was created few seconds ago. If not, internal error
-            if not status_dict or "replicationStatus" not in status_dict:
-                Logger.log(3, f"There was a problem with transfer of id {transfers_ids[transfer_index]} "
-                              f"for space with id {space_id}, not processing further.")
-                transfers_ids.pop(transfer_index)
-
-            replication_status = status_dict["replicationStatus"]
-            Logger.log(5, f"Status of transfer with id {transfers_ids[transfer_index]}: {replication_status}")
-            if replication_status == "failed":
-                Logger.log(3, f"Status of transfer with id {transfers_ids[transfer_index]} for space with id {space_id} "
-                              f"failed and file dont should have not to be synced.")
-
-            if replication_status in ("skipped", "completed", "cancelled", "failed", "not_found"):
-                transfers_ids.pop(transfer_index)
-
-        if not transfers_ids:  # all transfers were completed
-            Logger.log(5, f"All transfers for space with id {space_id} were completed.")
-            completed = True
-            break
-
-        time.sleep(15 * Settings.get().config["sleepFactor"])
 
     return completed
 
@@ -242,8 +216,6 @@ def remove_support_primary_NOW(space_id: str, directory: os.DirEntry) -> bool:
         Logger.log(2, f"Could not sync config file with all supporting providers for space with id {space_id}, "
                       f"not removing.")
         return False
-
-    # TODO: disable QoS ?
 
     status = spaces.revoke_space_support(space_id)  # ceasing/revoking support for primary provider
     if not status:
@@ -281,8 +253,12 @@ def remove_support_primary(space_id: str, yaml_file_path: str, yaml_dict: dict, 
         if not status:
             Logger.log(2, f"Config file for space {directory.path} and id {space_id} was not synced with Onedata"
                           f" after adding removing time parameter.")
-
     else:
+        # skipping all checks because it was previously set by our program and all checks were preformed
+        if removing_time == "transfers":
+            remove_support_primary_NOW(space_id, directory)
+            return
+
         removing_time_string = removing_time
         removing_time_log = removing_time
         if removing_time != "never" and removing_time != "now":
