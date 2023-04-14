@@ -135,7 +135,7 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
             completed = True
             break
 
-        time.sleep(7 * Settings.get().config["sleepFactor"])
+        time.sleep(15 * Settings.get().config["sleepFactor"])
 
     return completed
 
