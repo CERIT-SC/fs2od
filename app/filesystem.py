@@ -15,13 +15,14 @@ def scanWatchedDirectories(only_check: bool = False) -> None:
     """
     Goes through each directory in config file, tests if exists and if so, scans for new datasets
     """
-    Logger.log(4, "scanWatchedDirectories():")
+    Logger.log(4, f"scanWatchedDirectories(only_check={only_check}):")
 
     for directory in Settings.get().config["watchedDirectories"]:  # level of config file directory
         _scanWatchedDirectory(directory, only_check)
 
 
 def _process_denied_providers(space_id: str, yaml_file_path: str, yaml_dict: dict, directory: os.DirEntry) -> bool:
+    Logger.log(4, f"_process_denied_providers(space_id={space_id},yaml_path={yaml_file_path},dir={directory.path}):")
     denied_providers = get_token_from_yaml(yaml_dict, "deniedProviders", None)
 
     if denied_providers is None:
@@ -37,6 +38,7 @@ def _process_denied_providers(space_id: str, yaml_file_path: str, yaml_dict: dic
 
 
 def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
+    Logger.log(4, f"_process_possible_space(dir={directory.path},only_check={only_check}):")
     # test if directory contains a yaml file
     yml_file = getMetaDataFile(directory)
     if not yml_file:
@@ -124,6 +126,7 @@ def getMetaDataFile(directory: os.DirEntry) -> str:
 
 
 def _auto_set_continuous_import(space_id: str, directory: os.DirEntry):
+    Logger.log(4, f"_auto_set_continuous_import(space_id={space_id},dir={directory.path}):")
     running_file = (
         directory.path
         + os.sep
@@ -137,7 +140,7 @@ def _auto_set_continuous_import(space_id: str, directory: os.DirEntry):
 
 
 def setup_continuous_import(directory: os.DirEntry):
-    Logger.log(4, "setupContinuousImport(%s):" % directory.path)
+    Logger.log(4, f"setup_continuous_import({directory.path}):")
     # TODO, #6 - to be replaced by walk through files in Onedata instead of in POSIX
     if not directory.is_dir():
         Logger.log(4, f"Directory with path {directory.path} does not exist")
@@ -286,6 +289,7 @@ def remove_folder(directory: os.DirEntry) -> bool:
     This operation is destructive and not reversible. Removes given folder wit its contents.
     If removal was successful, returns true, otherwise false
     """
+    Logger.log(4, f"remove_folder(dir={directory.path}):")
     try:
         shutil.rmtree(directory)
     except Exception:
