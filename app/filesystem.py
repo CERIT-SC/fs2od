@@ -1,5 +1,4 @@
 import shutil
-from pprint import pprint
 import os
 import time
 from typing import Any
@@ -22,7 +21,7 @@ def scanWatchedDirectories(only_check: bool = False) -> None:
 
 
 def _process_denied_providers(space_id: str, yaml_file_path: str, yaml_dict: dict, directory: os.DirEntry) -> bool:
-    Logger.log(4, f"_process_denied_providers(space_id={space_id},yaml_path={yaml_file_path},dir={directory.path}):")
+    Logger.log(4, f"_process_denied_providers(space_id={space_id},yaml_path={yaml_file_path}):")
     denied_providers = get_token_from_yaml(yaml_dict, "deniedProviders", None)
 
     if denied_providers is None:
