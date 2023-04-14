@@ -1,3 +1,4 @@
+import shutil
 from pprint import pprint
 import os
 import time
@@ -278,3 +279,16 @@ def setValuesToYaml(file_path, yaml_dict, new_values_dict):
             ryaml.dump(yaml_dict, f)
     else:
         Logger.log(1, "Metadata file doesn't exists." % file_path)
+
+
+def remove_folder(directory: os.DirEntry) -> bool:
+    """
+    This operation is destructive and not reversible. Removes given folder wit its contents.
+    If removal was successful, returns true, otherwise false
+    """
+    try:
+        shutil.rmtree(directory)
+    except Exception:
+        return False
+    else:
+        return True
