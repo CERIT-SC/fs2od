@@ -18,7 +18,7 @@ def get_transfer_status(transfer_id: str, status_type_if_not_found: str = "trans
     >>>     # you know that it is not present, do stuff
     >>> status = status["replicationStatus"] # now can be anything from documentation
     """
-    Logger.log(4, "getTransferStatus(%s):" % transfer_id)
+    Logger.log(4, f"get_transfer_status(transfer_id={transfer_id},status_type={status_type_if_not_found}):")
     # https://onedata.org/#/home/api/stable/oneprovider
     url = "oneprovider/transfers/" + transfer_id
     response = request.get(url, ok_statuses=(200, 404))
