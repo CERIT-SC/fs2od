@@ -29,13 +29,20 @@ def removeSpace(space_id):
 
 def get_space(space_id, ok_statuses: tuple = (200,)) -> dict:
     """
-    Returns the basic information about space with given Id.
+    Returns the basic information about space with given id.
+    If response is not ok, but accepted by ok_statuses, returns {"spaceId": "allowed_ok_status"}
+    Otherwise returns empty dict
     """
     Logger.log(4, "getSpace(%s):" % space_id)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_space
     url = "oneprovider/spaces/" + space_id
     response = request.get(url, ok_statuses=ok_statuses)
-    return response.json()
+    if response.ok:
+        return response.json()
+    elif response.status_code in ok_statuses:
+        return {"spaceId": "allowed_ok_status"}
+    else:
+        return {}
 
 
 def space_exists(space_id: str) -> bool:
