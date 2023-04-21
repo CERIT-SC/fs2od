@@ -47,7 +47,7 @@ class Messaging:
             messaging.email.time_before_action = email_config["timeBeforeAction"]
             messaging.email.time_before_action.sort(reverse=True)
 
-            lang = email_config["language"].lowercase()
+            lang = email_config["language"].lower()
             # default language is en, so if this language is used, file has no other extension (filename.extension)
             # if there is some translation of document, filename will be filename.lang.extension
             lang = "" if lang == "en" else f".{lang}"
@@ -438,4 +438,4 @@ class Settings:
 
             self.config["messaging"]["email"]["timeBeforeAction"] = time_delta_before_action
 
-            self._test_existence(self.config["messaging"]["email"]["language"], "EN")
+            self._test_existence(self.config["messaging"]["email"], "language", "EN")

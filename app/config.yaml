@@ -19,6 +19,7 @@ metadataFileTags:
   deniedProviders: DeniedProviders
   removingTime: RemovingTime
   lastEmailSent: LastEmailSent
+  lastProgramRun: LastProgramRun
 
 # Name of institution importing datasets to Onedata
 institutionName: MUNI ICS
