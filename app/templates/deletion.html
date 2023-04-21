@@ -8,46 +8,23 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 <style>
-    body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        font-family: 'Roboto', sans-serif;
-        text-align: center;
-        padding: 2em 10em;
-    }
-    .gray {
-        color: gray;
-    }
-    .bold {
-        font-weight: bold;
-    }
-    p {
-        line-height: 17pt;
-    }
-    a {
-        text-decoration: none;
-        color: gray;
-    }
     a:hover {
         text-decoration: underline;
     }
-
 </style>
-<body>
+<body style="display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; text-align: center; padding: 4px 12px;">
     <h1>Deletion warning</h1>
-    <p>
-        Your space "<span class="bold">$space_name</span>" with:<br><br>
+    <p style="line-height: 17pt;">
+        Your space "<span style="font-weight: bold;">$space_name</span>" with:<br><br>
 
         id: &emsp; $space_id<br>
         path: &emsp; $space_path<br><br>
 
         will be removed by<br>
-        <span class="bold">$date</span>.<br><br>
+        <span style="font-weight: bold;">$date</span>.<br><br>
         If you do not want this to happen, you can set RemovingTime to "never" or remove the whole line in $config_file.
     </p>
 
-    <p class="gray">This email was sent automatically by <a href="https://github.com/CERIT-SC/fs2od" target="_blank"><span class="bold">fs2od</span></a> $now.</p>
+    <p style="color: gray;">This email was sent automatically by <a href="https://github.com/CERIT-SC/fs2od" target="_blank" style="text-decoration: none;color: gray;"><span style="font-weight: bold;">fs2od</span></a> $now.</p>
 </body>
 </html>
