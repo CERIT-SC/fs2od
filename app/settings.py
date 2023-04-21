@@ -1,9 +1,52 @@
+from __future__ import annotations
 import datetime
 import os
 import sys
-from typing import Union
+from typing import Union, List
 import ruamel.yaml
 from urllib.parse import urlparse
+
+
+class Messaging:
+    class EmailCreds:
+        def __init__(self):
+            self.enabled: bool = False
+            self.smtp_server: str = ""
+            self.smtp_port: int = 0
+            self.login: str = ""
+            self.password: str = ""
+            self.encryption_method: str = ""
+            self.message_sender: str = ""
+
+    class Email:
+        def __init__(self):
+            self.to: str = ""
+            self.time_before_action: List[datetime.timedelta] = []
+
+    def __init__(self):
+        self.email_creds: Messaging.EmailCreds = self.EmailCreds()
+        self.email: Messaging.Email = self.Email()
+
+    @staticmethod
+    def create(config: dict) -> Messaging:
+        messaging = Messaging()
+        email_credentials_config = config["messaging"]["credentials"]["email"]
+        email_config = config["messaging"]["email"]
+        messaging.email_creds.enabled = email_credentials_config["enabled"]
+
+        if messaging.email_creds.enabled:
+            messaging.email_creds.smtp_server = email_credentials_config["smtpServer"]
+            messaging.email_creds.smtp_port = email_credentials_config["smtpPort"]
+            messaging.email_creds.login = email_credentials_config["login"]
+            messaging.email_creds.password = email_credentials_config["password"]
+            messaging.email_creds.encryption_method = email_credentials_config["encryptionMethod"]
+            messaging.email_creds.message_sender = email_credentials_config["messageSender"]
+
+            messaging.email.to = email_config["to"]
+            messaging.email.time_before_action = email_config["timeBeforeAction"]
+            messaging.email.time_before_action.sort(reverse=True)
+
+        return messaging
 
 
 class Settings:
@@ -108,6 +151,8 @@ class Settings:
         self.TIME_UNTIL_REMOVED = self.config["dataReplication"]["timeUntilRemoved"]
         self.TIME_FORMATTING_STRING = "%d.%m.%Y %H:%M"
         self.REMOVE_FROM_FILESYSTEM = self.config["dataReplication"]["removeFromFilesystem"]
+
+        self.MESSAGING = Messaging.create(self.config)
 
     @staticmethod
     def _failed(message):
@@ -341,3 +386,47 @@ class Settings:
             self._info(f"Number of replicas is higher than number of providers "
                        f"({number_of_replicas} > {number_of_providers}). Decreasing to maximum possible.")
             self.config["dataReplication"]["numberOfReplicas"] = number_of_providers
+
+        self._test_existence(self.config, "messaging", dict())
+        self._test_existence(self.config["messaging"], "credentials", dict())
+        self._test_existence(self.config["messaging"], "email", dict())
+        self._test_existence(self.config["messaging"]["credentials"], "email", dict())
+
+        if self._test_existence(self.config["messaging"]["credentials"]["email"], "enabled", False) and \
+                self.config["messaging"]["credentials"]["email"]["enabled"] is True:
+            email_creds = self.config["messaging"]["credentials"]["email"]
+
+            self._test_existence(email_creds, "smtpServer")
+            self._test_if_empty(email_creds, "smtpServer")
+
+            self._test_existence(email_creds, "encryptionMethod")
+            if email_creds["encryptionMethod"] not in ("SSL", "TLS", "STRATTLS", "ANY"):
+                self._failed("Encryption method for email is not correct")
+
+            self._test_existence(email_creds, "smtpPort")
+            self._test_if_empty(email_creds, "smtpPort", 0)
+            if type(email_creds["smtpPort"]) != int:
+                self._failed("Port for email is not correct")
+            if email_creds["smtpPort"] == 0:
+                email_creds["smtpPort"] = 465 if email_creds["encryptionMethod"] in ("SSL", "TLS") else email_creds["smtpPort"]
+                email_creds["smtpPort"] = 587 if email_creds["encryptionMethod"] == "STARTTLS" else email_creds["smtpPort"]
+                email_creds["smtpPort"] = 25 if email_creds["encryptionMethod"] == "ANY" else email_creds["smtpPort"]
+
+            self._test_if_empty(email_creds, "login", "")
+            self._test_if_empty(email_creds, "password", "")
+            if not email_creds["login"] or not email_creds["password"]:
+                email_creds["login"] = ""
+                email_creds["password"] = ""
+            self._test_if_empty(email_creds, "messageSender", "")
+
+            self._test_existence(self.config["messaging"]["email"], "to")
+            self._test_existence(self.config["messaging"]["email"], "timeBeforeAction", list())
+
+            time_before_action = self.config["messaging"]["email"]["timeBeforeAction"]
+            time_delta_before_action = []
+            for key, time_str in enumerate(time_before_action):
+                converted = self._convert_time_string_to_datetime(time_str)
+                if type(converted) == datetime.timedelta:
+                    time_delta_before_action.append(converted)
+
+            self.config["messaging"]["email"]["timeBeforeAction"] = time_delta_before_action

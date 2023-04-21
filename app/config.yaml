@@ -123,6 +123,36 @@ restAccess:
     #    - ""
     #    # - ""
 
+messaging:
+  credentials:
+    email:
+      # If disabled, fields will not be checked
+      enabled: false
+      # SMTP server which will receive emails to send further
+      smtpServer: ""
+      # If no port is provided, and encryption method is correct,
+      # default values are 465 for "TLS" and "SSL", 587 for "STARTTLS" and 25 for "ANY"
+      smtpPort: 0
+      # If no login or password provided, tries to send emails without authentication
+      login: ""
+      password: ""
+      # Possible values are "SSL", "TLS", "STARTTLS", "ANY", behavior of "SSL" is the same as of "TLS"
+      # If wrong keyword is set and email enabled, app will crash
+      encryptionMethod: ""
+      # From field value, it can be clear email address, or text in format "Name Surname <user@mail.tld>"
+      messageSender: ""
+
+  email:
+    # Same format as messageSender
+    to:
+      - ""
+      - ""
+    # Sends email when given timestamp is reached, same format as timeUntilRemoved
+    timeBeforeAction:
+      - 1m
+      - 7d
+      - 1d
+      - 2h
 
 ## Setting data replication between possible spaces supporters
 dataReplication:
