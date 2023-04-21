@@ -1,5 +1,7 @@
 import datetime
 import os
+import string
+
 import filesystem
 import files
 import time
@@ -7,6 +9,7 @@ import spaces
 import oneprovider
 import transfers
 from utils import Logger, Settings
+from messaging import mail
 
 MAX_TRANSFER_COMPLETED_CHECKS = 10
 
@@ -258,6 +261,20 @@ def remove_support_primary(space_id: str, yaml_file_path: str, yaml_dict: dict, 
                       f"WILL BE REMOVED {removing_time_log.upper()}!")
 
         # TODO: send email
+        with open("templates/deletion.txt", "r", encoding="utf-8") as f:
+            template_text = f.read()
+        template = string.Template(template_text)
+        to_substitute = {
+            "space_name": directory.name,
+            "space_id": space_id,
+            "space_path": directory.path,
+            "date": removing_time_log,
+            "config_file": os.path.basename(yaml_file_path),
+            "now": datetime.datetime.now().strftime(Settings.get().TIME_FORMATTING_STRING)
+        }
+        result = template.substitute(to_substitute)
+
+        mail.send_using_creds(result, "", Settings.get().MESSAGING.email_creds, Settings.get().MESSAGING.email)
 
         status = spaces.startAutoStorageImport(space_id)  # to be sure that SPA.yml file will be synced
         if not status:
