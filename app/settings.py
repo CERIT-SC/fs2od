@@ -22,6 +22,7 @@ class Messaging:
         def __init__(self):
             self.to: str = ""
             self.time_before_action: List[datetime.timedelta] = []
+            self.language: str = ""
 
     def __init__(self):
         self.email_creds: Messaging.EmailCreds = self.EmailCreds()
@@ -45,6 +46,12 @@ class Messaging:
             messaging.email.to = email_config["to"]
             messaging.email.time_before_action = email_config["timeBeforeAction"]
             messaging.email.time_before_action.sort(reverse=True)
+
+            lang = email_config["language"].lowercase()
+            # default language is en, so if this language is used, file has no other extension (filename.extension)
+            # if there is some translation of document, filename will be filename.lang.extension
+            lang = "" if lang == "en" else f".{lang}"
+            messaging.email.language = lang
 
         return messaging
 
@@ -152,7 +159,7 @@ class Settings:
         self.TIME_FORMATTING_STRING = "%d.%m.%Y %H:%M"
         self.REMOVE_FROM_FILESYSTEM = self.config["dataReplication"]["removeFromFilesystem"]
 
-        self.MESSAGING = Messaging.create(self.config)
+        self.MESSAGING: Messaging = Messaging.create(self.config)
 
     @staticmethod
     def _failed(message):
@@ -430,3 +437,5 @@ class Settings:
                     time_delta_before_action.append(converted)
 
             self.config["messaging"]["email"]["timeBeforeAction"] = time_delta_before_action
+
+            self._test_existence(self.config["messaging"]["email"]["language"], "EN")
