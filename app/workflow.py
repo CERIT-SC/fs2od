@@ -1,3 +1,4 @@
+import datetime
 import os
 import time
 import sys
@@ -212,6 +213,7 @@ def register_space(directory: os.DirEntry) -> bool:
     yaml_onedata_dict[Settings.get().config["metadataFileTags"]["space"]] = space_id
     yaml_onedata_dict[Settings.get().config["metadataFileTags"]["inviteToken"]] = token["token"]
     yaml_onedata_dict[Settings.get().config["metadataFileTags"]["deniedProviders"]] = []
+    yaml_onedata_dict[Settings.get().config["metadataFileTags"]["lastProgramRun"]] = datetime.datetime.now().isoformat()
     filesystem.setValuesToYaml(yml_file, yml_content, yaml_onedata_dict)
     time.sleep(3 * Settings.get().config["sleepFactor"])
 
