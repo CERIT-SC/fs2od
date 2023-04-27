@@ -125,6 +125,7 @@ def disconnect(connection: typing.Union[smtplib.SMTP, smtplib.SMTP_SSL]):
 
 
 def send_using_creds(message: str, html_message: str, credentials: Messaging.EmailCreds, email_info: Messaging.Email):
+    Logger.log(4, f"mail.send_using_creds()")
     subject, body = _divide_to_subject_body(message)
 
     if not subject:
