@@ -271,6 +271,7 @@ def remove_support_primary(space_id: str, yaml_file_path: str, yaml_dict: dict, 
     Logger.log(4, f"remove_support_primary(space_id={space_id}, directory_path={directory.path})")
     time_default = datetime.datetime(1900, 1, 1)
     time_now = datetime.datetime.now()
+    email_sent = False
 
     last_program_run_time = filesystem.get_token_from_yaml(yaml_dict, "lastProgramRun", None)
     if not last_program_run_time:
@@ -305,7 +306,8 @@ def remove_support_primary(space_id: str, yaml_file_path: str, yaml_dict: dict, 
         Logger.log(2, f"Found space with id {space_id} and path {directory.path} to remove, "
                       f"WILL BE REMOVED {removing_time_log.upper()}!")
 
-        _send_email_about_deletion(space_id, directory, removing_time, yaml_file_path)
+        _send_email_about_deletion(space_id, directory, removing_time_log, yaml_file_path)
+        email_sent = True
 
         status = spaces.startAutoStorageImport(space_id)  # to be sure that SPA.yml file will be synced
         if not status:
@@ -355,8 +357,8 @@ def remove_support_primary(space_id: str, yaml_file_path: str, yaml_dict: dict, 
                 intervals=Settings.get().MESSAGING.email.time_before_action,
                 response_on_weird_condition=True
             )
-            if is_time_for_email:
-                _send_email_about_deletion(space_id, directory, removing_time, yaml_file_path)
+            if is_time_for_email and not email_sent:
+                _send_email_about_deletion(space_id, directory, removing_time_log, yaml_file_path)
 
         else:
             Logger.log(4, f"Space with id {space_id} will be removed now, should have been at {removing_time_log}")
