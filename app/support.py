@@ -1,14 +1,13 @@
 import datetime
 import os
 import string
-
 import filesystem
 import files
 import time
 import spaces
 import oneprovider
 import transfers
-from utils import Logger, Settings
+from utils import Logger, Settings, Utils
 from messaging import mail
 
 MAX_TRANSFER_COMPLETED_CHECKS = 10
@@ -216,6 +215,33 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
     return completed
 
 
+def _send_email_about_deletion(space_id: str, directory: os.DirEntry, removing_time: str, yaml_file_path: str):
+    Logger.log(4, f"_send_email_about_deletion(space_id={space_id},dir={directory.path},removing_time={removing_time})")
+    with open("templates/deletion.txt", "r", encoding="utf-8") as f:
+        template_text = f.read()
+    with open("templates/deletion.html", "r", encoding="utf-8") as f:
+        template_html = f.read()
+    template = string.Template(template_text)
+    template_h = string.Template(template_html)
+    to_substitute = {
+        "space_name": directory.name,
+        "space_id": space_id,
+        "space_path": directory.path,
+        "date": removing_time,
+        "config_file": os.path.basename(yaml_file_path),
+        "now": datetime.datetime.now().strftime(Settings.get().TIME_FORMATTING_STRING)
+    }
+    result_text = template.substitute(to_substitute)
+    result_html = template_h.substitute(to_substitute)
+
+    mail.send_using_creds(
+        message=result_text,
+        html_message=result_html,
+        credentials=Settings.get().MESSAGING.email_creds,
+        email_info=Settings.get().MESSAGING.email
+    )
+
+
 def remove_support_primary_NOW(space_id: str, directory: os.DirEntry) -> bool:
     Logger.log(3, f"remove_support_primary_now(space_id={space_id},directory_path={directory.path})")
     # not disabling or removing QoS because revoking support of provider is possible even when QoS is set
@@ -243,6 +269,25 @@ def remove_support_primary_NOW(space_id: str, directory: os.DirEntry) -> bool:
 
 def remove_support_primary(space_id: str, yaml_file_path: str, yaml_dict: dict, directory: os.DirEntry):
     Logger.log(4, f"remove_support_primary(space_id={space_id}, directory_path={directory.path})")
+    time_default = datetime.datetime(1900, 1, 1)
+    time_now = datetime.datetime.now()
+
+    last_program_run_time = filesystem.get_token_from_yaml(yaml_dict, "lastProgramRun", None)
+    if not last_program_run_time:
+        last_program_run_time = time_default
+    else:
+        try:
+            last_program_run_time = datetime.datetime.fromisoformat(last_program_run_time)
+        except ValueError:
+            last_program_run_time = time_default
+
+    filesystem.setValueToYaml(
+        file_path=yaml_file_path,
+        yaml_dict=yaml_dict,
+        valueType="LastProgramRun",
+        value=time_now.isoformat()
+    )
+
     removing_time = filesystem.get_token_from_yaml(yaml_dict, "removingTime", None)
 
     if not removing_time:  # file does not have removing time set, first occurrence found
@@ -253,32 +298,14 @@ def remove_support_primary(space_id: str, yaml_file_path: str, yaml_dict: dict, 
             removing_time_string = time_delta
             removing_time_log = time_delta
         else:
-            removing_time = datetime.datetime.now() + time_delta
+            removing_time = time_now + time_delta
             removing_time_string = removing_time.isoformat()
             removing_time_log = removing_time.strftime(Settings.get().TIME_FORMATTING_STRING)
 
         Logger.log(2, f"Found space with id {space_id} and path {directory.path} to remove, "
                       f"WILL BE REMOVED {removing_time_log.upper()}!")
 
-        # TODO: send email
-        with open("templates/deletion.txt", "r", encoding="utf-8") as f:
-            template_text = f.read()
-        with open("templates/deletion.html", "r", encoding="utf-8") as f:
-            template_html = f.read()
-        template = string.Template(template_text)
-        template_h = string.Template(template_html)
-        to_substitute = {
-            "space_name": directory.name,
-            "space_id": space_id,
-            "space_path": directory.path,
-            "date": removing_time_log,
-            "config_file": os.path.basename(yaml_file_path),
-            "now": datetime.datetime.now().strftime(Settings.get().TIME_FORMATTING_STRING)
-        }
-        result_text = template.substitute(to_substitute)
-        result_html = template_h.substitute(to_substitute)
-
-        mail.send_using_creds(result_text, result_html, Settings.get().MESSAGING.email_creds, Settings.get().MESSAGING.email)
+        _send_email_about_deletion(space_id, directory, removing_time, yaml_file_path)
 
         status = spaces.startAutoStorageImport(space_id)  # to be sure that SPA.yml file will be synced
         if not status:
@@ -313,8 +340,6 @@ def remove_support_primary(space_id: str, yaml_file_path: str, yaml_dict: dict, 
 
     remove = False
     if type(removing_time) == datetime.datetime:
-        time_now = datetime.datetime.now()
-
         if removing_time > time_now:
             Logger.log(4, f"Space in {directory.name} with id {space_id} "
                           f"will be removed at {removing_time_log}, not now")
@@ -324,6 +349,15 @@ def remove_support_primary(space_id: str, yaml_file_path: str, yaml_dict: dict, 
                 valueType="RemovingTime",
                 value=removing_time_string
             )
+            is_time_for_email = Utils.is_time_for_action(
+                previous_perform_time=last_program_run_time,
+                time_until=removing_time,
+                intervals=Settings.get().MESSAGING.email.time_before_action,
+                response_on_weird_condition=True
+            )
+            if is_time_for_email:
+                _send_email_about_deletion(space_id, directory, removing_time, yaml_file_path)
+
         else:
             Logger.log(4, f"Space with id {space_id} will be removed now, should have been at {removing_time_log}")
             remove = True
