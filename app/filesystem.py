@@ -240,6 +240,10 @@ def setValueToYaml(file_path, yaml_dict, valueType, value):
             yaml_dict[Settings.get().config["metadataFileTags"]["onedata"]][
                 Settings.get().config["metadataFileTags"]["removingTime"]
             ] = value
+        if valueType == "LastProgramRun":
+            yaml_dict[Settings.get().config["metadataFileTags"]["onedata"]][
+                Settings.get().config["metadataFileTags"]["lastProgramRun"]
+            ] = value
 
         # open yaml file
         with open(file_path, "w") as f:
