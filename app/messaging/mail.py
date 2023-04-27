@@ -1,9 +1,9 @@
-import smtplib
-import ssl
-from email.message import EmailMessage
 from settings import Settings, Messaging
 from utils import Logger
 import typing
+import smtplib
+import ssl
+from email.message import EmailMessage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -99,7 +99,7 @@ def connect(host: str, port: int, login: str = "", password: str = "", encryptio
 
 
 def send(message: typing.Union[MIMEMultipart, EmailMessage],
-              connection: typing.Union[smtplib.SMTP, smtplib.SMTP_SSL]):
+         connection: typing.Union[smtplib.SMTP, smtplib.SMTP_SSL]):
     """
     Sends the provided message through opened connection to the server
     If there is some error with message, returns False
@@ -128,7 +128,7 @@ def send_using_creds(message: str, html_message: str, credentials: Messaging.Ema
     subject, body = _divide_to_subject_body(message)
 
     if not subject:
-        subject = "FS2OD Email"
+        subject = "fs2od info"
 
     connection = connect(
         host=credentials.smtp_server,
@@ -153,6 +153,6 @@ def send_using_creds(message: str, html_message: str, credentials: Messaging.Ema
         part = MIMEText(html_message, 'html')
         email_message.attach(part)
 
-    response = send(email_message, connection)
+    status = send(email_message, connection)
     disconnect(connection)
-    return response
+    return status
