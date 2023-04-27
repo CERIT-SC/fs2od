@@ -312,6 +312,7 @@ class Settings:
         self._test_existence(self.config["metadataFileTags"], "inviteToken", "InviteToken")
         self._test_existence(self.config["metadataFileTags"], "deniedProviders", "DeniedProviders")
         self._test_existence(self.config["metadataFileTags"], "removingTime", "RemovingTime")
+        self._test_existence(self.config["metadataFileTags"], "lastProgramRun", "LastProgramRun")
 
         self._test_existence(self.config, "institutionName")
         self._test_existence(self.config, "datasetPrefix", "")

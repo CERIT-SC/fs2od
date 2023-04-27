@@ -18,7 +18,6 @@ metadataFileTags:
   inviteToken: InviteToken
   deniedProviders: DeniedProviders
   removingTime: RemovingTime
-  lastEmailSent: LastEmailSent
   lastProgramRun: LastProgramRun
 
 # Name of institution importing datasets to Onedata
