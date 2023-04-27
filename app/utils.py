@@ -1,8 +1,9 @@
 import re
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from pprint import pprint
 from settings import Settings
+from typing import List
 
 
 class Utils:
@@ -43,6 +44,33 @@ class Utils:
         if length > 32:
             raise ValueError("Length must be max 32 chars")
         return uuid.uuid4().hex[:length]
+
+    @staticmethod
+    def is_time_for_action(previous_perform_time: datetime, time_until: datetime, intervals: List[timedelta],
+                           response_on_weird_condition: bool = False):
+        """
+        Decides if an action should be performed based on previous perform time, time until another (often stronger)
+        action is performed and intervals before time_until when action should be performed.
+        Definition: State, when previous perform time is higher than actual time is here called weird condition.
+        Weird conditions is not possible in reality; it can be caused only by misconfigured time or users intervention
+        When weird condition is reached, function will return user defined value. This is because the stronger action
+        can be so important, that any misconfiguration is cause to perform this weaker action.
+        Intervals have to be sorted in reverse order, it will not be checked
+        """
+        now = datetime.now()
+        if time_until < now:
+            return False
+        # impossible states in reality, can be caused by time misconfiguration
+        # user may decide to perform an action on that state
+        if previous_perform_time > now:
+            return response_on_weird_condition
+        for interval in intervals:
+            date_to_be_executed = time_until - interval
+
+            if (date_to_be_executed < now) ^ (date_to_be_executed < previous_perform_time):
+                return True
+
+        return False
 
 
 class Logger:
