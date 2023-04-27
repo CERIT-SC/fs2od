@@ -215,11 +215,40 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
     return completed
 
 
+def _get_filename_by_localization(filename: str) -> str:
+    """
+    Returns file name extended with localization. If localized file does not exist, returns given file.
+    If given file does not exist, returns it with error in log
+    """
+    Logger.log(4, f"_get_filename_by_localization(filename={filename})")
+
+    if not os.path.exists(filename):
+        Logger.log(1, f"File with name {filename} does not exist, returning with possibility of crashing the program.")
+        return filename
+
+    language_extension = Settings.get().MESSAGING.email.language  # nothing if default, .ex when other
+    filename_list = filename.split(".")
+
+    if len(filename_list) == 1:
+        filename_list[0] += language_extension
+        return filename_list[0]
+
+    filename_list[-2] += language_extension
+
+    new_filename = ".".join(filename_list)
+    if os.path.exists(new_filename):
+        return new_filename
+
+    return filename
+
+
 def _send_email_about_deletion(space_id: str, directory: os.DirEntry, removing_time: str, yaml_file_path: str):
     Logger.log(4, f"_send_email_about_deletion(space_id={space_id},dir={directory.path},removing_time={removing_time})")
-    with open("templates/deletion.txt", "r", encoding="utf-8") as f:
+    deletion_text_file = _get_filename_by_localization("templates/deletion.txt")
+    deletion_html_file = _get_filename_by_localization("templates/deletion.html")
+    with open(deletion_text_file, "r", encoding="utf-8") as f:
         template_text = f.read()
-    with open("templates/deletion.html", "r", encoding="utf-8") as f:
+    with open(deletion_html_file, "r", encoding="utf-8") as f:
         template_html = f.read()
     template = string.Template(template_text)
     template_h = string.Template(template_html)
