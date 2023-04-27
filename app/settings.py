@@ -156,7 +156,7 @@ class Settings:
         self.MAX_ONEDATA_NAME_LENGTH = 50
 
         self.TIME_UNTIL_REMOVED = self.config["dataReplication"]["timeUntilRemoved"]
-        self.TIME_FORMATTING_STRING = "%d.%m.%Y %H:%M"
+        self.TIME_FORMATTING_STRING = "%d. %m. %Y %H:%M"
         self.REMOVE_FROM_FILESYSTEM = self.config["dataReplication"]["removeFromFilesystem"]
 
         self.MESSAGING: Messaging = Messaging.create(self.config)
