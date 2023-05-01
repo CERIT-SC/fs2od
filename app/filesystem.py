@@ -83,7 +83,26 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
     else:
         spaces.disableContinuousImport(space_id)
 
-    _process_denied_providers(space_id, yml_file, yml_content, directory)
+    yml_metadata = os.path.join(directory.path, Settings.get().FS2OD_METADATA_FILENAME)
+    if not os.path.exists(yml_metadata):
+        Logger.log(4, f"Not checking for removal of {directory.name} (not contains metadata file).")
+        return False
+
+    yaml_dict = loadYaml(yml_metadata)
+    if not yaml_dict:
+        Logger.log(4, f"Metadata file for space with ID {space_id} and path {directory.path} is empty. "
+                      f"Not processing further")
+        return False
+
+    _process_denied_providers(space_id, yml_metadata, directory)
+
+    yaml_dict = loadYaml(yml_metadata)
+    setValueToYaml(
+        file_path=yml_metadata,
+        yaml_dict=yaml_dict,
+        valueType="LastProgramRun",
+        value=datetime.datetime.now().isoformat()
+    )
 
     return True
 
