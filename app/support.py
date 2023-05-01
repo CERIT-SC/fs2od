@@ -296,13 +296,16 @@ def remove_support_primary_NOW(space_id: str, directory: os.DirEntry) -> bool:
     return status
 
 
-def remove_support_primary(space_id: str, yaml_file_path: str, yaml_dict: dict, directory: os.DirEntry):
-    Logger.log(4, f"remove_support_primary(space_id={space_id}, directory_path={directory.path})")
+def remove_support_primary(space_id: str, yaml_file_path: str, directory: os.DirEntry):
+    Logger.log(4, f"remove_support_primary(space_id={space_id}, yaml_path={yaml_file_path}, "
+                  f"directory_path={directory.path})")
     time_default = datetime.datetime(1900, 1, 1)
     time_now = datetime.datetime.now()
     email_sent = False
 
+    yaml_dict = filesystem.loadYaml(yaml_file_path)
     last_program_run_time = filesystem.get_token_from_yaml(yaml_dict, "lastProgramRun", None)
+
     if not last_program_run_time:
         last_program_run_time = time_default
     else:
