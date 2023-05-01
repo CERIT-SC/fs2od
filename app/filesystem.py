@@ -1,3 +1,4 @@
+import datetime
 import shutil
 import os
 import time
@@ -35,7 +36,9 @@ def _process_denied_providers(space_id: str, yaml_file_path: str, directory: os.
     if "primary" not in denied_providers:
         return True  # TODO: yet doing nothing, need to create logic
 
-    support.remove_support_primary(space_id, yaml_file_path, yaml_dict, directory)
+    support.remove_support_primary(space_id, yaml_file_path, directory)
+
+    return True
 
 
 def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
