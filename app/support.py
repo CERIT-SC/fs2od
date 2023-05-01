@@ -185,6 +185,18 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
         value="removed"
     )
 
+    denied_providers_list = filesystem.get_token_from_yaml(yaml_metadata_dict, "deniedProviders", [])
+    if "primary" in denied_providers_list:
+        denied_providers_list.remove("primary")
+
+    filesystem.setValueToYaml(  # store information about space removal
+        file_path=yaml_metadata,
+        yaml_dict=yaml_metadata_dict,
+        valueType="DeniedProviders",
+        value=denied_providers_list
+    )
+
+    time.sleep(1 * Settings.get().config["sleepFactor"])
     status = spaces.startAutoStorageImport(space_id)  # sync information about space removal
 
     if not status:
@@ -215,7 +227,12 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
             value="transfers"
         )
     else:
-        os.remove(yaml_file)
+        filesystem.setValueToYaml(
+            file_path=yaml_metadata,
+            yaml_dict=yaml_metadata_dict,
+            valueType="RemovingTime",
+            value="removed"
+        )
 
     return completed
 

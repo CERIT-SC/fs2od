@@ -49,6 +49,15 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
         Logger.log(4, f"Not processing directory {directory.name} (not contains yaml).")
         return False
 
+    yml_metadata = os.path.join(directory.path, Settings.get().FS2OD_METADATA_FILENAME)
+    if os.path.exists(yml_metadata):
+        yml_metadata_content = loadYaml(yml_metadata)
+        removing_time = get_token_from_yaml(yml_metadata_content, "removingTime")
+
+        if removing_time == "removed":
+            Logger.log(4, f"Not processing directory {directory.name} (support already revoked).")
+            return False
+
     yml_content = loadYaml(yml_file)
     space_id = yamlContainsSpaceId(yml_content)
 
@@ -83,7 +92,6 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
     else:
         spaces.disableContinuousImport(space_id)
 
-    yml_metadata = os.path.join(directory.path, Settings.get().FS2OD_METADATA_FILENAME)
     if not os.path.exists(yml_metadata):
         Logger.log(4, f"Not checking for removal of {directory.name} (not contains metadata file).")
         return False
