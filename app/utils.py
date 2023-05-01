@@ -70,7 +70,7 @@ class Utils:
         for interval in intervals:
             date_to_be_executed = time_until - interval
 
-            if (date_to_be_executed < now) ^ (date_to_be_executed < previous_perform_time):
+            if (date_to_be_executed <= now) ^ (date_to_be_executed <= previous_perform_time):
                 return True
 
         return False
