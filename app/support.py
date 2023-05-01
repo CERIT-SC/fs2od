@@ -314,13 +314,6 @@ def remove_support_primary(space_id: str, yaml_file_path: str, directory: os.Dir
         except ValueError:
             last_program_run_time = time_default
 
-    filesystem.setValueToYaml(
-        file_path=yaml_file_path,
-        yaml_dict=yaml_dict,
-        valueType="LastProgramRun",
-        value=time_now.isoformat()
-    )
-
     removing_time = filesystem.get_token_from_yaml(yaml_dict, "removingTime", None)
 
     if not removing_time:  # file does not have removing time set, first occurrence found
