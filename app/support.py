@@ -118,8 +118,6 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
         Logger.log(4, f"Not removing space in {directory.path} with id {space_id} (not contains yaml).")
         return False
 
-    yaml_dict = filesystem.loadYaml(yaml_file)
-
     # getting space information from provider
     space_information = spaces.get_space(space_id)
     if not space_information or "fileId" not in space_information or "providers" not in space_information:
