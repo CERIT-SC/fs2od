@@ -178,6 +178,34 @@ def yamlContainsSpaceId(yml_content: dict) -> str:
         return yml_spa_space_id
 
 
+def create_file_if_does_not_exist(file_path: str) -> bool:
+    """
+    Creates file when non-existent.
+    Returns True if new file was created, on errors and existing files returns False.
+    """
+    Logger.log(4, f"create_file_if_does_not_exist(path={file_path})")
+    if os.path.exists(file_path):
+        return False
+
+    return create_file(file_path)
+
+
+def create_file(file_path: str) -> bool:
+    """
+    Tries to create file specified by filename. If specified file exists, overwrites it.
+    Returns True when file is created, otherwise False
+    Possible errors: insufficient rights, maximum i-nodes count
+    """
+    Logger.log(4, f"create_file(path={file_path})")
+    try:
+        open(file_path, "w").close()
+    except OSError as e:
+        Logger.log(1, f"File {file_path} could not be created. Error: {e}")
+        return False
+
+    return True
+
+
 def loadYaml(file_path: str) -> dict:
     """
     Loads yaml file from file_path and returns it in form of dictionary.
