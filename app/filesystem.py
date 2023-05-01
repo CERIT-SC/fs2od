@@ -22,6 +22,8 @@ def scanWatchedDirectories(only_check: bool = False) -> None:
 
 def _process_denied_providers(space_id: str, yaml_file_path: str, directory: os.DirEntry) -> bool:
     Logger.log(4, f"_process_denied_providers(space_id={space_id},yaml_path={yaml_file_path}):")
+
+    yaml_dict = loadYaml(yaml_file_path)
     denied_providers = get_token_from_yaml(yaml_dict, "deniedProviders", None)
 
     if denied_providers is None:
