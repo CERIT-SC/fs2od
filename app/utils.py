@@ -47,7 +47,7 @@ class Utils:
 
     @staticmethod
     def is_time_for_action(previous_perform_time: datetime, time_until: datetime, intervals: List[timedelta],
-                           response_on_weird_condition: bool = False):
+                           response_on_weird_condition: bool = False) -> bool:
         """
         Decides if an action should be performed based on previous perform time, time until another (often stronger)
         action is performed and intervals before time_until when action should be performed.
@@ -57,6 +57,9 @@ class Utils:
         can be so important, that any misconfiguration is cause to perform this weaker action.
         Intervals have to be sorted in reverse order, it will not be checked
         """
+        Logger.log(4, f"is_time_for_action(previous={previous_perform_time.isoformat()}, "
+                      f"until={time_until.isoformat()}, "
+                      f"intervals={[str(interval.days) + 'd' + str(interval.seconds) + 's' for interval in intervals]})")
         now = datetime.now()
         if time_until < now:
             return False
