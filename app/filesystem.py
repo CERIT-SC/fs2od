@@ -20,7 +20,7 @@ def scanWatchedDirectories(only_check: bool = False) -> None:
         _scanWatchedDirectory(directory, only_check)
 
 
-def _process_denied_providers(space_id: str, yaml_file_path: str, yaml_dict: dict, directory: os.DirEntry) -> bool:
+def _process_denied_providers(space_id: str, yaml_file_path: str, directory: os.DirEntry) -> bool:
     Logger.log(4, f"_process_denied_providers(space_id={space_id},yaml_path={yaml_file_path}):")
     denied_providers = get_token_from_yaml(yaml_dict, "deniedProviders", None)
 
