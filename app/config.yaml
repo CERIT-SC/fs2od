@@ -20,6 +20,8 @@ metadataFileTags:
   removingTime: RemovingTime
   lastProgramRun: LastProgramRun
 
+fs2odMetadataFilename: ".fs2od"
+
 # Name of institution importing datasets to Onedata
 institutionName: MUNI ICS
 

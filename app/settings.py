@@ -161,6 +161,8 @@ class Settings:
 
         self.MESSAGING: Messaging = Messaging.create(self.config)
 
+        self.FS2OD_METADATA_FILENAME = self.config["fs2odMetadataFilename"]
+
     @staticmethod
     def _failed(message):
         print("[Error] %s" % message)
@@ -313,6 +315,7 @@ class Settings:
         self._test_existence(self.config["metadataFileTags"], "deniedProviders", "DeniedProviders")
         self._test_existence(self.config["metadataFileTags"], "removingTime", "RemovingTime")
         self._test_existence(self.config["metadataFileTags"], "lastProgramRun", "LastProgramRun")
+        self._test_existence(self.config, "fs2odMetadataFilename", ".fs2od")
 
         self._test_existence(self.config, "institutionName")
         self._test_existence(self.config, "datasetPrefix", "")
