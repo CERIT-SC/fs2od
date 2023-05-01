@@ -125,7 +125,14 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
         return False
 
     space_file_id = space_information["fileId"]
-    config_file_name = os.path.basename(yaml_file)
+    yaml_metadata = os.path.join(directory.path, Settings.get().FS2OD_METADATA_FILENAME)
+    config_file_name = os.path.basename(yaml_metadata)
+
+    yaml_metadata_dict = filesystem.loadYaml(yaml_metadata)
+
+    if not yaml_metadata_dict:
+        Logger.log(4, f"Not removing space in {directory.path} with id {space_id} (not contains metadata file).")
+        return False
 
     # file_id = files.lookup_file_id(space_name + "/" + config_file_name)
     # not using it anymore, problem when two datasets with the same name
@@ -158,7 +165,7 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
     # finding out if did not get processed before
     # if so, trying to check if there are running transfers
     # if so, tries to delete in another run, if no, removes straightly
-    removing_time = filesystem.get_token_from_yaml(yaml_dict, "removingTime", None)
+    removing_time = filesystem.get_token_from_yaml(yaml_metadata_dict, "removingTime", None)
     if removing_time == "transfers":
         transfers_ids = transfers.get_all_transfer_ids(space_id)
         completed = _wait_for_transfers_to_complete(space_id, transfers_ids)
@@ -172,8 +179,8 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
     # now, there is everything prepared for removal, starting to edit filesystem
 
     filesystem.setValueToYaml(  # store information about space removal
-        file_path=yaml_file,
-        yaml_dict=yaml_dict,
+        file_path=yaml_metadata,
+        yaml_dict=yaml_metadata_dict,
         valueType="RemovingTime",
         value="removed"
     )
@@ -183,8 +190,8 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
     if not status:
         Logger.log(4, f"Space in {directory.path} with id {space_id} could not be synced, not removing.")
         filesystem.setValueToYaml(  # store information about space removal
-            file_path=yaml_file,
-            yaml_dict=yaml_dict,
+            file_path=yaml_metadata,
+            yaml_dict=yaml_metadata_dict,
             valueType="RemovingTime",
             value="now"
         )
@@ -192,7 +199,7 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
 
     time.sleep(3 * Settings.get().config["sleepFactor"])
 
-    transfers_ids = _transfer_file_to_providers(file_id, provider_ids, yaml_file)
+    transfers_ids = _transfer_file_to_providers(file_id, provider_ids, yaml_metadata)
 
     completed = _wait_for_transfers_to_complete(space_id, transfers_ids)
 
@@ -202,8 +209,8 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
         # n = number of supporting providers
         # only checking if every transfer is completed
         filesystem.setValueToYaml(
-            file_path=yaml_file,
-            yaml_dict=yaml_dict,
+            file_path=yaml_metadata,
+            yaml_dict=yaml_metadata_dict,
             valueType="RemovingTime",
             value="transfers"
         )
