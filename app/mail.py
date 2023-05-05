@@ -1,3 +1,5 @@
+import socket
+
 from settings import Settings, Messaging
 from utils import Logger
 import typing
@@ -51,18 +53,21 @@ def connect(host: str, port: int, login: str = "", password: str = "", encryptio
         if encryption_method in ("SSL", "TLS"):
             # explicit mode requested, server must support SSL or TLS
             # https://docs.python.org/3/library/smtplib.html#smtplib.SMTP_SSL
-            smtp_connection = smtplib.SMTP_SSL(host=host, port=port, timeout=5, context=context)
+            smtp_connection = smtplib.SMTP_SSL(host=host, port=port, timeout=10, context=context)
         else:
             # implicit mode requested, communication starts unencrypted,
             # later, if server supports (starttls) can be upgraded
             # https://docs.python.org/3/library/smtplib.html#smtplib.SMTP
-            smtp_connection = smtplib.SMTP(host=host, port=port, timeout=5)
+            smtp_connection = smtplib.SMTP(host=host, port=port, timeout=10)
 
     except smtplib.SMTPConnectError as e:
         Logger.log(2, f"Could not connect to SMTP server {host}:{port}. Hostname or port is wrong. Error text: {e}")
         return None
     except TimeoutError as e:
         Logger.log(2, f"Could not connect to SMTP server {host}{port}. Time is up. Error text: {e}")
+        return None
+    except Exception as e:
+        Logger.log(2, f"Could not connect to SMTP server {host}{port}. Undefined error. Error text: {e}")
         return None
 
     if encryption_method == "STARTTLS":
@@ -74,6 +79,10 @@ def connect(host: str, port: int, login: str = "", password: str = "", encryptio
         smtp_connection.ehlo_or_helo_if_needed()
     except smtplib.SMTPHeloError as e:
         Logger.log(2, f"We could not understand HELO/EHLO from {host}:{port}. Error text: {e}")
+        smtp_connection.quit()
+        return None
+    except Exception as e:
+        Logger.log(2, f"Undefined error when sending HELO/EHLO from {host}:{port}. Error text: {e}")
         smtp_connection.quit()
         return None
 
@@ -94,12 +103,16 @@ def connect(host: str, port: int, login: str = "", password: str = "", encryptio
             Logger.log(2, f"Server {host}:{port} uses some weird authentication method. Error text: {e}")
             smtp_connection.quit()
             return None
+        except Exception as e:
+            Logger.log(2, f"Undefined error when authenticating to {host}:{port}. Error text: {e}")
+            smtp_connection.quit()
+            return None
 
     return smtp_connection
 
 
 def send(message: typing.Union[MIMEMultipart, EmailMessage],
-         connection: typing.Union[smtplib.SMTP, smtplib.SMTP_SSL]):
+         connection: typing.Union[smtplib.SMTP, smtplib.SMTP_SSL]) -> bool:
     """
     Sends the provided message through opened connection to the server
     If there is some error with message, returns False
@@ -111,6 +124,9 @@ def send(message: typing.Union[MIMEMultipart, EmailMessage],
         connection.send_message(message)
     except ValueError as e:
         Logger.log(2, f"Message could not be send. Error text: {e}")
+        return False
+    except Exception as e:
+        Logger.log(2, f"Undefined error when sending message. Error text: {e}")
         return False
 
     return True
