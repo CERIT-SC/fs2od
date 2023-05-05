@@ -5,7 +5,7 @@ stages:
   - prepareImageDevel
 
 variables:
-  DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_TLS_CERTDIR: ""
 
 services:
   - docker:dind
