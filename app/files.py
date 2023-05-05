@@ -34,6 +34,7 @@ def setFileAttributeRecursive(file_id, posix_mode) -> bool:
     In case of directory attributes is set to all children.
     Returns True if everything was successful, otherwise False
     """
+    Logger.log(5, "setFileAttributeRecursive(%s, %s):" % (file_id, posix_mode))
     attributes = getFileAttributes(file_id)
     successful = True
 
