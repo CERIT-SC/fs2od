@@ -8,7 +8,7 @@ import spaces
 import oneprovider
 import transfers
 from utils import Logger, Settings, Utils
-from messaging import mail
+import mail
 
 MAX_TRANSFER_COMPLETED_CHECKS = 10
 

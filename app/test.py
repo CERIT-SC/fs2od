@@ -1,11 +1,10 @@
 import os
-from pprint import pprint
 import time
 import sys
 from settings import Settings
 from utils import Logger
-import spaces, storages, groups, request, tokens, oneprovider, onezone, dareg
-from messaging import mail
+import spaces, storages, groups, tokens, oneprovider, onezone, dareg
+import mail
 
 
 def safetyNotice(message):
