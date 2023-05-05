@@ -56,21 +56,45 @@ def get_storage_id_by_name(name: str) -> str:
     return ""
 
 
-def createAndGetStorage(name, mountpoint):
-    Logger.log(4, "createAndGetStorage(%s, %s):" % (name, mountpoint))
-    resp = addStorage(name, mountpoint)
-    if resp.status_code == 204:
-        last_id = getLastStorage()
-        # compare names of storages, compare cleared names
-        if Utils.clearOnedataName(getStorageDetails(last_id)["name"]) == Utils.clearOnedataName(
-            name
-        ):
-            Logger.log(3, "Storage %s was created with id %s" % (name, last_id))
-            return last_id
-        else:
-            Logger.log(2, "Storage added but storage ID cannot be returned")
-    else:
-        Logger.log(1, "Failure while adding storage")
+def create_and_get_storage(name: str, mount_point: str) -> str:
+    """
+    Creates storage and returns its ID.
+    If some error occurred, returns empty string
+    """
+    Logger.log(4, f"create_and_get_storage(name={name}, mp={mount_point}):")
+
+    if len(name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:
+        Logger.log(1, f"Too short storage name {name}.")
+        return ""
+
+    new_name = Utils.clearOnedataName(name)
+
+    storage_identification = add_storage(new_name, mount_point)
+
+    if not storage_identification:
+        Logger.log(1, f"Storage with name {new_name} could not be created.")
+        return ""
+
+    name_list = list(storage_identification.keys())
+
+    if len(name_list) == 0:
+        Logger.log(1, f"Storage with desired name {new_name} was not created due unexpected error.")
+        return ""
+
+    returned_name = name_list[0]
+    storage_id = storage_identification[returned_name].get("id", "")
+
+    if not storage_id:
+        Logger.log(1, f"Storage with desired name {new_name} was not created; did not return id.")
+        return ""
+
+    # compare names of storages, compare cleared names
+    if returned_name != name:
+        Logger.log(3, f"Storage of desired name {name} was created with name {returned_name} and id {storage_id}")
+        return storage_id
+
+    Logger.log(3, f"Storage {name} was created with id {storage_id}")
+    return storage_id
 
 
 def removeStorage(storage_id):
