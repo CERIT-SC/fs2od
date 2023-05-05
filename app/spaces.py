@@ -145,13 +145,14 @@ def createSpaceForGroup(group_id, space_name):
         Logger.log(1, "Space %s can't be created" % space_name)
 
 
-def supportSpace(token, size, storage_id, space_id, oneprovider_index: int = 0):
-    Logger.log(4, "supportSpace(token, %s, %s)" % (size, storage_id))
-    Logger.log(3, "Atempt to set up support to space %s" % space_id)
+def supportSpace(token, size, storage_id, space_id, oneprovider_index: int = 0) -> str:
+    Logger.log(4, f"supportSpace(token={token}, size={size}, storage_id={storage_id})")
+    Logger.log(3, f"Atempt to set up support to space with id {space_id} for "
+                  f"{Settings.get().ONEPROVIDERS_DOMAIN_NAMES[oneprovider_index]}")
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/support_space
     url = f"onepanel/provider/spaces"
     data = {
-        "token": token["token"],
+        "token": token,
         "size": size,
         "storageId": storage_id,
         "storageImport": {
@@ -174,7 +175,7 @@ def supportSpace(token, size, storage_id, space_id, oneprovider_index: int = 0):
         return response.json()["id"]
     else:
         Logger.log(1, "Space support can't be set on storage %s" % storage_id)
-        return False
+        return ""
 
 
 def revoke_space_support(space_id: str, oneprovider_index: int = 0) -> bool:

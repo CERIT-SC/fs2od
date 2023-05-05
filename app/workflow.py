@@ -128,15 +128,15 @@ def register_space(directory: os.DirEntry) -> bool:
 
     # Create support token
     actions_logger.log_pre("temporary_token", "")
-    support_token = tokens.createTemporarySupportToken(space_id)
-    is_ok = actions_logger.log_post(support_token.get("token", ""), only_check=True)
+    support_token = tokens.create_temporary_support_token(space_id)
+    is_ok = actions_logger.log_post(support_token, only_check=True)
     if not is_ok: return False
 
     actions_logger.log_pre("storage", dataset_name)
     # Create storage for the space
-    storage_id = storages.createAndGetStorage(
+    storage_id = storages.create_and_get_storage(
         name=dataset_name,
-        mountpoint=full_path
+        mount_point=full_path
     )
     is_ok = actions_logger.log_post(storage_id)
     if not is_ok: return False
