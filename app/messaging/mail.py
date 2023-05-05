@@ -161,3 +161,34 @@ def send_using_creds(message: str, html_message: str, credentials: Messaging.Ema
     status = send(email_message, connection)
     disconnect(connection)
     return status
+
+
+def test_connection(bypass_feature_switch: bool = False):
+    """
+    Tests connection to mail server configured in config.
+    If email is disabled in config, prints message and returns 0 (success)
+    This behavior can be changed and testing forced by setting bypass_feature_switch to True
+    Returns 0 if connection successful, otherwise 1
+    >>> result = test_connection()  # tests connection only if enabled in Settings: MESSAGIGNG -> email_creds -> enabled
+    >>> result = test_connection(bypass_feature_switch=True)  # tests connection independently on value in Settings
+    """
+    Logger.log(4, f"mail.test_connection(bypass={bypass_feature_switch})")
+
+    if not Settings.get().MESSAGING.email_creds.enabled and not bypass_feature_switch:
+        Logger.log(5, f"Not testing email, disabled in config")
+        return 0
+
+    credentials = Settings.get().MESSAGING.email_creds
+    connection = connect(
+        host=credentials.smtp_server,
+        port=credentials.smtp_port,
+        login=credentials.login,
+        password=credentials.password,
+        encryption_method=credentials.encryption_method
+    )
+    if connection is None:
+        Logger.log(1, f"Cannot connect to email server.")
+        return 1
+
+    disconnect(connection)
+    return 0

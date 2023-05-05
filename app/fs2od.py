@@ -16,6 +16,7 @@ def runScan(args):
         result = test.testConnection(of_each_oneprovider=False)
         if result:
             sys.exit(1)
+
     # after successful connection there is need to check some forgotten log
     actions_log.get_actions_logger().new_actions_log()
     actions_log.get_actions_logger().finish_actions_log()

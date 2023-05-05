@@ -5,6 +5,7 @@ import sys
 from settings import Settings
 from utils import Logger
 import spaces, storages, groups, request, tokens, oneprovider, onezone, dareg
+from messaging import mail
 
 
 def safetyNotice(message):
@@ -175,12 +176,15 @@ def testConnection(of_each_oneprovider: bool = False):
     noauth, auth = _testOneproviders(of_each_oneprovider)
     # not using yet, discarding
     result = result + noauth + auth
-    # testing DAREG
 
+    # testing DAREG
     result += _test_dareg()
 
+    # testing connection to email server
+    result += mail.test_connection()
+
     if result == 0:
-        Logger.log(3, "Onezone, Oneprovider and DAREG, if enabled, exist and respond.")
+        Logger.log(3, "Onezone, Oneprovider, DAREG and email, if enabled, exist and respond.")
     else:
         Logger.log(1, "Error when communicating with Onezone, Oneprovider or DAREG.")
     return result
