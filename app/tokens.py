@@ -84,9 +84,9 @@ def createNamedTokenForUser(space_id, name, user_id):
         raise BaseException("Response for creating new token failed: " + str(resp.content))
 
 
-def createTemporarySupportToken(space_id):
+def create_temporary_support_token(space_id) -> str:
     Logger.log(4, "createTemporarySupportToken(%s):" % space_id)
-    # https://onedata.org/#/home/api/stable/onezone?anchor=operation/create_temporary_token_for_current_user
+    # https://onedata.org/#/home/api/21.02.1/onezone?anchor=operation/create_temporary_token_for_current_user
     url = "onezone/user/tokens/temporary"
     data = {
         "type": {
@@ -99,10 +99,21 @@ def createTemporarySupportToken(space_id):
     resp = request.post(url, headers=headers, data=json.dumps(data))
     if not resp.ok:
         Logger.log(1, f"Creating temporary token for support space {space_id} failed")
-        return
+        return ""
+
+    response_dict = resp.json()
+    if "token" not in response_dict:
+        Logger.log(1, f"Creating temporary token for support space {space_id} failed; server didn't respond with token")
+        return ""
+
+    token = response_dict["token"]
+    if not token:
+        Logger.log(1, f"Creating temporary token for support space {space_id} failed; "
+                      f"server didn't respond with token value")
+        return ""
 
     Logger.log(3, f"Created temporary token for support space {space_id}")
-    return resp.json()
+    return token
 
 
 def tokenExists(name):
