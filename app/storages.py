@@ -21,15 +21,9 @@ def getLastStorage():
     return storages["ids"][0]
 
 
-def addStorage(name, mountpoint):
-    Logger.log(4, "addStorage(%s, %s):" % (name, mountpoint))
-    # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/get_storages
-
-    if len(name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:
-        Logger.log(1, "Too short storage name %s." % name)
-        return
-
-    name = Utils.clearOnedataName(name)
+def add_storage(name: str, mountpoint: str) -> dict:
+    Logger.log(4, f"add_storage(name={name}, mp={mountpoint}):")
+    # https://onedata.org/#/home/api/21.02.1/onepanel?anchor=operation/add_storage
 
     url = "onepanel/provider/storages"
     data = {
@@ -37,7 +31,10 @@ def addStorage(name, mountpoint):
     }
     headers = dict({"Content-type": "application/json"})
     resp = request.post(url, headers=headers, data=json.dumps(data))
-    return resp
+
+    if resp.status_code == 200:
+        return resp.json()
+    return {}
 
 
 def getStorageDetails(storage_id):
