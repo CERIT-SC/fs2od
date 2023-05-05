@@ -266,8 +266,8 @@ def _get_filename_by_localization(filename: str) -> str:
 
 def _send_email_about_deletion(space_id: str, directory: os.DirEntry, removing_time: str, yaml_file_path: str):
     Logger.log(4, f"_send_email_about_deletion(space_id={space_id},dir={directory.path},removing_time={removing_time})")
-    deletion_text_file = _get_filename_by_localization("templates/deletion.txt")
-    deletion_html_file = _get_filename_by_localization("templates/deletion.html")
+    deletion_text_file = _get_filename_by_localization("deletion.txt")
+    deletion_html_file = _get_filename_by_localization("deletion.html")
     with open(deletion_text_file, "r", encoding="utf-8") as f:
         template_text = f.read()
     with open(deletion_html_file, "r", encoding="utf-8") as f:
