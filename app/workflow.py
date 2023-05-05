@@ -1,11 +1,22 @@
+import datetime
 import os
-import time
 import sys
+import time
 from pprint import pprint
 from string import Template
+import actions_log
+import dareg
+import files
+import filesystem
+import groups
+import metadata
+import qos
+import shares
+import spaces
+import storages
+import tokens
 from settings import Settings
 from utils import Logger, Utils
-import spaces, storages, metadata, groups, tokens, shares, files, filesystem, dareg, qos, actions_log
 
 actions_logger = actions_log.get_actions_logger()
 
@@ -61,9 +72,10 @@ def _add_qos_requirement(space_id: str, replicas_number: int):
         )
 
 
-def registerSpace(base_path, directory) -> bool:
+def register_space(directory: os.DirEntry) -> bool:
     # only directories should be processed
-    full_path = base_path + os.sep + directory.name
+    full_path = os.path.abspath(directory.path)
+    base_path = os.path.dirname(full_path)
     if not os.path.isdir(full_path):
         Logger.log(3, f"Space can't be created, this isn't directory {full_path}")
         return False
@@ -124,7 +136,7 @@ def registerSpace(base_path, directory) -> bool:
     # Create storage for the space
     storage_id = storages.createAndGetStorage(
         name=dataset_name,
-        mountpoint=os.path.join(base_path, directory.name)
+        mountpoint=full_path
     )
     is_ok = actions_logger.log_post(storage_id)
     if not is_ok: return False
@@ -211,6 +223,20 @@ def registerSpace(base_path, directory) -> bool:
     yaml_onedata_dict[Settings.get().config["metadataFileTags"]["space"]] = space_id
     yaml_onedata_dict[Settings.get().config["metadataFileTags"]["inviteToken"]] = token["token"]
     filesystem.setValuesToYaml(yml_file, yml_content, yaml_onedata_dict)
+
+    # creating separate metadata file for fs2od data
+    yml_metadata = os.path.join(directory.path, Settings.get().FS2OD_METADATA_FILENAME)
+    actions_logger.log_pre("create_metadata_file", "")
+    status = filesystem.create_file(yml_metadata)
+    is_ok = actions_logger.log_post(status, only_check=True)
+    if not is_ok: return False
+
+    yaml_metadata_dict = dict()
+    yaml_metadata_dict[Settings.get().config["metadataFileTags"]["deniedProviders"]] = []
+    yaml_metadata_dict[Settings.get().config["metadataFileTags"]["lastProgramRun"]] = datetime.datetime.now().isoformat()
+    # raise Exception
+    filesystem.setValuesToYaml(yml_metadata, {}, yaml_metadata_dict)
+
     time.sleep(3 * Settings.get().config["sleepFactor"])
 
     actions_logger.log_pre("auto_storage_import", "")
@@ -285,6 +311,8 @@ def registerSpace(base_path, directory) -> bool:
     time.sleep(3 * Settings.get().config["sleepFactor"])
 
     actions_logger.finish_actions_log()
+
+    return True
 
 
 # TODO - WIP

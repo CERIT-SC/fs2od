@@ -29,20 +29,37 @@ def removeSpace(space_id):
 
 def get_space(space_id, ok_statuses: tuple = (200,)) -> dict:
     """
-    Returns the basic information about space with given Id.
+    Returns the basic information about space with given id.
+    If response is not ok, but accepted by ok_statuses, returns {"spaceId": "allowed_ok_status"}
+    joined with response from server
+    Otherwise returns empty dict
     """
-    Logger.log(4, "getSpace(%s):" % space_id)
+    Logger.log(4, f"get_space({space_id},ok_statuses={ok_statuses}):")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_space
     url = "oneprovider/spaces/" + space_id
     response = request.get(url, ok_statuses=ok_statuses)
-    return response.json()
+    if response.ok:
+        return response.json()
+    elif response.status_code in ok_statuses:
+        response = response.json()
+        response["spaceId"] = "allowed_ok_status"
+        return response
+    else:
+        return {}
+
+
+def space_exists(space_id: str) -> bool:
+    Logger.log(4, f"space_exists({space_id}):")
+    response_dict = get_space(space_id, ok_statuses=(200, 403))
+
+    return not bool(response_dict.get("error", False))
 
 
 def get_space_from_onezone(space_id) -> dict:
     """
     Returns the basic information about space with given Id.
     """
-    Logger.log(4, "get_space_from_onezone(%s):" % space_id)
+    Logger.log(4, f"get_space_from_onezone({space_id}):")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_space
     url = "onezone/spaces/" + space_id
     response = request.get(url)
@@ -52,6 +69,7 @@ def get_space_from_onezone(space_id) -> dict:
 
 
 def get_space_id_by_name(name: str) -> str:
+    Logger.log(4, f"get_space_id_by_name({name}):")
     for space in getSpaces():
         if space["name"].startswith(name):
             return space["spaceId"]
@@ -159,15 +177,22 @@ def supportSpace(token, size, storage_id, space_id, oneprovider_index: int = 0):
         return False
 
 
-def revokeSpaceSupport(space_id):
-    Logger.log(4, "revokeSpaceSupport(%s):" % space_id)
+def revoke_space_support(space_id: str, oneprovider_index: int = 0) -> bool:
+    """
+    Revokes space support for Oneprovider. If none given in parameter, revoking for primary Oneprovider
+    Returns true or false based on successfulness of this operation.
+    Not revoking support due to non-existent space id on this provider is considered as successful operation
+    """
+    Logger.log(4, f"revokeSpaceSupport(space_id={space_id},oneprovider_index={oneprovider_index}):")
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/revoke_space_support
     url = "onepanel/provider/spaces/" + space_id
-    response = request.delete(url)
-    if response.ok:
-        Logger.log(3, "Space %s support revoked" % space_id)
+    response = request.delete(url, ok_statuses=(204, 404), oneprovider_index=oneprovider_index)
+    if response.ok or response.status_code == 404:
+        Logger.log(3, f"Space {space_id} support revoked")
+        return True
     else:
-        Logger.log(1, "Error when revoking space %s support" % space_id)
+        Logger.log(1, f"Error when revoking space {space_id} support")
+        return False
 
 
 def setSpaceSize(space_id, size=None):

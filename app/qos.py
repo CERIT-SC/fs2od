@@ -2,6 +2,7 @@ import request
 from utils import Logger
 import json
 
+
 def add_requirement(file_id: str, expression: str, replicas_number: int) -> dict:
     """
     Adds QoS requirement to specified file. Returns dictionary of JSON response.
@@ -19,6 +20,7 @@ def add_requirement(file_id: str, expression: str, replicas_number: int) -> dict
     resp = request.post(url, headers=headers, data=json.dumps(data))
 
     return resp.json()
+
 
 def get_all_requirements(file_id: str) -> dict:
     """

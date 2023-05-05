@@ -82,8 +82,8 @@ def post(url, headers=dict(), data=dict(), oneprovider_index: int = 0, ok_status
     return response
 
 
-def delete(url, headers=dict(), data=dict(), oneprovider_index: int = 0):
+def delete(url, headers=dict(), data=dict(), oneprovider_index: int = 0, ok_statuses: tuple = tuple()):
     url, headers = process_url(url, headers, oneprovider_index=oneprovider_index)
     response = requests.delete(url, headers=headers, data=data)
-    response_print(response)
+    response_print(response, ok_statuses)
     return response

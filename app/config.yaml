@@ -16,6 +16,11 @@ metadataFileTags:
   space: Space
   publicURL: PublicURL
   inviteToken: InviteToken
+  deniedProviders: DeniedProviders
+  removingTime: RemovingTime
+  lastProgramRun: LastProgramRun
+
+fs2odMetadataFilename: ".fs2od"
 
 # Name of institution importing datasets to Onedata
 institutionName: MUNI ICS
@@ -121,6 +126,39 @@ restAccess:
     #    - ""
     #    # - ""
 
+messaging:
+  credentials:
+    email:
+      # If disabled, fields will not be checked
+      enabled: false
+      # SMTP server which will receive emails to send further
+      smtpServer: ""
+      # If no port is provided, and encryption method is correct,
+      # default values are 465 for "TLS" and "SSL", 587 for "STARTTLS" and 25 for "ANY"
+      smtpPort: 0
+      # If no login or password provided, tries to send emails without authentication
+      login: ""
+      password: ""
+      # Possible values are "SSL", "TLS", "STARTTLS", "ANY", behavior of "SSL" is the same as of "TLS"
+      # If wrong keyword is set and email enabled, app will crash
+      encryptionMethod: ""
+      # From field value, it can be clear email address, or text in format "Name Surname <user@mail.tld>"
+      messageSender: ""
+
+  email:
+    # Same format as messageSender
+    to:
+      - ""
+      - ""
+    # Sends email when given timestamp is reached, same format as timeUntilRemoved
+    timeBeforeAction:
+      - 1m
+      - 7d
+      - 1d
+      - 2h
+    # ISO 639-1 country code, case (upper-/lower-) is ignored, default is en
+    # if choosing document to send, first it will try to find its translated version, then original
+    language: "SK"
 
 ## Setting data replication between possible spaces supporters
 dataReplication:
@@ -128,3 +166,15 @@ dataReplication:
   enabled: true
   # Number of servers to which it will be replicated, source included
   numberOfReplicas: 2
+  # Time to wait from finding out that must remove from primary Oneprovider until actual deletion is processed
+  # Possible time descriptors are: y for years, m for months, d for days, h for hours
+  # Numbers concatenate with decorators, between two decorator types have to be spaces
+  # Everything will be summed up. Month has 30 days.
+  # Special values: never, now and transfers - BE AWARE OF VALUE `now`, IT WILL REMOVE FILES IMMEDIATELY!!!
+  # Value transfers is only for system, never you ever do change to transfers, you can lose your data forever
+  # without even noticing
+  # Examples: "7d 5h", "10y", "2m", "3h 5h" (will be summed up to 8 hours)
+  timeUntilRemoved: "7d"
+  # if remove from filesystem is True, when time is up for disconnecting actual provider from the space support,
+  # it will physically remove data from its filesystem. This operation is irreversible and you can lose your data.
+  removeFromFilesystem: false

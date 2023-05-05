@@ -1,0 +1,6 @@
+Deletion warning for space "$space_name" - fs2od
+
+Your space "$space_name" (id $space_id, path $space_path) will be removed by $date.
+If you do not want this to happen, you can set RemovingTime to "never" or remove the whole line in file with name $config_file.
+
+This email was sent automatically by fs2od $now.

@@ -217,8 +217,8 @@ class ActionsLogger:
         If log from file not wanted, include_file should be set to False
         Returns sequence dict, or two sequences dict in tuple
         """
-        log_sequence = {}
-        file_sequence = {}
+        log_sequence = {"queue": []}
+        file_sequence = {"queue":[]}
 
         if self.log:
             log_sequence = self.build_list_sequence(self.log)

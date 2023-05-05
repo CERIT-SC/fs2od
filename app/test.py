@@ -1,9 +1,11 @@
+import os
 from pprint import pprint
 import time
 import sys
 from settings import Settings
 from utils import Logger
 import spaces, storages, groups, request, tokens, oneprovider, onezone, dareg
+from messaging import mail
 
 
 def safetyNotice(message):
@@ -113,7 +115,7 @@ def _testOnezone():
 def _testOneprovider(oneprovider_index: int = 0):
     Logger.log(4, f"_testOneprovider(order={oneprovider_index}):")
     # test noauth request, test if an attribute exists
-    if "build" not in oneprovider.getConfiguration(oneprovider_index):
+    if "build" not in oneprovider.get_configuration(oneprovider_index):
         Logger.log(1, f"Oneprovider doesn't return its configuration. (order={oneprovider_index})")
         return 1
 
@@ -174,12 +176,15 @@ def testConnection(of_each_oneprovider: bool = False):
     noauth, auth = _testOneproviders(of_each_oneprovider)
     # not using yet, discarding
     result = result + noauth + auth
-    # testing DAREG
 
+    # testing DAREG
     result += _test_dareg()
 
+    # testing connection to email server
+    result += mail.test_connection()
+
     if result == 0:
-        Logger.log(3, "Onezone, Oneprovider and DAREG, if enabled, exist and respond.")
+        Logger.log(3, "Onezone, Oneprovider, DAREG and email, if enabled, exist and respond.")
     else:
         Logger.log(1, "Error when communicating with Onezone, Oneprovider or DAREG.")
     return result
@@ -198,4 +203,4 @@ def registerSpace(path):
     base_path = temp[0]
     directory = temp[1]
 
-    workflow.registerSpace(base_path, directory)
+    workflow.register_space(os.path.join(base_path, directory))
