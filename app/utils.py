@@ -1,9 +1,31 @@
 import re
+import urllib.parse
 import uuid
 from datetime import datetime, timedelta
 from pprint import pprint
+from urllib.parse import urlparse
+
 from settings import Settings
-from typing import List
+from typing import List, Union
+
+
+def _convert_to_urlparse_result(url: str) -> Union[urllib.parse.ParseResult, bool]:
+    """
+    Returns ParseResult object from URL
+    If any of the URL cannot be converted to urllib object (ParseResult), returns False
+    """
+    Logger.log(4, f"_convert_to_urlparse_result(url={url})")
+    # if url does not have // in it, it is considered as a path and netloc is not interpreted
+    if "//" not in url:
+        url = "//" + url
+
+    try:
+        url_object = urlparse(url)
+    except ValueError as e:
+        Logger.log(3, f"URL cannot be parsed. Error while processing, error: {e}")
+        return False
+
+    return url_object
 
 
 class Utils:
@@ -74,6 +96,44 @@ class Utils:
                 return True
 
         return False
+
+    @staticmethod
+    def is_domain_name_the_same(url_1: str, url_2: str) -> bool:
+        """
+        Decides if domain name is the same.
+        Returns True when domain names are the same, otherwise false
+        If any of the URL cannot be converted to urllib object (ParseResult), returns False
+        >>> Utils.is_domain_name_the_same("google.com", "https://google.com/page/page2?query=r#fragment1")  # True
+        >>> Utils.is_domain_name_the_same("auth.google.com", "https://google.com/page/page2?query=r#fragment1")  # True
+        >>> Utils.is_domain_name_the_same("gogle.com", "https://google.com/page/page2?query=r#fragment1")  # False
+        """
+        Logger.log(4, f"is_domain_name_the_same(url1={url_1},url2={url_2})")
+
+        url1_object = _convert_to_urlparse_result(url_1)
+        url2_object = _convert_to_urlparse_result(url_2)
+
+        netloc1_split = url1_object.netloc.split(".")
+        netloc2_split = url2_object.netloc.split(".")
+
+        # if there is domain name and top level domain
+        return netloc1_split[-2:] == netloc2_split[-2:]
+
+    @staticmethod
+    def is_host_name_the_same(url_1: str, url_2: str) -> bool:
+        """
+        Decides if host name is the same.
+        Returns True when host names are the same, otherwise false
+        If any of the URL cannot be converted to urllib object (ParseResult), returns False
+        >>> Utils.is_domain_name_the_same("google.com", "https://google.com/page/page2?query=r#fragment1")  # True
+        >>> Utils.is_domain_name_the_same("auth.google.com", "https://google.com/page/page2?query=r#fragment1")  # False
+        >>> Utils.is_domain_name_the_same("gogle.com", "https://google.com/page/page2?query=r#fragment1")  # False
+        """
+        Logger.log(4, f"is_host_name_the_same(url1={url_1},url2={url_2})")
+
+        url1_object = _convert_to_urlparse_result(url_1)
+        url2_object = _convert_to_urlparse_result(url_2)
+
+        return url1_object.netloc == url2_object.netloc
 
 
 class Logger:
