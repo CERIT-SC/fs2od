@@ -369,3 +369,29 @@ def remove_folder(directory: os.DirEntry) -> bool:
         return False
     else:
         return True
+
+
+def chmod_recursive(path: Union[os.DirEntry, str], mode: int) -> bool:
+    """
+    Changes the mode of given path and its subdirectories/subfiles
+    If chmod was successful, returns True, otherwise False
+    """
+    Logger.log(4, f"chmod_recursive(dir={path},mode={oct(mode)})")
+    try:
+        os.chmod(path, mode)
+
+        for root, directories, files in os.walk(path):
+            for directory in directories:
+                os.chmod(os.path.join(root, directory), mode)
+            for file in files:
+                os.chmod(os.path.join(root, file), mode)
+    except NotImplemented as e:
+        Logger.log(3, f"Cannot change mode for path {path}. Not implemented. Error: {e}")
+        return False
+    except Exception as e:
+        Logger.log(3, f"Cannot change mode for path {path}. Unknown error. Error: {e}")
+        return False
+
+    Logger.log(5, f"Mode for path {path} was changed to {oct(mode)}")
+
+    return True
