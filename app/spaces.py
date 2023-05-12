@@ -76,11 +76,18 @@ def get_space_id_by_name(name: str) -> str:
     return ""
 
 
-def getSpaceDetails(space_id):
-    Logger.log(4, "getSpaceDetails(%s):" % space_id)
+def getSpaceDetails(space_id, oneprovider_index: int = 0):
+    Logger.log(4, f"getSpaceDetails(space_id={space_id},op_index={oneprovider_index})")
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/get_space_details
     url = "onepanel/provider/spaces/" + space_id
-    response = request.get(url)
+    response = request.get(url, oneprovider_index=oneprovider_index)
+
+    # not supported, non-existent or forbidden
+    if not response.ok:
+        Logger.log(3, f"Space with id {space_id} is not supported by "
+                      f"{Settings.get().ONEPROVIDERS_DOMAIN_NAMES[oneprovider_index]}")
+        return {}
+
     return response.json()
 
 
