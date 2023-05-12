@@ -12,6 +12,19 @@ def getStorages():
     return response.json()
 
 
+def get_storage(storage_id: str) -> dict:
+    Logger.log(4, f"get_storage(storage_id={storage_id})")
+    # https://onedata.org/#/home/api/21.02.1/onepanel?anchor=operation/get_storage_details
+    url = "onepanel/provider/storages/" + storage_id
+    response = request.get(url)
+
+    if not response.ok:
+        Logger.log(3, f"Cannot get information about storage with id {storage_id}")
+        return {}
+
+    return response.json()
+
+
 def getLastStorage():
     Logger.log(4, "getLastStorage():")
     storages = getStorages()
