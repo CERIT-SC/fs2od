@@ -28,7 +28,7 @@ def setFileAttribute(file_id, posix_mode) -> bool:
     return response.ok
 
 
-def setFileAttributeRecursive(file_id, posix_mode) -> bool:
+def setFileAttributeRecursive(file_id: str, posix_mode: str) -> bool:
     """
     Set attributes to directory or file with given file_id. Only POSIX mode can be set up.
     In case of directory attributes is set to all children.
