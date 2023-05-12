@@ -256,13 +256,16 @@ def register_space(directory: os.DirEntry) -> bool:
     is_ok = actions_logger.log_post(file_id, only_check=True)
     if not is_ok: return False
 
-    actions_logger.log_pre("set_files_to_posix", "")
-    success = files.setFileAttributeRecursive(
-        file_id=file_id,
-        posix_mode=Settings.get().config["initialPOSIXlikePermissions"]
-    )
-    is_ok = actions_logger.log_post(success, only_check=True)
-    if not is_ok: return False
+    # actions_logger.log_pre("set_files_to_posix", "")
+    # success = files.setFileAttributeRecursive(
+    #     file_id=file_id,
+    #     posix_mode=Settings.get().config["initialPOSIXlikePermissions"]
+    # )
+    # is_ok = actions_logger.log_post(success, only_check=True)
+    # if not is_ok: return False
+
+    # chmod hack, no longer can change via API
+    filesystem.chmod_recursive(directory, Settings.get().config["initialPOSIXlikePermissions"])
 
     # create public share
     actions_logger.log_pre("share", dataset_name)
