@@ -335,6 +335,7 @@ class Settings:
         self._test_existence(self.config["continousFileImport"], "enabled", True)
 
         self._test_existence(self.config, "initialPOSIXlikePermissions", "0775")
+        self.config["initialPOSIXlikePermissions"] = int(self.config["initialPOSIXlikePermissions"], 8)
         self._test_existence(self.config, "userGroupId")
         self._test_existence(self.config, "implicitSpaceSize", 10995116277760)
         self._test_existence(self.config, "serviceUserId")
