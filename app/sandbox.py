@@ -39,6 +39,7 @@ def remove_spaces_of_provider(hostname_or_id: str, when_only_one_provider: bool 
 
     if yes_no != "yes":
         print("Deletion was not confirmed, not continuing")
+        return
 
     Logger.log(3, f"All spaces of provider with id {hostname_or_id} will be deleted")
 
