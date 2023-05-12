@@ -1,5 +1,7 @@
 import json
 import time
+import storages
+import filesystem
 from settings import Settings
 from utils import Logger, Utils
 import request, tokens, files, metadata, dareg
@@ -287,6 +289,10 @@ def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
 def enableContinuousImport(space_id):
     Logger.log(4, "enableContinuousImport(%s):" % space_id)
     # running file exists, permissions should be periodically set to new dirs and files have given permissions
+    # but first filesystem
+    mount_point = get_space_mount_point(space_id)
+    filesystem.chmod_recursive(mount_point, Settings.get().config["initialPOSIXlikePermissions"])
+
     file_id = get_space(space_id)["fileId"]
     files.setFileAttributeRecursive(file_id, Settings.get().config["initialPOSIXlikePermissions"])
 
@@ -320,6 +326,9 @@ def disableContinuousImport(space_id):
             startAutoStorageImport(space_id)
 
             # permissions of all dirs and file should set to given permissions
+            mount_point = get_space_mount_point(space_id)
+            filesystem.chmod_recursive(mount_point, Settings.get().config["initialPOSIXlikePermissions"])
+
             file_id = get_space(space_id)["fileId"]
             files.setFileAttributeRecursive(
                 file_id, Settings.get().config["initialPOSIXlikePermissions"]
