@@ -116,7 +116,10 @@ def get_id_of_file_in_directory(directory_file_id: str, searched_file_name: str,
     still_searching = True
     offset = 0
     while still_searching:
-        response = request.get(url + f"?limit=1000&offset={offset}", oneprovider_index=oneprovider_index)
+        response = request.get(
+            url=url + f"?attribute=file_id&attribute=name&limit=1000&offset={offset}",
+            oneprovider_index=oneprovider_index
+        )
 
         if not response.ok:
             Logger.log(3, f"Getting children of directory with file id {directory_file_id} not successful.")
@@ -126,7 +129,7 @@ def get_id_of_file_in_directory(directory_file_id: str, searched_file_name: str,
 
         for child in children:
             if child["name"] == searched_file_name:
-                return child["id"]
+                return child["file_id"]
 
         offset += 1000
         still_searching = not response_json["isLast"]
