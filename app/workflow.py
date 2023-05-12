@@ -217,12 +217,14 @@ def register_space(directory: os.DirEntry) -> bool:
         dareg.log(space_id, "info", "group added to space")
     time.sleep(1 * Settings.get().config["sleepFactor"])
 
-    # not logging, only filesystem operation
+    actions_logger.log_pre("information", yml_file)
     # write onedata parameters (space_id, invite_token) to file
     yaml_onedata_dict = dict()
     yaml_onedata_dict[Settings.get().config["metadataFileTags"]["space"]] = space_id
     yaml_onedata_dict[Settings.get().config["metadataFileTags"]["inviteToken"]] = token["token"]
-    filesystem.setValuesToYaml(yml_file, yml_content, yaml_onedata_dict)
+    status = filesystem.set_values_to_yaml(yml_file, yml_content, yaml_onedata_dict)
+    is_ok = actions_logger.log_post(status)
+    if not is_ok: return False
 
     # creating separate metadata file for fs2od data
     yml_metadata = os.path.join(directory.path, Settings.get().FS2OD_METADATA_FILENAME)
@@ -231,11 +233,13 @@ def register_space(directory: os.DirEntry) -> bool:
     is_ok = actions_logger.log_post(status, only_check=True)
     if not is_ok: return False
 
+    actions_logger.log_pre("fill_metadata_file", "")
     yaml_metadata_dict = dict()
     yaml_metadata_dict[Settings.get().config["metadataFileTags"]["deniedProviders"]] = []
     yaml_metadata_dict[Settings.get().config["metadataFileTags"]["lastProgramRun"]] = datetime.datetime.now().isoformat()
-    # raise Exception
-    filesystem.setValuesToYaml(yml_metadata, {}, yaml_metadata_dict)
+    status = filesystem.set_values_to_yaml(yml_metadata, {}, yaml_metadata_dict)
+    is_ok = actions_logger.log_post(status, only_check=True)
+    if not is_ok: return False
 
     time.sleep(3 * Settings.get().config["sleepFactor"])
 
