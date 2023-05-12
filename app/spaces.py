@@ -293,8 +293,12 @@ def enableContinuousImport(space_id):
     mount_point = get_space_mount_point(space_id)
     filesystem.chmod_recursive(mount_point, Settings.get().config["initialPOSIXlikePermissions"])
 
+    posix_mode_string = oct(Settings.get().config["initialPOSIXlikePermissions"])
+    if posix_mode_string.startswith("0o"):
+        posix_mode_string = posix_mode_string[2:]
+
     file_id = get_space(space_id)["fileId"]
-    files.setFileAttributeRecursive(file_id, Settings.get().config["initialPOSIXlikePermissions"])
+    files.setFileAttributeRecursive(file_id, posix_mode_string)
 
     if not getContinuousImportStatus(space_id):
         setSpaceSize(space_id, Settings.get().config["implicitSpaceSize"])
@@ -329,9 +333,13 @@ def disableContinuousImport(space_id):
             mount_point = get_space_mount_point(space_id)
             filesystem.chmod_recursive(mount_point, Settings.get().config["initialPOSIXlikePermissions"])
 
+            posix_mode_string = oct(Settings.get().config["initialPOSIXlikePermissions"])
+            if posix_mode_string.startswith("0o"):
+                posix_mode_string = posix_mode_string[2:]
+
             file_id = get_space(space_id)["fileId"]
             files.setFileAttributeRecursive(
-                file_id, Settings.get().config["initialPOSIXlikePermissions"]
+                file_id, posix_mode_string
             )
 
             # Set metadata for the space
