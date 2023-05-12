@@ -46,7 +46,6 @@ def remove_spaces_of_provider(hostname_or_id: str, when_only_one_provider: bool 
         spaces.removeSpace(space_id)
 
 
-
 def sandbox(args):
     """
     Sandbox method where specific workflows (experiments, tests, ...) can be done.
@@ -59,6 +58,13 @@ def sandbox(args):
     # a specific workflow can be defined here
     print(tokens.tokenExists(var1))
     # tokens.createInviteTokenToGroup(token_name=var1, group_id=var2)
+
+    # remove spaces of provider through onezone
+    # var1 must be the name of the function (remove_spaces_of_provider)
+    # var2 must be hostname or provider ID
+    # var3 can be set, and when set, it changes implicit behavior of this function,
+    # which is deleting spaces only if given provider is the only one provider of the space
+    # when var3 is set, it offers to delete all spaces supported by given provider
 
     if var1 == "remove_spaces_of_provider":
         if not var2:
