@@ -27,7 +27,7 @@ def removeSpace(space_id):
     return response
 
 
-def get_space(space_id, ok_statuses: tuple = (200,)) -> dict:
+def get_space(space_id: str, ok_statuses: tuple = (200,)) -> dict:
     """
     Returns the basic information about space with given id.
     If response is not ok, but accepted by ok_statuses, returns {"spaceId": "allowed_ok_status"}
