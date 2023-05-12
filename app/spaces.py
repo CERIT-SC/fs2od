@@ -48,6 +48,32 @@ def get_space(space_id: str, ok_statuses: tuple = (200,)) -> dict:
         return {}
 
 
+def get_space_mount_point(space_id: str, oneprovider_index=0) -> str:
+    """
+    Returns mount point of a storage provided by given Oneprovider for space
+    If there is no support or storage is not of POSIX type, returns empty string
+    """
+    Logger.log(4, f"get_space_primary_mount_point(space_id={space_id},op_index={oneprovider_index})")
+
+    # space details must be from onepanel
+    space_details = getSpaceDetails(space_id, oneprovider_index=oneprovider_index)
+    if not space_details or "storageId" not in space_details:
+        return ""
+
+    storage_id = space_details["storageId"]
+    storage_details = storages.get_storage(storage_id)
+
+    if not storage_details:
+        return ""
+
+    if storage_details.get("type", "") != "posix" or not storage_details.get("mountPoint", ""):
+        Logger.log(4, f"Space with id {space_id} on {Settings.get().ONEPROVIDERS_DOMAIN_NAMES[oneprovider_index]} "
+                      f"and its storage with id {storage_id} is not a POSIX storage")
+        return ""
+
+    return storage_details["mountPoint"]
+
+
 def space_exists(space_id: str) -> bool:
     Logger.log(4, f"space_exists({space_id}):")
     response_dict = get_space(space_id, ok_statuses=(200, 403))
