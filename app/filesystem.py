@@ -2,7 +2,7 @@ import datetime
 import shutil
 import os
 import time
-from typing import Any
+from typing import Any, Union
 import ruamel.yaml
 from settings import Settings
 from utils import Logger
