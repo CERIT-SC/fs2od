@@ -36,9 +36,11 @@ def debug_print(response, ok_statuses: tuple = tuple()) -> None:
         return
 
     if response.ok or response.status_code in ok_statuses:
+        Logger.log(4, "Requested URL: %s" % response.url)
         Logger.log(4, "Response: %s" % response)
         Logger.log(5, "Response content:", pretty_print=response.json())
     else:
+        Logger.log(1, "Requested URL: %s" % response.url)
         Logger.log(1, "Response: %s" % response)
         Logger.log(1, "Response content:", pretty_print=response.json())
 
