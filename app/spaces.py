@@ -288,10 +288,11 @@ def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
 
 def enableContinuousImport(space_id):
     Logger.log(4, "enableContinuousImport(%s):" % space_id)
+    # not doing anymore in filesystem due to variety options
     # running file exists, permissions should be periodically set to new dirs and files have given permissions
     # but first filesystem
-    mount_point = get_space_mount_point(space_id)
-    filesystem.chmod_recursive(mount_point, Settings.get().config["initialPOSIXlikePermissions"])
+    # mount_point = get_space_mount_point(space_id)
+    # filesystem.chmod_recursive(mount_point, Settings.get().config["i3nitialPOSIXlikePermissions"])
 
     posix_mode_string = oct(Settings.get().config["initialPOSIXlikePermissions"])
     if posix_mode_string.startswith("0o"):
@@ -329,9 +330,10 @@ def disableContinuousImport(space_id):
             # force (full) import of files last time
             startAutoStorageImport(space_id)
 
+            # not doing anymore in filesystem due to variety options
             # permissions of all dirs and file should set to given permissions
-            mount_point = get_space_mount_point(space_id)
-            filesystem.chmod_recursive(mount_point, Settings.get().config["initialPOSIXlikePermissions"])
+            # mount_point = get_space_mount_point(space_id)
+            # filesystem.chmod_recursive(mount_point, Settings.get().config["initialPOSIXlikePermissions"])
 
             posix_mode_string = oct(Settings.get().config["initialPOSIXlikePermissions"])
             if posix_mode_string.startswith("0o"):

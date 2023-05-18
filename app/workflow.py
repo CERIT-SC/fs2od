@@ -265,7 +265,7 @@ def register_space(directory: os.DirEntry) -> bool:
     # if not is_ok: return False
 
     # chmod hack, no longer can change via API
-    filesystem.chmod_recursive(directory, Settings.get().config["initialPOSIXlikePermissions"])
+    filesystem.chmod_recursive(yml_metadata, Settings.get().config["initialPOSIXlikePermissions"])
 
     # create public share
     actions_logger.log_pre("share", dataset_name)
