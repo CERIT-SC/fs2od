@@ -4,6 +4,7 @@ import storages
 import spaces
 import time
 import dareg
+import filesystem
 from utils import Settings
 from utils import Logger
 
@@ -204,3 +205,33 @@ def action_token(token_name: str, token_id: str) -> bool:
 
     time.sleep(2 * Settings.get().config["sleepFactor"])
     return response.ok
+
+
+def action_information(file_name: str, status: str) -> bool:
+    """
+    Reverses steps of creating the information file. Removing fields which blocks creating new space.
+    :param file_name: name of created metadata file
+    :param status: status of previous file creation
+    :return: True if successful, otherwise False
+    """
+    Logger.log(3, f"rollback - removing metadata from file with name {file_name} and status {status}")
+
+    if not file_name:
+        Logger.log(1, f"rollback - no file name was provided")
+        return False
+
+    data_dictionary = filesystem.loadYaml(file_name)
+    if not data_dictionary:
+        Logger.log(3, "rollback - file does not exist on filesystem or file is empty, everything is OK")
+        return True
+
+    yaml_onedata_dict = dict()
+    yaml_onedata_dict[Settings.get().config["metadataFileTags"]["space"]] = ""
+    yaml_onedata_dict[Settings.get().config["metadataFileTags"]["inviteToken"]] = ""
+    yaml_onedata_dict[Settings.get().config["metadataFileTags"]["publicURL"]] = ""
+
+    Logger.log(3, f"rollback - overwriting metadata file with path {file_name}")
+    status = filesystem.set_values_to_yaml(file_name, data_dictionary, yaml_onedata_dict)
+    Logger.log(3, f"rollback - file with path {file_name} overwritten: {status}")
+
+    return status

@@ -184,6 +184,7 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
         valueType="RemovingTime",
         value="removed"
     )
+    time.sleep(1 * Settings.get().config["sleepFactor"])
 
     denied_providers_list = filesystem.get_token_from_yaml(yaml_metadata_dict, "deniedProviders", [])
     if "primary" in denied_providers_list:
@@ -233,6 +234,7 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
             valueType="RemovingTime",
             value="removed"
         )
+        time.sleep(1 * Settings.get().config["sleepFactor"])
 
     return completed
 

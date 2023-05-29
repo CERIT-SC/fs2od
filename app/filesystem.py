@@ -2,7 +2,7 @@ import datetime
 import shutil
 import os
 import time
-from typing import Any
+from typing import Any, Union
 import ruamel.yaml
 from settings import Settings
 from utils import Logger
@@ -318,33 +318,43 @@ def setValueToYaml(file_path, yaml_dict, valueType, value):
         Logger.log(1, "Metadata file %s doesn't exists." % file_path)
 
 
-def setValuesToYaml(file_path, yaml_dict, new_values_dict):
+def set_values_to_yaml(file_path: str, yaml_dict: dict, new_values_dict: dict) -> bool:
     """
     Set values to onedata tag in yaml.
+    Returns True if successful, otherwise False.
+    Possible errors: metadata file does not exist, cannot write to metadata file, unexpected error
     """
-    if os.path.exists(file_path):
-        if not yaml_dict.get(Settings.get().config["metadataFileTags"]["onedata"]):
-            # there isn't tag onedata yet
-            yaml_dict[Settings.get().config["metadataFileTags"]["onedata"]] = dict()
+    if not os.path.exists(file_path):
+        Logger.log(1, f"Metadata file {file_path} doesn't exist.")
+        return False
 
-        # change value in original yaml dict
-        yaml_dict[Settings.get().config["metadataFileTags"]["onedata"]] = new_values_dict
+    if not yaml_dict.get(Settings.get().config["metadataFileTags"]["onedata"]):
+        # there isn't tag onedata yet
+        yaml_dict[Settings.get().config["metadataFileTags"]["onedata"]] = dict()
 
+    # change value in original yaml dict
+    yaml_dict[Settings.get().config["metadataFileTags"]["onedata"]] = new_values_dict
+
+    # store new yaml file
+    # Solving bad indentation of list
+    # https://stackoverflow.com/questions/25108581/python-yaml-dump-bad-indentation
+    # yaml.safe_dump(yaml_dict, f, sort_keys=False)
+    ryaml = ruamel.yaml.YAML()
+    ryaml.width = 200  # count of characters on a line, if there is more chars, line is breaked
+    ryaml.indent(sequence=4, offset=2)
+
+    try:
         # open yaml file
         with open(file_path, "w") as f:
-            # store new yaml file
-            # Solving bad indentation of list
-            # https://stackoverflow.com/questions/25108581/python-yaml-dump-bad-indentation
-            # yaml.safe_dump(yaml_dict, f, sort_keys=False)
-
-            ryaml = ruamel.yaml.YAML()
-            ryaml.width = (
-                200  # count of characters on a line, if there is more chars, line is breaked
-            )
-            ryaml.indent(sequence=4, offset=2)
             ryaml.dump(yaml_dict, f)
-    else:
-        Logger.log(1, "Metadata file doesn't exists." % file_path)
+    except OSError as e:
+        Logger.log(1, f"Metadata file {file_path} cannot be opened. Error: {e}")
+        return False
+    except Exception as e:
+        Logger.log(1, f"Unexpected error with metadata file {file_path}. Error: {e}")
+        return False
+
+    return True
 
 
 def remove_folder(directory: os.DirEntry) -> bool:
@@ -359,3 +369,29 @@ def remove_folder(directory: os.DirEntry) -> bool:
         return False
     else:
         return True
+
+
+def chmod_recursive(path: Union[os.DirEntry, str], mode: int) -> bool:
+    """
+    Changes the mode of given path and its subdirectories/subfiles
+    If chmod was successful, returns True, otherwise False
+    """
+    Logger.log(4, f"chmod_recursive(dir={path},mode={oct(mode)})")
+    try:
+        os.chmod(path, mode)
+
+        for root, directories, files in os.walk(path):
+            for directory in directories:
+                os.chmod(os.path.join(root, directory), mode)
+            for file in files:
+                os.chmod(os.path.join(root, file), mode)
+    except NotImplemented as e:
+        Logger.log(3, f"Cannot change mode for path {path}. Not implemented. Error: {e}")
+        return False
+    except Exception as e:
+        Logger.log(3, f"Cannot change mode for path {path}. Unknown error. Error: {e}")
+        return False
+
+    Logger.log(5, f"Mode for path {path} was changed to {oct(mode)}")
+
+    return True

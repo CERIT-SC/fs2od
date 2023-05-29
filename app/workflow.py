@@ -128,15 +128,15 @@ def register_space(directory: os.DirEntry) -> bool:
 
     # Create support token
     actions_logger.log_pre("temporary_token", "")
-    support_token = tokens.createTemporarySupportToken(space_id)
-    is_ok = actions_logger.log_post(support_token.get("token", ""), only_check=True)
+    support_token = tokens.create_temporary_support_token(space_id)
+    is_ok = actions_logger.log_post(support_token, only_check=True)
     if not is_ok: return False
 
     actions_logger.log_pre("storage", dataset_name)
     # Create storage for the space
-    storage_id = storages.createAndGetStorage(
+    storage_id = storages.create_and_get_storage(
         name=dataset_name,
-        mountpoint=full_path
+        mount_point=full_path
     )
     is_ok = actions_logger.log_post(storage_id)
     if not is_ok: return False
@@ -217,12 +217,14 @@ def register_space(directory: os.DirEntry) -> bool:
         dareg.log(space_id, "info", "group added to space")
     time.sleep(1 * Settings.get().config["sleepFactor"])
 
-    # not logging, only filesystem operation
+    actions_logger.log_pre("information", yml_file)
     # write onedata parameters (space_id, invite_token) to file
     yaml_onedata_dict = dict()
     yaml_onedata_dict[Settings.get().config["metadataFileTags"]["space"]] = space_id
     yaml_onedata_dict[Settings.get().config["metadataFileTags"]["inviteToken"]] = token["token"]
-    filesystem.setValuesToYaml(yml_file, yml_content, yaml_onedata_dict)
+    status = filesystem.set_values_to_yaml(yml_file, yml_content, yaml_onedata_dict)
+    is_ok = actions_logger.log_post(status)
+    if not is_ok: return False
 
     # creating separate metadata file for fs2od data
     yml_metadata = os.path.join(directory.path, Settings.get().FS2OD_METADATA_FILENAME)
@@ -231,11 +233,13 @@ def register_space(directory: os.DirEntry) -> bool:
     is_ok = actions_logger.log_post(status, only_check=True)
     if not is_ok: return False
 
+    actions_logger.log_pre("fill_metadata_file", "")
     yaml_metadata_dict = dict()
     yaml_metadata_dict[Settings.get().config["metadataFileTags"]["deniedProviders"]] = []
     yaml_metadata_dict[Settings.get().config["metadataFileTags"]["lastProgramRun"]] = datetime.datetime.now().isoformat()
-    # raise Exception
-    filesystem.setValuesToYaml(yml_metadata, {}, yaml_metadata_dict)
+    status = filesystem.set_values_to_yaml(yml_metadata, {}, yaml_metadata_dict)
+    is_ok = actions_logger.log_post(status, only_check=True)
+    if not is_ok: return False
 
     time.sleep(3 * Settings.get().config["sleepFactor"])
 
@@ -252,13 +256,16 @@ def register_space(directory: os.DirEntry) -> bool:
     is_ok = actions_logger.log_post(file_id, only_check=True)
     if not is_ok: return False
 
-    actions_logger.log_pre("set_files_to_posix", "")
-    success = files.setFileAttributeRecursive(
-        file_id=file_id,
-        posix_mode=Settings.get().config["initialPOSIXlikePermissions"]
-    )
-    is_ok = actions_logger.log_post(success, only_check=True)
-    if not is_ok: return False
+    # actions_logger.log_pre("set_files_to_posix", "")
+    # success = files.setFileAttributeRecursive(
+    #     file_id=file_id,
+    #     posix_mode=Settings.get().config["initialPOSIXlikePermissions"]
+    # )
+    # is_ok = actions_logger.log_post(success, only_check=True)
+    # if not is_ok: return False
+
+    # chmod hack, no longer can change via API
+    filesystem.chmod_recursive(yml_metadata, Settings.get().config["initialPOSIXlikePermissions"])
 
     # create public share
     actions_logger.log_pre("share", dataset_name)

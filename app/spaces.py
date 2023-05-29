@@ -1,5 +1,7 @@
 import json
 import time
+import storages
+import filesystem
 from settings import Settings
 from utils import Logger, Utils
 import request, tokens, files, metadata, dareg
@@ -27,7 +29,7 @@ def removeSpace(space_id):
     return response
 
 
-def get_space(space_id, ok_statuses: tuple = (200,)) -> dict:
+def get_space(space_id: str, ok_statuses: tuple = (200,)) -> dict:
     """
     Returns the basic information about space with given id.
     If response is not ok, but accepted by ok_statuses, returns {"spaceId": "allowed_ok_status"}
@@ -46,6 +48,32 @@ def get_space(space_id, ok_statuses: tuple = (200,)) -> dict:
         return response
     else:
         return {}
+
+
+def get_space_mount_point(space_id: str, oneprovider_index=0) -> str:
+    """
+    Returns mount point of a storage provided by given Oneprovider for space
+    If there is no support or storage is not of POSIX type, returns empty string
+    """
+    Logger.log(4, f"get_space_primary_mount_point(space_id={space_id},op_index={oneprovider_index})")
+
+    # space details must be from onepanel
+    space_details = getSpaceDetails(space_id, oneprovider_index=oneprovider_index)
+    if not space_details or "storageId" not in space_details:
+        return ""
+
+    storage_id = space_details["storageId"]
+    storage_details = storages.get_storage(storage_id)
+
+    if not storage_details:
+        return ""
+
+    if storage_details.get("type", "") != "posix" or not storage_details.get("mountPoint", ""):
+        Logger.log(4, f"Space with id {space_id} on {Settings.get().ONEPROVIDERS_DOMAIN_NAMES[oneprovider_index]} "
+                      f"and its storage with id {storage_id} is not a POSIX storage")
+        return ""
+
+    return storage_details["mountPoint"]
 
 
 def space_exists(space_id: str) -> bool:
@@ -76,11 +104,18 @@ def get_space_id_by_name(name: str) -> str:
     return ""
 
 
-def getSpaceDetails(space_id):
-    Logger.log(4, "getSpaceDetails(%s):" % space_id)
+def getSpaceDetails(space_id, oneprovider_index: int = 0):
+    Logger.log(4, f"getSpaceDetails(space_id={space_id},op_index={oneprovider_index})")
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/get_space_details
     url = "onepanel/provider/spaces/" + space_id
-    response = request.get(url)
+    response = request.get(url, oneprovider_index=oneprovider_index)
+
+    # not supported, non-existent or forbidden
+    if not response.ok:
+        Logger.log(3, f"Space with id {space_id} is not supported by "
+                      f"{Settings.get().ONEPROVIDERS_DOMAIN_NAMES[oneprovider_index]}")
+        return {}
+
     return response.json()
 
 
@@ -145,13 +180,14 @@ def createSpaceForGroup(group_id, space_name):
         Logger.log(1, "Space %s can't be created" % space_name)
 
 
-def supportSpace(token, size, storage_id, space_id, oneprovider_index: int = 0):
-    Logger.log(4, "supportSpace(token, %s, %s)" % (size, storage_id))
-    Logger.log(3, "Atempt to set up support to space %s" % space_id)
+def supportSpace(token, size, storage_id, space_id, oneprovider_index: int = 0) -> str:
+    Logger.log(4, f"supportSpace(token={token}, size={size}, storage_id={storage_id})")
+    Logger.log(3, f"Atempt to set up support to space with id {space_id} for "
+                  f"{Settings.get().ONEPROVIDERS_DOMAIN_NAMES[oneprovider_index]}")
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/support_space
     url = f"onepanel/provider/spaces"
     data = {
-        "token": token["token"],
+        "token": token,
         "size": size,
         "storageId": storage_id,
         "storageImport": {
@@ -174,7 +210,7 @@ def supportSpace(token, size, storage_id, space_id, oneprovider_index: int = 0):
         return response.json()["id"]
     else:
         Logger.log(1, "Space support can't be set on storage %s" % storage_id)
-        return False
+        return ""
 
 
 def revoke_space_support(space_id: str, oneprovider_index: int = 0) -> bool:
@@ -252,9 +288,18 @@ def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
 
 def enableContinuousImport(space_id):
     Logger.log(4, "enableContinuousImport(%s):" % space_id)
+    # not doing anymore in filesystem due to variety options
     # running file exists, permissions should be periodically set to new dirs and files have given permissions
+    # but first filesystem
+    # mount_point = get_space_mount_point(space_id)
+    # filesystem.chmod_recursive(mount_point, Settings.get().config["i3nitialPOSIXlikePermissions"])
+
+    posix_mode_string = oct(Settings.get().config["initialPOSIXlikePermissions"])
+    if posix_mode_string.startswith("0o"):
+        posix_mode_string = posix_mode_string[2:]
+
     file_id = get_space(space_id)["fileId"]
-    files.setFileAttributeRecursive(file_id, Settings.get().config["initialPOSIXlikePermissions"])
+    files.setFileAttributeRecursive(file_id, posix_mode_string)
 
     if not getContinuousImportStatus(space_id):
         setSpaceSize(space_id, Settings.get().config["implicitSpaceSize"])
@@ -285,10 +330,18 @@ def disableContinuousImport(space_id):
             # force (full) import of files last time
             startAutoStorageImport(space_id)
 
+            # not doing anymore in filesystem due to variety options
             # permissions of all dirs and file should set to given permissions
+            # mount_point = get_space_mount_point(space_id)
+            # filesystem.chmod_recursive(mount_point, Settings.get().config["initialPOSIXlikePermissions"])
+
+            posix_mode_string = oct(Settings.get().config["initialPOSIXlikePermissions"])
+            if posix_mode_string.startswith("0o"):
+                posix_mode_string = posix_mode_string[2:]
+
             file_id = get_space(space_id)["fileId"]
             files.setFileAttributeRecursive(
-                file_id, Settings.get().config["initialPOSIXlikePermissions"]
+                file_id, posix_mode_string
             )
 
             # Set metadata for the space

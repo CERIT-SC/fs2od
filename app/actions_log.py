@@ -322,6 +322,8 @@ class ActionsLogger:
                 success = actions_rollback.action_storage(sequence[action][0], sequence[action][1]) and success
             elif action == "space":
                 success = actions_rollback.action_space(sequence[action][0], sequence[action][1]) and success
+            elif action == "information":
+                success = actions_rollback.action_information(sequence[action][0], sequence[action][1]) and success
 
         if not success:
             Logger.log(1, "rollback - rollback was not completed successfully, need to check logs")
