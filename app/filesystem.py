@@ -92,6 +92,10 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
     else:
         spaces.disableContinuousImport(space_id)
 
+    if not Settings.get().USE_METADATA_FILE:
+        # not using metadata file so can skip next lines
+        return True
+
     if not os.path.exists(yml_metadata):
         Logger.log(4, f"Not checking for removal of {directory.name} (not contains metadata file).")
         return False

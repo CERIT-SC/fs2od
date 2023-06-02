@@ -21,6 +21,9 @@ def runScan(args):
     actions_log.get_actions_logger().new_actions_log()
     actions_log.get_actions_logger().finish_actions_log()
 
+    if args.no_metadata_usage:
+        Settings.get().USE_METADATA_FILE = False
+
     filesystem.scanWatchedDirectories()
 
 
@@ -67,6 +70,11 @@ def main():
 
     parser_1.add_argument(
         "--no-test-connection", required=False, action="store_true", help="If included, tests will not be performed"
+    )
+
+    parser_1.add_argument(
+        "--no-metadata-usage", required=False, action="store_true",
+        help="If included, metadata file (as .fs2od) is not used"
     )
 
     parser_2 = subparsers.add_parser("test", help="Do defined test workflow")
