@@ -85,6 +85,16 @@ def resolve_provider_id_from_id_or_hostname(id_or_hostname: str) -> str:
     if id_or_hostname in provider_ids:
         return id_or_hostname
 
+    if not provider_ids:  # checking if format of id
+        if "." in id_or_hostname:
+            return ""
+
+        # we consider now that we received provider_id
+        provider_details = get_provider_details_from_onezone(provider_id=id_or_hostname)
+        if not provider_details:
+            return ""
+
+    # checking hostnames
     for provider_id in provider_ids:
         provider_details = get_provider_details_from_onezone(provider_id)
         if not provider_details:
