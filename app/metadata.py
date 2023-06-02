@@ -29,7 +29,7 @@ def _loadConfigYAML(space_id):
     file_id = space["fileId"]
 
     # find ymls
-    space_content = files.listDirectory(file_id)
+    space_content = files.list_directory(file_id)
     for metadataFile in Settings.get().config["metadataFiles"]:
         list_yml_files = list(
             filter(lambda x: metadataFile in x["name"], space_content["children"])
