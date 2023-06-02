@@ -43,7 +43,7 @@ def setFileAttributeRecursive(file_id: str, posix_mode: str) -> bool:
         # TODO: could this case happen? Check.
         return True
 
-    if attributes["type"] == "dir":
+    if attributes["type"].lower() == "dir":
         # node is directory
         if attributes["mode"] != posix_mode:
             # desired posix_mode is different from the actual mode
@@ -54,7 +54,7 @@ def setFileAttributeRecursive(file_id: str, posix_mode: str) -> bool:
         directory = listDirectory(file_id)
         for node in directory["children"]:
             # recursive set up attributes to all files in directory
-            successful = setFileAttributeRecursive(node["id"], posix_mode) and successful
+            successful = setFileAttributeRecursive(node["file_id"], posix_mode) and successful
     else:
         # node is file
         if attributes["mode"] != posix_mode:
