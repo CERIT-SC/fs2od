@@ -27,8 +27,12 @@ def runScan(args):
     filesystem.scanWatchedDirectories()
 
 
-def runTestRemoveInstances(args):
+def run_test_remove(args):
     test.remove(args)
+
+
+def run_test_change(args):
+    test.change(args)
 
 
 def runTestRegisterSpace(args):
@@ -118,7 +122,7 @@ def main():
              "--of-provider must be used"
     )
 
-    parser_2_2.set_defaults(func=runTestRemoveInstances)
+    parser_2_2.set_defaults(func=run_test_remove)
 
     parser_2_3 = subparser_2.add_parser(
         "change",
@@ -145,7 +149,7 @@ def main():
         help="If set, removes instances also when they have more than one supporting provider. "
              "--of-provider must be used"
     )
-    # parser_2_3.set_defaults(func=runTestRemoveInstances)
+    parser_2_3.set_defaults(func=run_test_change)
 
     parser_2_4 = subparser_2.add_parser(
         "connection",
