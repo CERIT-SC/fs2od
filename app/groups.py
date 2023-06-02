@@ -40,8 +40,6 @@ def createGroup(group_name):
 
 
 def createChildGroup(parent_group_id, group_name):
-    if Settings.get().TEST:
-        group_name = Settings.get().TEST_PREFIX + group_name
     Logger.log(4, "createChildGroup(%s, %s):" % (parent_group_id, group_name))
 
     if len(group_name) < Settings.get().MIN_ONEDATA_NAME_LENGTH:
@@ -86,12 +84,23 @@ def createParentGroup(child_group_id, group_name):
     return group_id
 
 
-def getGroupDetails(group_id):
+def getGroupDetails(group_id: str):
     Logger.log(4, "getGroupDetails(%s):" % group_id)
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_group
     url = "onezone/groups/" + group_id
     response = request.get(url)
+    if not response.ok:
+        return False
     return response.json()
+
+
+def get_group_id_by_name(name: str) -> str:
+    user_groups = listEffectiveUserGroups()
+    for group_id in user_groups:
+        group_name = getGroupDetails(group_id)["name"]
+        if group_name.startswith(name):
+            return group_id
+    return ""
 
 
 def removeGroup(group_id):

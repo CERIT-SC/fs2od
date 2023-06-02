@@ -1,9 +1,10 @@
-from pprint import pprint
+import os
 import time
 import sys
 from settings import Settings
 from utils import Logger
-import spaces, storages, groups, request, tokens
+import spaces, storages, groups, tokens, oneprovider, onezone, dareg
+import mail
 
 
 def safetyNotice(message):
@@ -97,40 +98,94 @@ def deleteAllTestGroups(prefix):
 
 def _testOnezone():
     Logger.log(4, "_testOnezone():")
-    # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_configuration
-    url = "onezone/configuration"
-    response = request.get(url)
-    # test if a attribute exists
-    if "build" in response.json():
-        return 0
-    else:
+    # test noauth request, test if an attribute exists
+    if not "build" in onezone.getConfiguration():
+        Logger.log(1, "Onezone didn't return its configuration.")
         return 1
 
-
-def _testOneprovider():
-    Logger.log(4, "_testOneprovider():")
-    # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_configuration
-    url = "oneprovider/configuration"
-    response = request.get(url)
-    # test if a attribute exists
-    if "build" in response.json():
-        return 0
-    else:
+    # test auth request
+    if "error" in onezone.getCurrentUserDetails():
+        Logger.log(1, "Onezone didn't respond to auth request.")
         return 2
 
+    return 0
 
-def testConnection():
+
+def _testOneprovider(oneprovider_index: int = 0):
+    Logger.log(4, f"_testOneprovider(order={oneprovider_index}):")
+    # test noauth request, test if an attribute exists
+    if "build" not in oneprovider.get_configuration(oneprovider_index):
+        Logger.log(1, f"Oneprovider doesn't return its configuration. (order={oneprovider_index})")
+        return 1
+
+    # test auth request
+    if "error" in spaces.getSpaces(oneprovider_index):
+        Logger.log(1, "Oneprovider doesn't respond to auth request.")
+        return 2
+
+    return 0
+
+
+def _testOneproviders(every_provider: bool = False) -> tuple:
+    """
+    Tests communication with each of provided Oneproviders
+    """
+    # defining two characteristic vectors (binary) - one for noauth request one for auth request
+    # because there is a need to check them separately, ternary vector would do the job too
+    # order of bits is reversed in the final vector
+    vector_noauth = 0
+    vector_auth = 0
+
+    # do not want to test if replication is off
+    provider_count = len(Settings.get().ONEPROVIDERS_API_URL) if \
+        every_provider or Settings.get().DATA_REPLICATION_ENABLED \
+        else 1
+
+    for index in range(provider_count):
+        result = _testOneprovider(index)
+        # if 1, it will set 1, if 2 or 0, it will stay as is
+        vector_noauth |= (result & 1)
+        result >>= 1
+        # if was 2, now will set to 1
+        vector_auth |= result
+        # shifting for the next iteration
+        vector_noauth <<= 1
+        vector_auth <<= 1
+
+    return vector_noauth, vector_auth
+
+
+def _test_dareg() -> int:
+    Logger.log(4, f"_test_dareg():")
+    if not Settings.get().DAREG_ENABLED:
+        return 0
+
+    if dareg.get_index() == b"":
+        Logger.log(1, f"DAREG does not return any answer.")
+        return 1
+
+    # TODO: check auth
+    return 0
+
+
+def testConnection(of_each_oneprovider: bool = False):
+    # testing Onezone
     result = _testOnezone()
-    result = result + _testOneprovider()
+    # testing Oneprovider(s)
+    noauth, auth = _testOneproviders(of_each_oneprovider)
+    # not using yet, discarding
+    result = result + noauth + auth
+
+    # testing DAREG
+    result += _test_dareg()
+
+    # testing connection to email server
+    result += mail.test_connection()
 
     if result == 0:
-        Logger.log(3, "Onezone and Oneprovider exist.")
-    elif result == 1:
-        Logger.log(1, "Onezone doesn't exist.")
-    elif result == 2:
-        Logger.log(1, "Oneprovider doesn't exist.")
-    elif result == 3:
-        Logger.log(1, "Onezone and Oneprovider don't exist.")
+        Logger.log(3, "Onezone, Oneprovider, DAREG and email, if enabled, exist and respond.")
+    else:
+        Logger.log(1, "Error when communicating with Onezone, Oneprovider or DAREG.")
     return result
 
 
@@ -147,4 +202,4 @@ def registerSpace(path):
     base_path = temp[0]
     directory = temp[1]
 
-    workflow.registerSpace(base_path, directory)
+    workflow.register_space(os.path.join(base_path, directory))

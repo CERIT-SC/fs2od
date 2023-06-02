@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="sk" xmlns="http://www.w3.org/1999/html">
+<head>
+    <title>Deletion warning</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+    a:hover {
+        text-decoration: underline;
+    }
+</style>
+<body style="display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; text-align: center; padding: 4px 12px;">
+    <h1>Upozornenie na vymazanie</h1>
+    <p style="line-height: 17pt;">
+        Váš space "<span style="font-weight: bold;">$space_name</span>" s vlastnosťami:<br><br>
+
+        id: &emsp; $space_id<br>
+        cesta: &emsp; $space_path<br><br>
+
+        bude automaticky vymazaný<br>
+        <span style="font-weight: bold;">$date</span>.<br><br>
+        Ak si neželáte, aby sa tak stalo, je potrebné nastaviť RemovingTime na "never" alebo odstrániť celý tento riadok v súbore $config_file.
+    </p>
+
+    <p style="color: gray;">Tento email automaticky zaslal systém <a href="https://github.com/CERIT-SC/fs2od" target="_blank" style="text-decoration: none;color: gray;"><span style="font-weight: bold;">fs2od</span></a> $now.</p>
+</body>
+</html>

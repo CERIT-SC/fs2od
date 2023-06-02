@@ -52,6 +52,12 @@ def updateShare(shid, name=None, description=None):
     if data:
         headers = dict({"Content-type": "application/json"})
         response = request.patch(url, headers=headers, data=json.dumps(data))
+
+        if response.ok:
+            Logger.log(5, f"share with id {shid} was")
+        else:
+            Logger.log(5, f"share with id {shid} could not be updated")
+
         return response
     else:
-        Logger.log(3, "no content to update the share %s" % shid)
+        Logger.log(3, f"no content to update the share {shid}")

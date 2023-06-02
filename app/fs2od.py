@@ -5,10 +5,25 @@ import sys
 from pprint import pprint
 from settings import Settings
 from utils import Logger
-import filesystem, test, sandbox
+import filesystem
+import test
+import sandbox
+import actions_log
 
 
 def runScan(args):
+    if not args.no_test_connection:
+        result = test.testConnection(of_each_oneprovider=False)
+        if result:
+            sys.exit(1)
+
+    # after successful connection there is need to check some forgotten log
+    actions_log.get_actions_logger().new_actions_log()
+    actions_log.get_actions_logger().finish_actions_log()
+
+    if args.no_metadata_usage:
+        Settings.get().USE_METADATA_FILE = False
+
     filesystem.scanWatchedDirectories()
 
 
@@ -25,7 +40,10 @@ def runTestRegisterSpace(args):
 
 
 def runTestConnection(args):
-    test.testConnection()
+    if args.ignore_disabled_status:
+        test.testConnection(of_each_oneprovider=True)
+    else:
+        test.testConnection(of_each_oneprovider=False)
 
 
 def runSandbox(args):
@@ -49,6 +67,15 @@ def main():
 
     parser_1 = subparsers.add_parser("scan", help="Scan watched directories and import to Onedata")
     parser_1.set_defaults(func=runScan)
+
+    parser_1.add_argument(
+        "--no-test-connection", required=False, action="store_true", help="If included, tests will not be performed"
+    )
+
+    parser_1.add_argument(
+        "--no-metadata-usage", required=False, action="store_true",
+        help="If included, metadata file (as .fs2od) is not used"
+    )
 
     parser_2 = subparsers.add_parser("test", help="Do defined test workflow")
     subparser_2 = parser_2.add_subparsers(help="Name of test workflow which will be run")
@@ -77,41 +104,45 @@ def main():
     parser_2_3.add_argument("--path", required=True, type=str, help="Path to space")
     parser_2_3.set_defaults(func=runTestRegisterSpace)
 
-    parser_3 = subparsers.add_parser(
-        "test-connection", help="Test if Onezone and Oneprovider is available"
+    parser_2_4 = subparser_2.add_parser(
+        "connection",
+        help="Tests connection to Onezone, Oneproviders and dareg defined in config.",
     )
-    parser_3.set_defaults(func=runTestConnection)
+    parser_2_4.add_argument(
+        "--ignore-disabled-status", required=False, action="store_true", help="If included, tests will be performed regardless setup"
+    )
+    parser_2_4.set_defaults(func=runTestConnection)
 
-    parser_4 = subparsers.add_parser(
+    parser_3 = subparsers.add_parser(
         "sandbox", help="Run manually a workflow specifed in the file sandbox.py"
     )
-    parser_4.add_argument(
+    parser_3.add_argument(
         "--var1",
         default="",
         required=False,
         type=str,
         help="Variable which will be set up in sandbox.",
     )
-    parser_4.add_argument(
+    parser_3.add_argument(
         "--var2",
         default="",
         required=False,
         type=str,
         help="Variable which will be set up in sandbox.",
     )
-    parser_4.add_argument(
+    parser_3.add_argument(
         "--var3",
         default="",
         required=False,
         type=str,
         help="Variable which will be set up in sandbox.",
     )
-    parser_4.set_defaults(func=runSandbox)
+    parser_3.set_defaults(func=runSandbox)
 
-    parser_5 = subparsers.add_parser(
+    parser_4 = subparsers.add_parser(
         "check-running", help="Only check and change continous import status"
     )
-    parser_5.set_defaults(func=runCheck)
+    parser_4.set_defaults(func=runCheck)
 
     args = parser.parse_args()
 

@@ -25,7 +25,7 @@ def _loadConfigYAML(space_id):
     """
     Logger.log(4, "_loadConfigYAML(%s):" % space_id)
     # get file_id of space dir
-    space = spaces.getSpace(space_id)
+    space = spaces.get_space(space_id)
     file_id = space["fileId"]
 
     # find ymls
@@ -54,4 +54,4 @@ def _loadConfigYAML(space_id):
 def setSpaceMetadataFromYaml(space_id):
     Logger.log(4, "setSpaceMetadataFromYaml(%s):" % space_id)
     file_id, data = _loadConfigYAML(space_id)
-    _setFileJsonMetadata(file_id, data)
+    return _setFileJsonMetadata(file_id, data)

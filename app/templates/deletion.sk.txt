@@ -1,0 +1,6 @@
+Upozornenie na vymazanie space "$space_name" - fs2od
+
+Váš space "$space_name" (id $space_id, cesta $space_path) bude automaticky vymazaný $date.
+Ak si neželáte, aby sa tak stalo, je potrebné nastaviť RemovingTime na "never" alebo odstrániť celý tento riadok v súbore $config_file.
+
+Tento email automaticky zaslal systém fs2od $now.

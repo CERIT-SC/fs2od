@@ -15,7 +15,7 @@ def getFileAttributes(file_id):
     return response.json()
 
 
-def setFileAttribute(file_id, posix_mode):
+def setFileAttribute(file_id, posix_mode) -> bool:
     """
     Set attributes to directory or file with given file_id. Only POSIX mode can be set up.
     """
@@ -28,35 +28,40 @@ def setFileAttribute(file_id, posix_mode):
     return response.ok
 
 
-def setFileAttributeRecursive(file_id, posix_mode):
+def setFileAttributeRecursive(file_id: str, posix_mode: str) -> bool:
     """
     Set attributes to directory or file with given file_id. Only POSIX mode can be set up.
     In case of directory attributes is set to all children.
+    Returns True if everything was successful, otherwise False
     """
+    Logger.log(5, "setFileAttributeRecursive(%s, %s):" % (file_id, posix_mode))
     attributes = getFileAttributes(file_id)
+    successful = True
 
     if not "type" in attributes:
         # in case there is no file in space
-        # TODO - could this case happen? Check.
-        return
+        # TODO: could this case happen? Check.
+        return True
 
     if attributes["type"] == "dir":
         # node is directory
         if attributes["mode"] != posix_mode:
             # desired posix_mode is different from the actual mode
             # set attribute to directory itself
-            setFileAttribute(file_id, posix_mode)
+            successful = setFileAttribute(file_id, posix_mode) and successful
 
         # set attribute to childs
         directory = listDirectory(file_id)
         for node in directory["children"]:
             # recursive set up attributes to all files in directory
-            setFileAttributeRecursive(node["id"], posix_mode)
+            successful = setFileAttributeRecursive(node["id"], posix_mode) and successful
     else:
         # node is file
         if attributes["mode"] != posix_mode:
             # desired posix_mode is different from the actual mode
-            setFileAttribute(file_id, posix_mode)
+            successful = setFileAttribute(file_id, posix_mode) and successful
+
+    return successful
 
 
 def listDirectory(file_id):
@@ -82,18 +87,53 @@ def downloadFileContent(file_id):
         return response.content
 
 
-def lookupFileId(path):
+def lookup_file_id(path) -> str:
     """
     Return file_id of file with given path in format e.g.
     '/MySpace/dir/readme.txt'
-    Return None if path doesn't exist.
+    Return empty string if path doesn't exist.
     """
-    Logger.log(4, "lookupFileId(%s):" % path)
+    Logger.log(4, "lookup_file_id(%s):" % path)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=tag/File-Path-Resolution
     url = "oneprovider/lookup-file-id/" + path
     response = request.post(url)
     if response.ok:
-        return response.json()
+        return response.json()["fileId"]
     else:
-        Logger.log(2, "lookupFileId return not ok response: %s" % response.text)
-        return None
+        Logger.log(2, "lookup_file_id return not ok response: %s" % response.text)
+        return ""
+
+
+def get_id_of_file_in_directory(directory_file_id: str, searched_file_name: str, oneprovider_index: int = 0) -> str:
+    """
+    Returns file id of searched file. If not in directory, returns empty string
+    """
+    Logger.log(5, f"get_id_of_file_in_directory(dir_fileid={directory_file_id},"
+                  f"search_filename={searched_file_name},oneprovider_index={oneprovider_index}):")
+    # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/list_children
+    url = "oneprovider/data/" + directory_file_id + "/children"
+
+    still_searching = True
+    offset = 0
+    while still_searching:
+        response = request.get(
+            url=url + f"?attribute=file_id&attribute=name&limit=1000&offset={offset}",
+            oneprovider_index=oneprovider_index
+        )
+
+        if not response.ok:
+            Logger.log(3, f"Getting children of directory with file id {directory_file_id} not successful.")
+            return ""
+        response_json = response.json()
+        children = response_json["children"]
+
+        for child in children:
+            if child["name"] == searched_file_name:
+                return child["file_id"]
+
+        offset += 1000
+        still_searching = not response_json["isLast"]
+
+    return ""
+
+
