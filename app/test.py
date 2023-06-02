@@ -252,9 +252,9 @@ def print_instances(instances: List[tuple]) -> None:
     print(f"Spaces: \t{spaces_count}\nStorages: \t{storages_count}\nTokens: \t{tokens_count}\nGroups: \t{groups_count}")
 
 
-def remove(args: argparse.Namespace):
+def remove(args: argparse.Namespace) -> None:
     """
-    Delete all instances of a given prefix.
+    Delete all instances of a given characteristics.
     """
     print("Starting processing for removal")
     arguments = process_args(args)
@@ -287,6 +287,35 @@ def remove(args: argparse.Namespace):
 
         print(f"{instance_type} {instance_name} with id {instance_id} deleted.")
         time.sleep(0.5)
+
+
+def change_posix_permissions(arguments: Arguments, posix_permissions: int) -> None:
+    posix_permissions = posix_permissions[-3:]
+    try:
+        int(posix_permissions, 8)
+    except Exception as e:
+        print(f"Error, posix permissions not in right format, error message: {e}")
+        return
+
+    instances = get_spaces_starting_with(arguments)
+    print_instances(instances)
+    print_safety_notice(f"POSIX permissions will be changed recursively to {posix_permissions} to this spaces.")
+
+    for instance_type, instance_id, instance_name in instances:
+        spaces.set_space_posix_permissions_recursive(instance_id, posix_permissions)
+        print(f"Changed POSIX permissions of space {instance_name} with id {instance_id} to {posix_permissions}")
+
+
+def change(args: argparse.Namespace) -> None:
+    """
+    Changes all instances of given characteristics
+    """
+    print("Starting processing for change")
+    arguments = process_args(args)
+
+    if args.posix_permissions:
+        change_posix_permissions(arguments, args.posix_permissions)
+        return
 
 
 def _testOnezone():
