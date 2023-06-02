@@ -380,9 +380,7 @@ def setContinuousImport(space_id, continuousScanEnabled):
             "autoStorageImportConfig": {
                 "continuousScan": continuousScanEnabled,
                 "scanInterval": Settings.get().config["continousFileImport"]["scanInterval"],
-                "detectModifications": Settings.get().config["continousFileImport"][
-                    "detectModifications"
-                ],
+                "detectModifications": Settings.get().config["continousFileImport"]["detectModifications"],
                 "detectDeletions": Settings.get().config["continousFileImport"]["detectDeletions"],
             }
         }

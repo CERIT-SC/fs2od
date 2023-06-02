@@ -163,6 +163,8 @@ class Settings:
 
         self.FS2OD_METADATA_FILENAME = self.config["fs2odMetadataFilename"]
 
+        self.USE_METADATA_FILE = True
+
     @staticmethod
     def _failed(message):
         print("[Error] %s" % message)

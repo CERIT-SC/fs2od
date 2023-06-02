@@ -226,20 +226,21 @@ def register_space(directory: os.DirEntry) -> bool:
     is_ok = actions_logger.log_post(status)
     if not is_ok: return False
 
-    # creating separate metadata file for fs2od data
     yml_metadata = os.path.join(directory.path, Settings.get().FS2OD_METADATA_FILENAME)
-    actions_logger.log_pre("create_metadata_file", "")
-    status = filesystem.create_file(yml_metadata)
-    is_ok = actions_logger.log_post(status, only_check=True)
-    if not is_ok: return False
+    if Settings.get().USE_METADATA_FILE:
+        # creating separate metadata file for fs2od data
+        actions_logger.log_pre("create_metadata_file", "")
+        status = filesystem.create_file(yml_metadata)
+        is_ok = actions_logger.log_post(status, only_check=True)
+        if not is_ok: return False
 
-    actions_logger.log_pre("fill_metadata_file", "")
-    yaml_metadata_dict = dict()
-    yaml_metadata_dict[Settings.get().config["metadataFileTags"]["deniedProviders"]] = []
-    yaml_metadata_dict[Settings.get().config["metadataFileTags"]["lastProgramRun"]] = datetime.datetime.now().isoformat()
-    status = filesystem.set_values_to_yaml(yml_metadata, {}, yaml_metadata_dict)
-    is_ok = actions_logger.log_post(status, only_check=True)
-    if not is_ok: return False
+        actions_logger.log_pre("fill_metadata_file", "")
+        yaml_metadata_dict = dict()
+        yaml_metadata_dict[Settings.get().config["metadataFileTags"]["deniedProviders"]] = []
+        yaml_metadata_dict[Settings.get().config["metadataFileTags"]["lastProgramRun"]] = datetime.datetime.now().isoformat()
+        status = filesystem.set_values_to_yaml(yml_metadata, {}, yaml_metadata_dict)
+        is_ok = actions_logger.log_post(status, only_check=True)
+        if not is_ok: return False
 
     time.sleep(3 * Settings.get().config["sleepFactor"])
 
@@ -264,8 +265,9 @@ def register_space(directory: os.DirEntry) -> bool:
     # is_ok = actions_logger.log_post(success, only_check=True)
     # if not is_ok: return False
 
-    # chmod hack, no longer can change via API
-    filesystem.chmod_recursive(yml_metadata, Settings.get().config["initialPOSIXlikePermissions"])
+    if Settings.get().USE_METADATA_FILE:
+        # chmod hack, no longer can change via API
+        filesystem.chmod_recursive(yml_metadata, Settings.get().config["initialPOSIXlikePermissions"])
 
     # create public share
     actions_logger.log_pre("share", dataset_name)
