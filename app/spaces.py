@@ -131,6 +131,18 @@ def getAutoStorageImportInfo(space_id) -> dict:
     return response.json()
 
 
+def is_storage_import_running(space_id: str):
+    Logger.log(4, f"is_storage_import_running({space_id})")
+    response = getAutoStorageImportInfo(space_id)
+
+    if not response or "status" not in response:
+        return False  # probably not existing, or not have access to it either
+
+    if response["status"] in ("completed", "failed", "aborted"):
+        return False
+    return True
+
+
 def startAutoStorageImport(space_id) -> bool:
     Logger.log(4, "startAutoStorageImport(%s):" % space_id)
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/force_start_auto_storage_import_scan
