@@ -299,11 +299,25 @@ def change_posix_permissions(arguments: Arguments, posix_permissions: int) -> No
 
     instances = get_spaces_starting_with(arguments)
     print_instances(instances)
-    print_safety_notice(f"POSIX permissions will be changed recursively to {posix_permissions} to this spaces.")
+    print_safety_notice(f"POSIX permissions will be changed recursively to {posix_permissions} to these spaces.")
 
     for instance_type, instance_id, instance_name in instances:
         spaces.set_space_posix_permissions_recursive(instance_id, posix_permissions)
         print(f"Changed POSIX permissions of space {instance_name} with id {instance_id} to {posix_permissions}")
+
+
+def change_directory_statistics(arguments: Arguments, status: str) -> None:
+    change_to = True
+    if status.lower() == "off":
+        change_to = False
+    instances = get_spaces_starting_with(arguments)
+    print_instances(instances)
+    print_safety_notice(f"Directory statistics status will be changed to '{status}' to these spaces.")
+
+    for instance_type, instance_id, instance_name in instances:
+        for oneprovider_index in range(len(Settings.get().ONEPROVIDERS_API_URL)):  # for all oneproviders
+            spaces.change_directory_statistics(instance_id, change_to, oneprovider_index=oneprovider_index)
+        print(f"Changed directory statistics status of space {instance_name} with id {instance_id} to {status}.")
 
 
 def change(args: argparse.Namespace) -> None:
@@ -315,6 +329,10 @@ def change(args: argparse.Namespace) -> None:
 
     if args.posix_permissions:
         change_posix_permissions(arguments, args.posix_permissions)
+        return
+
+    if args.directory_statistics:
+        change_directory_statistics(arguments, args.directory_statistics)
         return
 
 
