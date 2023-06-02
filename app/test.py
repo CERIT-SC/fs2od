@@ -70,6 +70,11 @@ def process_args(args: argparse.Namespace) -> Optional[Arguments]:
         starting_with = args.starting_with
 
     arguments = Arguments(starting_with, args.of_provider, args.with_more_providers)
+
+    if "all" not in vars(args):  # called without all
+        arguments.set_all()
+        return arguments
+
     if args.all:
         arguments.set_all()
         return arguments
