@@ -286,6 +286,11 @@ def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
     return space_id
 
 
+def set_space_posix_permissions_recursive(space_id: str, posix_mode: str) -> None:
+    file_id = get_space(space_id)["fileId"]
+    files.set_file_attribute_recursive(file_id, posix_mode, except_root=True)
+
+
 def enableContinuousImport(space_id):
     Logger.log(4, "enableContinuousImport(%s):" % space_id)
     # not doing anymore in filesystem due to variety options
@@ -298,8 +303,7 @@ def enableContinuousImport(space_id):
     if posix_mode_string.startswith("0o"):
         posix_mode_string = posix_mode_string[2:]
 
-    file_id = get_space(space_id)["fileId"]
-    files.setFileAttributeRecursive(file_id, posix_mode_string)
+    set_space_posix_permissions_recursive(space_id, posix_mode_string)
 
     if not getContinuousImportStatus(space_id):
         setSpaceSize(space_id, Settings.get().config["implicitSpaceSize"])
@@ -339,10 +343,7 @@ def disableContinuousImport(space_id):
             if posix_mode_string.startswith("0o"):
                 posix_mode_string = posix_mode_string[2:]
 
-            file_id = get_space(space_id)["fileId"]
-            files.setFileAttributeRecursive(
-                file_id, posix_mode_string
-            )
+            set_space_posix_permissions_recursive(space_id, posix_mode_string)
 
             # Set metadata for the space
             if Settings.get().config["importMetadata"]:
