@@ -119,11 +119,15 @@ def getSpaceDetails(space_id, oneprovider_index: int = 0):
     return response.json()
 
 
-def getAutoStorageImportInfo(space_id):
+def getAutoStorageImportInfo(space_id) -> dict:
     Logger.log(4, "getAutoStorageImportInfo(%s):" % space_id)
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/get_auto_storage_import_info
     url = "onepanel/provider/spaces/" + space_id + "/storage-import/auto/info"
     response = request.get(url)
+
+    if not response.ok:
+        Logger.log(3, f"Cannot obtain info about storage import for space {space_id}")
+        return {}
     return response.json()
 
 
