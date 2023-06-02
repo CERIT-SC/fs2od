@@ -1,99 +1,287 @@
+import argparse
 import os
-import time
 import sys
+import time
+from typing import Optional, List
+import dareg
+import groups
+import mail
+import oneprovider
+import onezone
+import spaces
+import storages
+import tokens
 from settings import Settings
 from utils import Logger
-import spaces, storages, groups, tokens, oneprovider, onezone, dareg
-import mail
 
 
-def safetyNotice(message):
+class Arguments:
+    def __init__(self, starting_with: str, provider: str, has_more_providers: bool = False):
+        self.starting_with: str = starting_with
+        self.provider: str = provider
+        self.has_more_providers: bool = has_more_providers
+        self.spaces: bool = False
+        self.storages: bool = False
+        self.tokens: bool = False
+        self.groups: bool = False
+
+    def set_all(self):
+        self.spaces = True
+        self.storages = True
+        self.tokens = True
+        self.groups = True
+
+    def set_spaces(self):
+        self.spaces = True
+
+    def set_storages(self):
+        self.storages = True
+
+    def set_tokens(self):
+        self.tokens = True
+
+    def set_groups(self):
+        self.groups = True
+
+
+class InstanceType:
+    space = 1
+    storage = 2
+    token = 4
+    group = 8
+    space_oz = 16  # onezone space
+
+
+def print_safety_notice(message: str):
     print("*** Possibly dangerous action! ***")
     print(message)
     if input("If you yould like continue, write 'yes': ") != "yes":
-        print("Exiting.")
+        print("Action not confirmed. Exiting.")
         sys.exit(1)
 
 
-def deleteAllTestInstances(prefix):
+def process_args(args: argparse.Namespace) -> Optional[Arguments]:
+    if not args.of_provider and args.with_more_providers:
+        print("Error: used argument --with_more_providers without usage --of_provider PROVIDER")
+        return None
+
+    starting_with = Settings.get().TEST_PREFIX
+    if args.starting_with is not None:
+        starting_with = args.starting_with
+
+    arguments = Arguments(starting_with, args.of_provider, args.with_more_providers)
+    if args.all:
+        arguments.set_all()
+        return arguments
+
+    count_of_types = 0
+
+    if args.spaces:
+        count_of_types += 1
+        arguments.set_spaces()
+
+    if args.storages:
+        count_of_types += 1
+        arguments.set_storages()
+
+    if args.tokens:
+        count_of_types += 1
+        arguments.set_tokens()
+
+    if args.groups:
+        count_of_types += 1
+        arguments.set_groups()
+
+    if count_of_types == 0:
+        arguments.set_all()
+
+    return arguments
+
+
+def get_requested_instances_from_onezone(arguments: Arguments) -> List[tuple]:
+    provider_id = onezone.resolve_provider_id_from_id_or_hostname(arguments.provider)
+
+    if not provider_id:
+        Logger.log(1, f"Provider with hostname or id {arguments.provider} not found")
+        return []
+
+    provider_spaces = onezone.get_providers_supported_spaces_from_onezone(provider_id)
+
+    available_spaces = []
+    for provider_space_id in provider_spaces:
+        space_details = spaces.get_space_from_onezone(provider_space_id)
+        if not space_details:
+            continue
+
+        if not arguments.has_more_providers and len(space_details["providers"]) > 1:
+            continue
+
+        if not space_details["name"].startswith(arguments.starting_with):
+            continue
+
+        available_spaces.append((InstanceType.space_oz, provider_space_id, space_details["name"]))
+
+    return available_spaces
+
+
+def get_tokens_starting_with(arguments: Arguments) -> List[tuple]:
+    wanted_instances = []
+    for token_id in tokens.listAllNamedtokens():
+        token = tokens.getNamedToken(token_id)
+        if not token["name"].startswith(arguments.starting_with):
+            continue
+
+        wanted_instances.append((InstanceType.token, token_id, token["name"]))
+
+    return wanted_instances
+
+
+def get_storages_starting_with(arguments: Arguments) -> List[tuple]:
+    wanted_instances = []
+    for storage_id in storages.getStorages()["ids"]:
+        storage = storages.getStorageDetails(storage_id)
+        if not storage["name"].startswith(arguments.starting_with):
+            continue
+
+        wanted_instances.append((InstanceType.storage, storage_id, storage["name"]))
+
+    return wanted_instances
+
+
+def get_all_users_groups_starting_with(arguments: Arguments) -> List[tuple]:
+    wanted_instances = []
+
+    user_groups = groups.listEffectiveUserGroups()
+    for group_id in user_groups:
+        group_name = groups.getGroupDetails(group_id)["name"]
+        if not group_name.startswith(arguments.starting_with):
+            continue
+
+        wanted_instances.append((InstanceType.group, group_id, group_name))
+
+    return wanted_instances
+
+
+def get_only_groups_under_spaces_starting_with(arguments: Arguments) -> List[tuple]:
+    wanted_instances = []
+    for space in spaces.getSpaces():
+        space_groups = spaces.listSpaceGroups(space["spaceId"])
+        for group_id in space_groups:
+            group_name = groups.getGroupDetails(group_id)["name"]
+
+            if not group_name.startswith(arguments.starting_with):
+                continue
+
+            wanted_instances.append((InstanceType.group, group_id, group_name))
+
+    return wanted_instances
+
+
+def get_spaces_starting_with(arguments: Arguments) -> List[tuple]:
+    wanted_instances = []
+    for space in spaces.getSpaces():
+        if not space["name"].startswith(arguments.starting_with):
+            continue
+
+        wanted_instances.append((InstanceType.space, space["spaceId"], space["name"]))
+
+    return wanted_instances
+
+
+def get_requested_instances_from_oneprovider(arguments: Arguments) -> List[tuple]:
+    wanted_instances = []
+
+    if arguments.tokens:  # invite tokens
+        wanted_instances += get_tokens_starting_with(arguments)
+
+    if arguments.groups:  # groups
+        if arguments.spaces:
+            wanted_instances += get_only_groups_under_spaces_starting_with(arguments)
+        else:
+            wanted_instances += get_all_users_groups_starting_with(arguments)
+
+    if arguments.spaces:  # spaces
+        wanted_instances += get_spaces_starting_with(arguments)
+
+    if arguments.storages:  # storages
+        wanted_instances += get_storages_starting_with(arguments)
+
+    return wanted_instances
+
+
+def get_requested_instances(arguments: Arguments) -> List[tuple]:
+    if arguments.provider:
+        return get_requested_instances_from_onezone(arguments)
+
+    return get_requested_instances_from_oneprovider(arguments)
+
+
+def print_instances(instances: List[tuple]) -> None:
+    if len(instances) == 0:
+        print("No instances to delete")
+        exit(0)
+
+    spaces_count = 0
+    storages_count = 0
+    tokens_count = 0
+    groups_count = 0
+    for instance_type, instance_id, instance_name in instances:
+        if instance_type == InstanceType.space or instance_type == InstanceType.space_oz:
+            instance_type = "Space"
+            spaces_count += 1
+
+        if instance_type == InstanceType.storage:
+            instance_type = "Storage"
+            storages_count += 1
+
+        if instance_type == InstanceType.token:
+            instance_type = "Token"
+            tokens_count += 1
+
+        if instance_type == InstanceType.group:
+            instance_type = "Group"
+            groups_count += 1
+
+        print(f"{instance_type}: {instance_name}, id: {instance_id}")
+
+    print(f"Spaces: \t{spaces_count}\nStorages: \t{storages_count}\nTokens: \t{tokens_count}\nGroups: \t{groups_count}")
+
+
+def remove(args: argparse.Namespace):
     """
     Delete all instances of a given prefix.
     """
-    if not prefix:
-        prefix = Settings.get().TEST_PREFIX
+    print("Starting processing for removal")
+    arguments = process_args(args)
+    instances = get_requested_instances(arguments)
+    print_instances(instances)
+    print_safety_notice("All this spaces, groups, tokens and storages will be deleted.")
+    # if this program continues, it means, that user typed yes
 
-    safetyNotice(
-        'All spaces, groups, tokens and storages with the prefix "' + prefix + '" will be deleted.'
-    )
+    for instance_type, instance_id, instance_name in instances:
+        if instance_type == InstanceType.space:
+            spaces.removeSpace(instance_id)
+            instance_type = "Space"
 
-    # invite tokens
-    deleted_tokens = 0
-    for tokenId in tokens.listAllNamedtokens():
-        token = tokens.getNamedToken(tokenId)
-        if token["name"].startswith(prefix):
-            tokens.deleteNamedToken(tokenId)
-            print("Token", token["name"], "deleted. ")
-            deleted_tokens += 1
-            time.sleep(0.5)
+        if instance_type == InstanceType.space_oz:
+            spaces.removeSpace(instance_id)
+            instance_type = "Space"
 
-    # spaces and groups associated to given spaces
-    deleted_spaces = 0
-    deleted_groups = 0
-    for space in spaces.getSpaces():
-        if space["name"].startswith(prefix):
+        if instance_type == InstanceType.storage:
+            time.sleep(1)  # sometimes storage need to be propagated
+            storages.removeStorage(instance_id)
+            instance_type = "Storage"
 
-            # remove group
-            space_groups = spaces.listSpaceGroups(space["spaceId"])
-            for groupId in space_groups:
-                group_name = groups.getGroupDetails(groupId)["name"]
-                if group_name.startswith(prefix):
-                    groups.removeGroup(groupId)
-                    print("Group", group_name, "deleted. ")
-                    deleted_groups += 1
-                    time.sleep(0.5)
+        if instance_type == InstanceType.token:
+            tokens.deleteNamedToken(instance_id)
+            instance_type = "Token"
 
-            spaces.removeSpace(space["spaceId"])
-            print("Space", space["name"], "deleted. ")
-            deleted_spaces += 1
-            time.sleep(0.5)
+        if instance_type == InstanceType.group:
+            groups.removeGroup(instance_id)
+            instance_type = "Group"
 
-    # storages
-    time.sleep(3)  # Removing of spaces have to be propagated to Oneprovider
-    deleted_storages = 0
-    for storageId in storages.getStorages()["ids"]:
-        storage = storages.getStorageDetails(storageId)
-        if storage["name"].startswith(prefix):
-            storages.removeStorage(storageId)
-            print("Storage", storage["name"], "deleted. ")
-            deleted_storages += 1
-            time.sleep(0.5)
-
-    print("Spaces deleted =", deleted_spaces)
-    print("Tokens deleted =", deleted_tokens)
-    print("Groups deleted =", deleted_groups)
-    print("Storages deleted =", deleted_storages)
-
-
-def deleteAllTestGroups(prefix):
-    """
-    Delete all groups of a given prefix.
-    """
-    if not prefix:
-        prefix = Settings.get().TEST_PREFIX
-
-    safetyNotice('All groups with the prefix "' + prefix + '" will be deleted.')
-
-    deleted_groups = 0
-    user_groups = groups.listEffectiveUserGroups()
-    for groupId in user_groups:
-        group_name = groups.getGroupDetails(groupId)["name"]
-        if group_name.startswith(prefix):
-            groups.removeGroup(groupId)
-            print("Group", group_name, "deleted. ")
-            deleted_groups += 1
-            time.sleep(0.5)
-
-    print("Groups deleted =", deleted_groups)
+        print(f"{instance_type} {instance_name} with id {instance_id} deleted.")
+        time.sleep(0.5)
 
 
 def _testOnezone():
@@ -187,6 +375,7 @@ def testConnection(of_each_oneprovider: bool = False):
     else:
         Logger.log(1, "Error when communicating with Onezone, Oneprovider or DAREG.")
     return result
+
 
 
 def registerSpace(path):
