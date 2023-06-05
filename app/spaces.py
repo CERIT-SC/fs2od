@@ -119,6 +119,21 @@ def getSpaceDetails(space_id, oneprovider_index: int = 0):
     return response.json()
 
 
+def change_directory_statistics(space_id: str, directory_statistics_enabled: bool, oneprovider_index: int = 0) -> bool:
+    Logger.log(4, f"change_directory_statistics(space_id={space_id},ds={directory_statistics_enabled},"
+                  f"op_index={oneprovider_index})")
+    # https://onedata.org/#/home/api/21.02.1/onepanel?anchor=operation/modify_space
+    url = "onepanel/provider/spaces/" + space_id
+
+    data = {"dirStatsServiceEnabled": directory_statistics_enabled}
+    headers = dict({"Content-type": "application/json"})
+    response = request.patch(url, headers=headers, data=json.dumps(data), oneprovider_index=oneprovider_index)
+
+    return response.ok
+
+
+
+
 def getAutoStorageImportInfo(space_id):
     Logger.log(4, "getAutoStorageImportInfo(%s):" % space_id)
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/get_auto_storage_import_info
@@ -286,6 +301,11 @@ def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
     return space_id
 
 
+def set_space_posix_permissions_recursive(space_id: str, posix_mode: str) -> None:
+    file_id = get_space(space_id)["fileId"]
+    files.set_file_attribute_recursive(file_id, posix_mode, except_root=True)
+
+
 def enableContinuousImport(space_id):
     Logger.log(4, "enableContinuousImport(%s):" % space_id)
     # not doing anymore in filesystem due to variety options
@@ -298,8 +318,7 @@ def enableContinuousImport(space_id):
     if posix_mode_string.startswith("0o"):
         posix_mode_string = posix_mode_string[2:]
 
-    file_id = get_space(space_id)["fileId"]
-    files.setFileAttributeRecursive(file_id, posix_mode_string)
+    set_space_posix_permissions_recursive(space_id, posix_mode_string)
 
     if not getContinuousImportStatus(space_id):
         setSpaceSize(space_id, Settings.get().config["implicitSpaceSize"])
@@ -339,10 +358,7 @@ def disableContinuousImport(space_id):
             if posix_mode_string.startswith("0o"):
                 posix_mode_string = posix_mode_string[2:]
 
-            file_id = get_space(space_id)["fileId"]
-            files.setFileAttributeRecursive(
-                file_id, posix_mode_string
-            )
+            set_space_posix_permissions_recursive(space_id, posix_mode_string)
 
             # Set metadata for the space
             if Settings.get().config["importMetadata"]:

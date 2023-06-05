@@ -4,18 +4,19 @@ from settings import Settings
 from utils import Logger
 
 
-def getFileAttributes(file_id):
+def get_file_attributes(file_id):
     """
     Get attributes of file with given file_id.
     """
     Logger.log(5, "getFileAttributes(%s):" % file_id)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_attrs
+    # https://onedata.org/#/home/api/21.02.1/oneprovider?anchor=operation%2Fget_attrs  new changed types
     url = "oneprovider/data/" + file_id
     response = request.get(url)
     return response.json()
 
 
-def setFileAttribute(file_id, posix_mode) -> bool:
+def set_file_attribute(file_id, posix_mode) -> bool:
     """
     Set attributes to directory or file with given file_id. Only POSIX mode can be set up.
     """
@@ -28,48 +29,50 @@ def setFileAttribute(file_id, posix_mode) -> bool:
     return response.ok
 
 
-def setFileAttributeRecursive(file_id: str, posix_mode: str) -> bool:
+def set_file_attribute_recursive(file_id: str, posix_mode: str, except_root: bool = False) -> bool:
     """
     Set attributes to directory or file with given file_id. Only POSIX mode can be set up.
     In case of directory attributes is set to all children.
     Returns True if everything was successful, otherwise False
     """
     Logger.log(5, "setFileAttributeRecursive(%s, %s):" % (file_id, posix_mode))
-    attributes = getFileAttributes(file_id)
+    attributes = get_file_attributes(file_id)
     successful = True
 
-    if not "type" in attributes:
+    if "type" not in attributes or "mode" not in attributes:
         # in case there is no file in space
         # TODO: could this case happen? Check.
         return True
 
-    if attributes["type"] == "dir":
+    if attributes["type"].lower() == "dir":  # new version of Onedata (21.02.1) changes to uppercase
         # node is directory
-        if attributes["mode"] != posix_mode:
+        if attributes["mode"] != posix_mode and not except_root:
             # desired posix_mode is different from the actual mode
             # set attribute to directory itself
-            successful = setFileAttribute(file_id, posix_mode) and successful
+            successful = set_file_attribute(file_id, posix_mode) and successful
 
         # set attribute to childs
-        directory = listDirectory(file_id)
+        directory = list_directory(file_id)
         for node in directory["children"]:
             # recursive set up attributes to all files in directory
-            successful = setFileAttributeRecursive(node["id"], posix_mode) and successful
+            successful = set_file_attribute_recursive(node["file_id"], posix_mode, except_root=False) and successful
     else:
         # node is file
         if attributes["mode"] != posix_mode:
             # desired posix_mode is different from the actual mode
-            successful = setFileAttribute(file_id, posix_mode) and successful
+            successful = set_file_attribute(file_id, posix_mode) and successful
 
     return successful
 
 
-def listDirectory(file_id):
+def list_directory(file_id):
     """
     List directory. Subdirectories and files are accesible in response['children'].
     """
     Logger.log(5, "listDirectory(%s):" % file_id)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/list_children
+    # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/list_children
+    # changed name of id to file_id in new version (21.02.1)
     url = "oneprovider/data/" + file_id + "/children"
     response = request.get(url)
     return response.json()

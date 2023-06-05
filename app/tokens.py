@@ -53,6 +53,7 @@ def get_users_named_token_by_name(name: str):
     response = request.get(url)
     return response
 
+
 # not used
 def createNamedTokenForUser(space_id, name, user_id):
     Logger.log(4, "createNamedTokenForUser(%s, %s, %s):" % (space_id, name, user_id))
