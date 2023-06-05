@@ -8,6 +8,7 @@ import request
 
 TOKEN_RENAMING_TRIES = 10
 
+
 def _rename_token_using_random_chars(old_token_name: str, char_number: int = 4) -> str:
     # if token with such name exists append to the new token name a random suffix
     # shorten token name if it will be longer with suffix than max length
@@ -15,6 +16,7 @@ def _rename_token_using_random_chars(old_token_name: str, char_number: int = 4) 
     Logger.log(3, "Token with name %s exists, suffix added %s" % (old_token_name, new_token_name))
 
     return new_token_name
+
 
 def listAllNamedtokens():
     Logger.log(4, "listAllNamedtokens():")

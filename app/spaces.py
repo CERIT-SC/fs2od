@@ -11,6 +11,7 @@ Minimal size of a space. Smaller size cause "badValueTooLow" error on Oneprovder
 1 MB = 1*2**20 = 1048576
 """
 MINIMAL_SPACE_SIZE = 1048576
+WAITING_FOR_AUTO_STORAGE_IMPORT_FINISH_TRIES = 10
 
 
 def getSpaces(oneprovider_index: int = 0):
@@ -132,14 +133,28 @@ def change_directory_statistics(space_id: str, directory_statistics_enabled: boo
     return response.ok
 
 
-
-
-def getAutoStorageImportInfo(space_id):
+def getAutoStorageImportInfo(space_id) -> dict:
     Logger.log(4, "getAutoStorageImportInfo(%s):" % space_id)
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/get_auto_storage_import_info
     url = "onepanel/provider/spaces/" + space_id + "/storage-import/auto/info"
     response = request.get(url)
+
+    if not response.ok:
+        Logger.log(3, f"Cannot obtain info about storage import for space {space_id}")
+        return {}
     return response.json()
+
+
+def is_storage_import_running(space_id: str):
+    Logger.log(4, f"is_storage_import_running({space_id})")
+    response = getAutoStorageImportInfo(space_id)
+
+    if not response or "status" not in response:
+        return False  # probably not existing, or not have access to it either
+
+    if response["status"] in ("completed", "failed", "aborted"):
+        return False
+    return True
 
 
 def startAutoStorageImport(space_id) -> bool:
@@ -349,6 +364,16 @@ def disableContinuousImport(space_id):
             # force (full) import of files last time
             startAutoStorageImport(space_id)
 
+            for try_number in range(WAITING_FOR_AUTO_STORAGE_IMPORT_FINISH_TRIES):
+                Logger.log(5, "Waiting for auto storage import to finish started")
+                if not is_storage_import_running(space_id):
+                    Logger.log(5, "Waiting for auto storage import to finish finished")
+                    break
+
+                Logger.log(5, f"Waiting for auto storage import try {try_number + 1}/"
+                              f"{WAITING_FOR_AUTO_STORAGE_IMPORT_FINISH_TRIES}")
+                time.sleep(1 * Settings.get().config["sleepFactor"])
+
             # not doing anymore in filesystem due to variety options
             # permissions of all dirs and file should set to given permissions
             # mount_point = get_space_mount_point(space_id)
@@ -388,7 +413,7 @@ def setContinuousImport(space_id, continuousScanEnabled):
     # test if import was completed
     if (
             Settings.get().config["continousFileImport"]["enabled"]
-            and autoStorageImportInfo == "completed"
+            and autoStorageImportInfo in ("completed", "aborted", "failed")
     ):
         # https://onedata.org/#/home/api/21.02.0-alpha21/onepanel?anchor=operation/modify_space
         url = "onepanel/provider/spaces/" + space_id
@@ -408,7 +433,7 @@ def setContinuousImport(space_id, continuousScanEnabled):
         Logger.log(
             2, "Continuous scan can't be changed for the space %s" % space_id, space_id=space_id
         )
-        if autoStorageImportInfo != "completed":
+        if autoStorageImportInfo not in ("completed", "aborted", "failed"):
             Logger.log(2, "Import of files is not completed yet", space_id=space_id)
         return False
 
