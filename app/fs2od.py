@@ -137,7 +137,7 @@ def main():
         help="New status to be set. One of two possible choices - on/off"
     )
     parser_2_3.add_argument(
-        "--starting_with", required=False, default="", type=str, metavar="NAME",
+        "--starting_with", required=False, default=None, type=str, metavar="NAME",
         help="Prefix of instances to remove (default is testModePrefix value from config file)"
     )
     parser_2_3.add_argument(
