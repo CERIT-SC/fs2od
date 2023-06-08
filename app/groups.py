@@ -84,20 +84,22 @@ def createParentGroup(child_group_id, group_name):
     return group_id
 
 
-def getGroupDetails(group_id: str):
-    Logger.log(4, "getGroupDetails(%s):" % group_id)
+def get_group_details(group_id: str) -> dict:
+    Logger.log(4, f"getGroupDetails({group_id}):")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/get_group
     url = "onezone/groups/" + group_id
     response = request.get(url)
+
     if not response.ok:
-        return False
+        return {}
+
     return response.json()
 
 
 def get_group_id_by_name(name: str) -> str:
     user_groups = listEffectiveUserGroups()
     for group_id in user_groups:
-        group_name = getGroupDetails(group_id)["name"]
+        group_name = get_group_details(group_id)["name"]
         if group_name.startswith(name):
             return group_id
     return ""

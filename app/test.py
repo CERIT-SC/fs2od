@@ -158,7 +158,7 @@ def get_all_users_groups_starting_with(arguments: Arguments) -> List[tuple]:
 
     user_groups = groups.listEffectiveUserGroups()
     for group_id in user_groups:
-        group_name = groups.getGroupDetails(group_id)["name"]
+        group_name = groups.get_group_details(group_id)["name"]
         if not group_name.startswith(arguments.starting_with):
             continue
 

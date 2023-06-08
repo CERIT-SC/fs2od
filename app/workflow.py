@@ -356,8 +356,8 @@ def deleteSpaceWithAllStuff(spaceId):
             # remove group
             space_groups = spaces.list_space_groups_ids(space["spaceId"])
             for groupId in space_groups:
-                pprint(groups.getGroupDetails(groupId))
-                group_name = groups.getGroupDetails(groupId)["name"]
+                pprint(groups.get_group_details(groupId))
+                group_name = groups.get_group_details(groupId)["name"]
                 if space_name in group_name:
                     groups.removeGroup(groupId)
                     print("Group", group_name, "deleted. ")
