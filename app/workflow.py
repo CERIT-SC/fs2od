@@ -339,7 +339,7 @@ def deleteSpaceWithAllStuff(spaceId):
 
     # invite tokens
     deleted_tokens = 0
-    for tokenId in tokens.listAllNamedtokens():
+    for tokenId in tokens.list_all_named_tokens():
         token = tokens.getNamedToken(tokenId)
         if space_name in token["name"]:
             tokens.deleteNamedToken(tokenId)

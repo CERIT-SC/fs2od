@@ -131,7 +131,7 @@ def get_requested_instances_from_onezone(arguments: Arguments) -> List[tuple]:
 
 def get_tokens_starting_with(arguments: Arguments) -> List[tuple]:
     wanted_instances = []
-    for token_id in tokens.listAllNamedtokens():
+    for token_id in tokens.list_all_named_tokens():
         token = tokens.getNamedToken(token_id)
         if not token["name"].startswith(arguments.starting_with):
             continue

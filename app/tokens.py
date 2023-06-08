@@ -18,11 +18,22 @@ def _rename_token_using_random_chars(old_token_name: str, char_number: int = 4) 
     return new_token_name
 
 
-def listAllNamedtokens():
-    Logger.log(4, "listAllNamedtokens():")
+def list_all_named_tokens() -> list:
+    Logger.log(4, "list_all_named_tokens()")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/list_all_named_tokens
     url = "onezone/users/" + Settings.get().config["serviceUserId"] + "/tokens/named"
     response = request.get(url)
+
+    if not response.ok:
+        Logger.log(3, f"Cannot get list of all named tokens.")
+        return []
+
+    response_json = response.json()
+
+    if "tokens" not in response_json:
+        Logger.log(3, f"Response is ok, but tokens were not provided.")
+        return []
+
     return response.json()["tokens"]
 
 
