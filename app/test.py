@@ -170,10 +170,19 @@ def get_all_users_groups_starting_with(arguments: Arguments) -> List[tuple]:
 def get_only_groups_under_spaces_starting_with(arguments: Arguments) -> List[tuple]:
     wanted_instances = []
     for space in spaces.getSpaces():
+        if "spaceId" not in space:
+            Logger.log(4, "Space has no element spaceId. Skipping")
+            continue
+
         space_groups = spaces.list_space_groups_ids(space["spaceId"])
         for group_id in space_groups:
-            group_name = groups.getGroupDetails(group_id)["name"]
+            group_info = groups.get_group_details(group_id)
 
+            if "name" not in group_info:
+                Logger.log(4, "Group has no element name. Skipping.")
+                continue
+
+            group_name = group_info["name"]
             if not group_name.startswith(arguments.starting_with):
                 continue
 
@@ -201,7 +210,13 @@ def get_requested_instances_from_oneprovider(arguments: Arguments) -> List[tuple
 
     if arguments.groups:  # groups
         if arguments.spaces:
-            wanted_instances += get_only_groups_under_spaces_starting_with(arguments)
+            requested_groups = get_only_groups_under_spaces_starting_with(arguments)
+
+            if not requested_groups:
+                requested_groups = get_all_users_groups_starting_with(arguments)
+
+            wanted_instances += requested_groups
+
         else:
             wanted_instances += get_all_users_groups_starting_with(arguments)
 
@@ -262,31 +277,40 @@ def remove(args: argparse.Namespace) -> None:
     print_instances(instances)
     print_safety_notice("All this spaces, groups, tokens and storages will be deleted.")
     # if this program continues, it means, that user typed yes
+    error_messages = []
 
     for instance_type, instance_id, instance_name in instances:
+        is_ok = False
         if instance_type == InstanceType.space:
-            spaces.removeSpace(instance_id)
+            is_ok = spaces.removeSpace(instance_id).ok
             instance_type = "Space"
 
         if instance_type == InstanceType.space_oz:
-            spaces.removeSpace(instance_id)
+            is_ok = spaces.removeSpace(instance_id).ok
             instance_type = "Space"
 
         if instance_type == InstanceType.storage:
             time.sleep(1)  # sometimes storage need to be propagated
-            storages.removeStorage(instance_id)
+            is_ok = storages.removeStorage(instance_id).ok
             instance_type = "Storage"
 
         if instance_type == InstanceType.token:
-            tokens.deleteNamedToken(instance_id)
+            is_ok = tokens.deleteNamedToken(instance_id).ok
             instance_type = "Token"
 
         if instance_type == InstanceType.group:
-            groups.removeGroup(instance_id)
+            is_ok = groups.removeGroup(instance_id).ok
             instance_type = "Group"
 
-        print(f"{instance_type} {instance_name} with id {instance_id} deleted.")
+        if is_ok:
+            print(f"{instance_type} {instance_name} with id {instance_id} deleted.")
+        else:
+            error_messages.append(f"Error: {instance_type} {instance_name} with id {instance_id} could not be deleted.")
+
         time.sleep(0.5)
+
+    for error_message in error_messages:
+        print(error_message)
 
 
 def change_posix_permissions(arguments: Arguments, posix_permissions: int) -> None:
