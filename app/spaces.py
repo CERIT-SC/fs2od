@@ -438,12 +438,23 @@ def setContinuousImport(space_id, continuousScanEnabled):
         return False
 
 
-def listSpaceGroups(space_id):
+def list_space_groups_ids(space_id: str) -> list:
     Logger.log(4, "listSpaceGroups(%s):" % space_id)
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/list_space_groups
     url = "onezone/spaces/" + space_id + "/groups"
     response = request.get(url)
-    return response.json()["groups"]
+
+    if not response.ok:
+        Logger.log(3, f"Cannot retrieve groups of space with id {space_id}")
+        return []
+
+    response_json = response.json()
+
+    if "groups" not in response_json:
+        Logger.log(3, f"Fetching space groups successful for space with id {space_id}, but cannot extract them")
+        return []
+
+    return response_json["groups"]
 
 
 def addGroupToSpace(space_id, gid, privileges=None):

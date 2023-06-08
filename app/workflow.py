@@ -339,7 +339,7 @@ def deleteSpaceWithAllStuff(spaceId):
 
     # invite tokens
     deleted_tokens = 0
-    for tokenId in tokens.listAllNamedtokens():
+    for tokenId in tokens.list_all_named_tokens():
         token = tokens.getNamedToken(tokenId)
         if space_name in token["name"]:
             tokens.deleteNamedToken(tokenId)
@@ -354,10 +354,10 @@ def deleteSpaceWithAllStuff(spaceId):
         if space_name in space["name"]:
 
             # remove group
-            space_groups = spaces.listSpaceGroups(space["spaceId"])
+            space_groups = spaces.list_space_groups_ids(space["spaceId"])
             for groupId in space_groups:
-                pprint(groups.getGroupDetails(groupId))
-                group_name = groups.getGroupDetails(groupId)["name"]
+                pprint(groups.get_group_details(groupId))
+                group_name = groups.get_group_details(groupId)["name"]
                 if space_name in group_name:
                     groups.removeGroup(groupId)
                     print("Group", group_name, "deleted. ")
