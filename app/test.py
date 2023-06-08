@@ -170,7 +170,7 @@ def get_all_users_groups_starting_with(arguments: Arguments) -> List[tuple]:
 def get_only_groups_under_spaces_starting_with(arguments: Arguments) -> List[tuple]:
     wanted_instances = []
     for space in spaces.getSpaces():
-        space_groups = spaces.listSpaceGroups(space["spaceId"])
+        space_groups = spaces.list_space_groups_ids(space["spaceId"])
         for group_id in space_groups:
             group_name = groups.getGroupDetails(group_id)["name"]
 
