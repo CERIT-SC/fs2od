@@ -131,7 +131,7 @@ def action_group(group_name: str, group_id: str):
     for try_number in range(1, NUMBER_OF_TRIES_IF_NOT_FOUND + 1):
         Logger.log(3, f"rollback - getting group from id {group_id}, try {try_number}/{NUMBER_OF_TRIES_IF_NOT_FOUND}")
         if group_id:
-            group = groups.getGroupDetails(group_id)  # group got, no need to change group id
+            group = groups.get_group_details(group_id)  # group got, no need to change group id
 
         if group:
             search_successful = True

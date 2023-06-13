@@ -11,6 +11,7 @@ Minimal size of a space. Smaller size cause "badValueTooLow" error on Oneprovder
 1 MB = 1*2**20 = 1048576
 """
 MINIMAL_SPACE_SIZE = 1048576
+WAITING_FOR_AUTO_STORAGE_IMPORT_FINISH_TRIES = 10
 
 
 def getSpaces(oneprovider_index: int = 0):
@@ -119,12 +120,41 @@ def getSpaceDetails(space_id, oneprovider_index: int = 0):
     return response.json()
 
 
-def getAutoStorageImportInfo(space_id):
+def change_directory_statistics(space_id: str, directory_statistics_enabled: bool, oneprovider_index: int = 0) -> bool:
+    Logger.log(4, f"change_directory_statistics(space_id={space_id},ds={directory_statistics_enabled},"
+                  f"op_index={oneprovider_index})")
+    # https://onedata.org/#/home/api/21.02.1/onepanel?anchor=operation/modify_space
+    url = "onepanel/provider/spaces/" + space_id
+
+    data = {"dirStatsServiceEnabled": directory_statistics_enabled}
+    headers = dict({"Content-type": "application/json"})
+    response = request.patch(url, headers=headers, data=json.dumps(data), oneprovider_index=oneprovider_index)
+
+    return response.ok
+
+
+def getAutoStorageImportInfo(space_id) -> dict:
     Logger.log(4, "getAutoStorageImportInfo(%s):" % space_id)
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/get_auto_storage_import_info
     url = "onepanel/provider/spaces/" + space_id + "/storage-import/auto/info"
     response = request.get(url)
+
+    if not response.ok:
+        Logger.log(3, f"Cannot obtain info about storage import for space {space_id}")
+        return {}
     return response.json()
+
+
+def is_storage_import_running(space_id: str):
+    Logger.log(4, f"is_storage_import_running({space_id})")
+    response = getAutoStorageImportInfo(space_id)
+
+    if not response or "status" not in response:
+        return False  # probably not existing, or not have access to it either
+
+    if response["status"] in ("completed", "failed", "aborted"):
+        return False
+    return True
 
 
 def startAutoStorageImport(space_id) -> bool:
@@ -286,6 +316,11 @@ def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
     return space_id
 
 
+def set_space_posix_permissions_recursive(space_id: str, posix_mode: str) -> None:
+    file_id = get_space(space_id)["fileId"]
+    files.set_file_attribute_recursive(file_id, posix_mode, except_root=True)
+
+
 def enableContinuousImport(space_id):
     Logger.log(4, "enableContinuousImport(%s):" % space_id)
     # not doing anymore in filesystem due to variety options
@@ -298,8 +333,7 @@ def enableContinuousImport(space_id):
     if posix_mode_string.startswith("0o"):
         posix_mode_string = posix_mode_string[2:]
 
-    file_id = get_space(space_id)["fileId"]
-    files.setFileAttributeRecursive(file_id, posix_mode_string)
+    set_space_posix_permissions_recursive(space_id, posix_mode_string)
 
     if not getContinuousImportStatus(space_id):
         setSpaceSize(space_id, Settings.get().config["implicitSpaceSize"])
@@ -330,6 +364,16 @@ def disableContinuousImport(space_id):
             # force (full) import of files last time
             startAutoStorageImport(space_id)
 
+            for try_number in range(WAITING_FOR_AUTO_STORAGE_IMPORT_FINISH_TRIES):
+                Logger.log(5, "Waiting for auto storage import to finish started")
+                if not is_storage_import_running(space_id):
+                    Logger.log(5, "Waiting for auto storage import to finish finished")
+                    break
+
+                Logger.log(5, f"Waiting for auto storage import try {try_number + 1}/"
+                              f"{WAITING_FOR_AUTO_STORAGE_IMPORT_FINISH_TRIES}")
+                time.sleep(1 * Settings.get().config["sleepFactor"])
+
             # not doing anymore in filesystem due to variety options
             # permissions of all dirs and file should set to given permissions
             # mount_point = get_space_mount_point(space_id)
@@ -339,10 +383,7 @@ def disableContinuousImport(space_id):
             if posix_mode_string.startswith("0o"):
                 posix_mode_string = posix_mode_string[2:]
 
-            file_id = get_space(space_id)["fileId"]
-            files.setFileAttributeRecursive(
-                file_id, posix_mode_string
-            )
+            set_space_posix_permissions_recursive(space_id, posix_mode_string)
 
             # Set metadata for the space
             if Settings.get().config["importMetadata"]:
@@ -372,7 +413,7 @@ def setContinuousImport(space_id, continuousScanEnabled):
     # test if import was completed
     if (
             Settings.get().config["continousFileImport"]["enabled"]
-            and autoStorageImportInfo == "completed"
+            and autoStorageImportInfo in ("completed", "aborted", "failed")
     ):
         # https://onedata.org/#/home/api/21.02.0-alpha21/onepanel?anchor=operation/modify_space
         url = "onepanel/provider/spaces/" + space_id
@@ -392,17 +433,28 @@ def setContinuousImport(space_id, continuousScanEnabled):
         Logger.log(
             2, "Continuous scan can't be changed for the space %s" % space_id, space_id=space_id
         )
-        if autoStorageImportInfo != "completed":
+        if autoStorageImportInfo not in ("completed", "aborted", "failed"):
             Logger.log(2, "Import of files is not completed yet", space_id=space_id)
         return False
 
 
-def listSpaceGroups(space_id):
+def list_space_groups_ids(space_id: str) -> list:
     Logger.log(4, "listSpaceGroups(%s):" % space_id)
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/list_space_groups
     url = "onezone/spaces/" + space_id + "/groups"
     response = request.get(url)
-    return response.json()["groups"]
+
+    if not response.ok:
+        Logger.log(3, f"Cannot retrieve groups of space with id {space_id}")
+        return []
+
+    response_json = response.json()
+
+    if "groups" not in response_json:
+        Logger.log(3, f"Fetching space groups successful for space with id {space_id}, but cannot extract them")
+        return []
+
+    return response_json["groups"]
 
 
 def addGroupToSpace(space_id, gid, privileges=None):

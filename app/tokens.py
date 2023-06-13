@@ -8,6 +8,7 @@ import request
 
 TOKEN_RENAMING_TRIES = 10
 
+
 def _rename_token_using_random_chars(old_token_name: str, char_number: int = 4) -> str:
     # if token with such name exists append to the new token name a random suffix
     # shorten token name if it will be longer with suffix than max length
@@ -16,11 +17,23 @@ def _rename_token_using_random_chars(old_token_name: str, char_number: int = 4) 
 
     return new_token_name
 
-def listAllNamedtokens():
-    Logger.log(4, "listAllNamedtokens():")
+
+def list_all_named_tokens() -> list:
+    Logger.log(4, "list_all_named_tokens()")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/list_all_named_tokens
     url = "onezone/users/" + Settings.get().config["serviceUserId"] + "/tokens/named"
     response = request.get(url)
+
+    if not response.ok:
+        Logger.log(3, f"Cannot get list of all named tokens.")
+        return []
+
+    response_json = response.json()
+
+    if "tokens" not in response_json:
+        Logger.log(3, f"Response is ok, but tokens were not provided.")
+        return []
+
     return response.json()["tokens"]
 
 
@@ -52,6 +65,7 @@ def get_users_named_token_by_name(name: str):
     url = "onezone/users/" + user_id + "/tokens/named/name/" + name
     response = request.get(url)
     return response
+
 
 # not used
 def createNamedTokenForUser(space_id, name, user_id):
