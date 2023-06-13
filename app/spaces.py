@@ -51,6 +51,24 @@ def get_space(space_id: str, ok_statuses: tuple = (200,)) -> dict:
         return {}
 
 
+def get_space_shares(space_id: str) -> list:
+    Logger.log(4, f"get_space_shares({space_id})")
+    # https://onedata.org/#/home/api/stable/onezone?anchor=operation/list_space_shares
+    url = "onezone/spaces/" + space_id + "/shares"
+    response = request.get(url)
+
+    if not response.ok:
+        Logger.log(1, f"Shares for space with id {space_id} could not be retrieved")
+        return []
+
+    response_json = response.json()
+    if "shares" not in response_json:
+        Logger.log(2, f"Response for shares for space with id {space_id} ok, but actual spaces could not be retrieved")
+        return []
+
+    return response_json["shares"]
+
+
 def get_space_mount_point(space_id: str, oneprovider_index=0) -> str:
     """
     Returns mount point of a storage provided by given Oneprovider for space
