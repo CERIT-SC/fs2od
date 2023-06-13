@@ -73,6 +73,25 @@ def updateShare(shid, name=None, description=None):
         Logger.log(3, f"no content to update the share {shid}")
 
 
+def get_share_starting_with(space_id: str, text: str) -> str:
+    Logger.log(4, f"get_share_starting_with(sid={space_id},share_name={text})")
+
+    shares = spaces.get_space_shares(space_id)
+    if not shares:
+        return ""
+
+    for share_id in shares:
+        share_info = getShare(share_id)
+        if "name" not in share_info:
+            continue
+
+        share_name: str = share_info["name"]
+        if share_name.startswith(text):
+            return share_id
+
+    return ""
+
+
 def create_share_description(directory: Union[os.DirEntry, str], ignore_config_parse_metadata: bool = False) \
         -> Tuple[str, str]:
     Logger.log(4, f"create_share_description({directory})")
