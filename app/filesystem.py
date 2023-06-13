@@ -458,3 +458,23 @@ def chmod_recursive(path: Union[os.DirEntry, str], mode: int) -> bool:
     Logger.log(5, f"Mode for path {path} was changed to {oct(mode)}")
 
     return True
+
+
+def get_dir_entry_of_directory(path: str) -> Union[os.DirEntry, None]:
+    """
+    This function converts path string to os.DirEntry value
+    Warning: if parent directory is not readable, it has undefined behavior
+    On success returns DirEntry object, otherwise None
+    """
+    if not os.path.isdir(os.path.join(path, "..")):
+        return None
+
+    path = path.rstrip("/")
+    directory_name = os.path.basename(path)
+
+    for dir_entry in os.scandir(os.path.join(path, "..")):
+        if dir_entry.name == directory_name:
+            return dir_entry
+
+    return None
+
