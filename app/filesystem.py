@@ -300,7 +300,7 @@ def loadYaml(file_path: str) -> dict:
 
 def get_token_from_yaml(yaml_dict: dict, token: str, default_value: Any = None, error_message_importance: int = 3) -> Any:
     """
-    Return space_id from YAML file.
+    Return given token from YAML file.
     or None when file doesn't contain it.
     """
     if yaml_dict:
@@ -313,6 +313,10 @@ def get_token_from_yaml(yaml_dict: dict, token: str, default_value: Any = None, 
 
 
 def convert_dict_to_yaml(dictionary: dict) -> str:
+    """
+    Converts dictionary object to YAML fs2od-compatible string
+    On error returns empty string
+    """
     Logger.log(4, f"convert_dict_to_yaml()")
     # store new yaml file
     ryaml = ruamel.yaml.YAML()
@@ -373,7 +377,7 @@ def setValueToYaml(file_path, yaml_dict, valueType, value):
 
 def set_values_to_yaml(file_path: str, yaml_dict: dict, new_values_dict: dict) -> bool:
     """
-    Set values to onedata tag in yaml.
+    Set values to Onedata tag in yaml.
     Returns True if successful, otherwise False.
     Possible errors: metadata file does not exist, cannot write to metadata file, unexpected error
     """

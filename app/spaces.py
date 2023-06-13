@@ -53,6 +53,10 @@ def get_space(space_id: str, ok_statuses: tuple = (200,)) -> dict:
 
 
 def get_space_shares(space_id: str) -> list:
+    """
+    Returns list of space shares (their ids)
+    If any error occurred, returns empty list
+    """
     Logger.log(4, f"get_space_shares({space_id})")
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/list_space_shares
     url = "onezone/spaces/" + space_id + "/shares"

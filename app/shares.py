@@ -74,6 +74,11 @@ def updateShare(shid, name=None, description=None):
 
 
 def get_share_starting_with(space_id: str, text: str) -> str:
+    """
+    Iterates through every share of space given by space_id and finds first with name similar with text
+    If no such share is found, returns empty string
+    Otherwise returns share_id
+    """
     Logger.log(4, f"get_share_starting_with(sid={space_id},share_name={text})")
 
     shares = spaces.get_space_shares(space_id)
@@ -94,6 +99,12 @@ def get_share_starting_with(space_id: str, text: str) -> str:
 
 def create_share_description(directory: Union[os.DirEntry, str], ignore_config_parse_metadata: bool = False) \
         -> Tuple[str, str]:
+    """
+    Creates share description autonomously based on contents of given directory
+    Warning: this function does a lot of filesystem operations and requests to Onezone/Oneproviders
+    If successful, returns tuple containing share_description and share_id
+    Otherwise returns tuple with two empty strings
+    """
     Logger.log(4, f"create_share_description({directory})")
     if type(directory) != os.DirEntry:
         # hack to get DirEntry
