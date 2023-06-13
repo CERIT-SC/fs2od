@@ -263,7 +263,7 @@ def register_space(directory: os.DirEntry) -> bool:
     time.sleep(Settings.get().config["sleepFactor"])
 
     actions_logger.log_pre("share_description", "")
-    share_description = shares.create_share_description(directory)
+    share_description = shares.create_share_description(directory)[0]
     is_ok = actions_logger.log_post(share_description, only_check=True)
     if not is_ok: return False
 

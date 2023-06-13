@@ -1,7 +1,7 @@
 import json
 import os
 import time
-from typing import Union
+from typing import Union, Tuple
 from string import Template
 import filesystem
 import spaces
@@ -75,7 +75,8 @@ def updateShare(shid, name=None, description=None):
         Logger.log(3, f"no content to update the share {shid}")
 
 
-def create_share_description(directory: Union[os.DirEntry, str], ignore_config_parse_metadata: bool = False) -> str:
+def create_share_description(directory: Union[os.DirEntry, str], ignore_config_parse_metadata: bool = False) \
+        -> Tuple[str, str]:
     Logger.log(4, f"create_share_description({directory})")
     if type(directory) != os.DirEntry:
         # hack to get DirEntry
@@ -157,4 +158,4 @@ Here is the actual copy of metadata file:
     src = Template("".join(template))
     result = src.substitute(to_substitute)
 
-    return result
+    return result, share_id
