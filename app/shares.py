@@ -100,45 +100,40 @@ def create_share_description(directory: Union[os.DirEntry, str], ignore_config_p
         directory = filesystem.get_dir_entry_of_directory(directory)
 
     if directory is None:
-        return ""
+        return "", ""
 
     yaml_file = filesystem.getMetaDataFile(directory)
     if not yaml_file:
-        return ""
+        return "", ""
 
     yaml_contents = filesystem.loadYaml(yaml_file)
     if not yaml_contents:
-        return ""
+        return "", ""
 
     space_id = filesystem.yamlContainsSpaceId(yaml_contents)
     if not space_id:
-        return ""
+        return "", ""
 
     space_info = spaces.get_space(space_id)
     if not space_info:
-        return ""
+        return "", ""
 
     space_name = space_info.get("name", "")
 
-    shares = []
+    share_id = ""
     for try_number in range(GET_SHARE_TRIES):
         Logger.log(3, f"Getting shares of space with id {space_id} and name {space_name} "
                       f"try: {try_number + 1}/{GET_SHARE_TRIES}")
-        shares = spaces.get_space_shares(space_id)
-        if shares:
+        share_id = get_share_starting_with(space_id, space_name)
+        if share_id:
             break
 
         time.sleep(Settings.get().config["sleepFactor"] * 2)
 
-    if not shares:
-        return ""
+    if not share_id:
+        return "", ""
 
-    # TODO: care better of right share id
-    share_id = shares[0]
     share_info = getShare(share_id)
-    if not share_info:
-        return ""
-
     share_file_id = share_info.get("rootFileId", "")
 
     if Settings.get().config["metadataFileTags"]["onedata"] in yaml_contents:
