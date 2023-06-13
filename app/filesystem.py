@@ -250,7 +250,6 @@ def load_file_contents(file_path: str, binary_mode: bool = False) -> Union[bytes
     If there is an error with opened file, function returns empty type (type based on previous description)
     """
     Logger.log(4, f"load_file_contents(path={file_path})")
-
     if not os.path.exists(file_path):
         Logger.log(1, f"File {file_path} doesn't exists.")
         return b""
@@ -285,19 +284,15 @@ def loadYaml(file_path: str) -> dict:
     Loads yaml file from file_path and returns it in form of dictionary.
     If file does not exist or cannot be loaded, returns empty dict.
     """
-    if not os.path.exists(file_path):
-        Logger.log(1, "File %s doesn't exists." % file_path)
-        return dict()
+    stream = load_file_contents(file_path, binary_mode=True)
 
-    with open(file_path, "r") as stream:
-        # configuration = yaml.safe_load(stream) # pyyaml
-        yaml = ruamel.yaml.YAML(typ="safe")
-        configuration = yaml.load(stream)
-        # if load empty file
-        if not configuration:
-            configuration = dict()
+    yaml = ruamel.yaml.YAML(typ="safe")
+    configuration = yaml.load(stream)
+    # if load empty file
+    if not configuration:
+        configuration = dict()
 
-        Logger.log(5, "Configuration:", pretty_print=configuration)
+    Logger.log(5, "Configuration:", pretty_print=configuration)
 
     return configuration
 
