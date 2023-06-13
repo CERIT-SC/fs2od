@@ -316,6 +316,27 @@ def get_token_from_yaml(yaml_dict: dict, token: str, default_value: Any = None) 
     return None
 
 
+def convert_dict_to_yaml(dictionary: dict) -> str:
+    Logger.log(4, f"convert_dict_to_yaml()")
+    # store new yaml file
+    ryaml = ruamel.yaml.YAML()
+    ryaml.width = (
+        200  # count of characters on a line, if there is more chars, line is broken
+    )
+    ryaml.indent(sequence=4, offset=2)
+    with tempfile.TemporaryFile("w+", encoding="UTF-8") as temp_file:
+        # this function behaves the best when writing right to file
+        ryaml.dump(dictionary, temp_file)
+        # must be sure that changes are written to temporary file
+        temp_file.flush()
+        # now, pointer to file is on position after last written character, must set it to first position in file
+        temp_file.seek(0)
+        # now we are reading what we have written
+        yaml_string = temp_file.read()
+
+    return yaml_string
+
+
 def setValueToYaml(file_path, yaml_dict, valueType, value):
     if os.path.exists(file_path):
         if yaml_dict.get(Settings.get().config["metadataFileTags"]["onedata"]) == None:
