@@ -14,8 +14,6 @@ GET_SHARE_TRIES = 10
 
 
 def createShare(name, file_id, description=""):
-    if Settings.get().TEST:
-        name = Settings.get().TEST_PREFIX + name
     Logger.log(4, "createShare(%s, %s, description)" % (name, file_id))
     Logger.log(5, "description: %s" % description)
 
