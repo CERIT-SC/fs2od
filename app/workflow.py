@@ -281,6 +281,16 @@ def register_space(directory: os.DirEntry) -> bool:
     if Settings.get().config["dareg"]["enabled"]:
         dareg.update_dataset(space_id, token["token"], share["publicUrl"])
 
+    metadata_section = ""
+    if Settings.get().config["parseMetadataToShare"]:
+        file_lines = filesystem.load_file_contents(yml_file)
+        metadata_section = f"""## Metadata file
+Here is the actual copy of metadata file:
+```yaml
+{"".join(file_lines)}
+```
+    """
+
     # add Share description
     actions_logger.log_pre("share_update", "")
     with open("share_description_base.md", "r") as file:
@@ -288,6 +298,7 @@ def register_space(directory: os.DirEntry) -> bool:
             "dataset_name": dataset_name,
             "institution_name": Settings.get().config["institutionName"],
             "share_file_id": share["rootFileId"],
+            "metadata_section": metadata_section
         }
         src = Template(file.read())
         result = src.substitute(to_substitute)
