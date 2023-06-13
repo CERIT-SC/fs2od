@@ -25,11 +25,15 @@ def createShare(name, file_id, description=""):
     return response.json()["shareId"]
 
 
-def getShare(share_id):
+def getShare(share_id) -> dict:
     Logger.log(4, "getShare(%s):" % share_id)
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_share
     url = "oneprovider/shares/" + share_id
     response = request.get(url)
+
+    if not response.ok:
+        return {}
+
     return response.json()
 
 
