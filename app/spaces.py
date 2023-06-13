@@ -2,6 +2,7 @@ import json
 import time
 import storages
 import filesystem
+import shares
 from settings import Settings
 from utils import Logger, Utils
 import request, tokens, files, metadata, dareg
@@ -383,9 +384,9 @@ def disableContinuousImport(space_id):
             startAutoStorageImport(space_id)
 
             for try_number in range(WAITING_FOR_AUTO_STORAGE_IMPORT_FINISH_TRIES):
-                Logger.log(5, "Waiting for auto storage import to finish started")
+                Logger.log(3, f"Waiting for auto storage import to finish started for space with id {space_id}")
                 if not is_storage_import_running(space_id):
-                    Logger.log(5, "Waiting for auto storage import to finish finished")
+                    Logger.log(3, f"Waiting for auto storage import to finish finished for space with id {space_id}")
                     break
 
                 Logger.log(5, f"Waiting for auto storage import try {try_number + 1}/"
