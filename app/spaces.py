@@ -403,6 +403,14 @@ def disableContinuousImport(space_id):
 
             set_space_posix_permissions_recursive(space_id, posix_mode_string)
 
+            # updating share id after edits
+            mount_point = get_space_mount_point(space_id)
+            share_description, used_share_id = shares.create_share_description(mount_point)
+            shares.updateShare(
+                shid=used_share_id,
+                description=share_description
+            )
+
             # Set metadata for the space
             if Settings.get().config["importMetadata"]:
                 metadata.setSpaceMetadataFromYaml(space_id)
