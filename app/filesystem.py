@@ -9,6 +9,7 @@ from utils import Logger
 import spaces
 import workflow
 import support
+import tempfile
 
 
 def scanWatchedDirectories(only_check: bool = False) -> None:
@@ -365,13 +366,7 @@ def setValueToYaml(file_path, yaml_dict, valueType, value):
 
         # open yaml file
         with open(file_path, "w") as f:
-            # store new yaml file
-            ryaml = ruamel.yaml.YAML()
-            ryaml.width = (
-                200  # count of characters on a line, if there is more chars, line is breaked
-            )
-            ryaml.indent(sequence=4, offset=2)
-            ryaml.dump(yaml_dict, f)
+            f.write(convert_dict_to_yaml(yaml_dict))
     else:
         Logger.log(1, "Metadata file %s doesn't exists." % file_path)
 
