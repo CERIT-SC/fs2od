@@ -25,7 +25,7 @@ def _process_denied_providers(space_id: str, yaml_file_path: str, directory: os.
     Logger.log(4, f"_process_denied_providers(space_id={space_id},yaml_path={yaml_file_path}):")
 
     yaml_dict = loadYaml(yaml_file_path)
-    denied_providers = get_token_from_yaml(yaml_dict, "deniedProviders", None)
+    denied_providers = get_token_from_yaml(yaml_dict, "deniedProviders", default_value=None, error_message_importance=4)
 
     if denied_providers is None:
         return True  # it is good it is not in file
@@ -52,7 +52,7 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
     yml_metadata = os.path.join(directory.path, Settings.get().FS2OD_METADATA_FILENAME)
     if os.path.exists(yml_metadata):
         yml_metadata_content = loadYaml(yml_metadata)
-        removing_time = get_token_from_yaml(yml_metadata_content, "removingTime")
+        removing_time = get_token_from_yaml(yml_metadata_content, "removingTime", error_message_importance=4)
 
         if removing_time == "removed":
             Logger.log(4, f"Not processing directory {directory.name} (support already revoked).")
