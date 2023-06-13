@@ -3,7 +3,6 @@ import os
 import sys
 import time
 from pprint import pprint
-from string import Template
 import actions_log
 import dareg
 import files
@@ -244,30 +243,10 @@ def register_space(directory: os.DirEntry) -> bool:
 
     time.sleep(3 * Settings.get().config["sleepFactor"])
 
-    actions_logger.log_pre("auto_storage_import", "")
-    # first import of files to Onedata space
-    status = spaces.startAutoStorageImport(space_id)
-    time.sleep(3 * Settings.get().config["sleepFactor"])
-    is_ok = actions_logger.log_post(status, only_check=True)
-    if not is_ok: return False
-
-    # set up permissions
     actions_logger.log_pre("file_id", "")
     file_id = spaces.get_space(space_id=space_id)["fileId"]
     is_ok = actions_logger.log_post(file_id, only_check=True)
     if not is_ok: return False
-
-    # actions_logger.log_pre("set_files_to_posix", "")
-    # success = files.setFileAttributeRecursive(
-    #     file_id=file_id,
-    #     posix_mode=Settings.get().config["initialPOSIXlikePermissions"]
-    # )
-    # is_ok = actions_logger.log_post(success, only_check=True)
-    # if not is_ok: return False
-
-    if Settings.get().USE_METADATA_FILE:
-        # chmod hack, no longer can change via API
-        filesystem.chmod_recursive(yml_metadata, Settings.get().config["initialPOSIXlikePermissions"])
 
     # create public share
     actions_logger.log_pre("share", dataset_name)
@@ -311,6 +290,27 @@ def register_space(directory: os.DirEntry) -> bool:
         response = metadata.setSpaceMetadataFromYaml(space_id)
     is_ok = actions_logger.log_post(response.ok, only_check=True)
     if not is_ok: return False
+
+    actions_logger.log_pre("auto_storage_import", "")
+    # first import of files to Onedata space
+    status = spaces.startAutoStorageImport(space_id)
+    time.sleep(3 * Settings.get().config["sleepFactor"])
+    is_ok = actions_logger.log_post(status, only_check=True)
+    if not is_ok: return False
+
+    # set up permissions
+
+    # actions_logger.log_pre("set_files_to_posix", "")
+    # success = files.setFileAttributeRecursive(
+    #     file_id=file_id,
+    #     posix_mode=Settings.get().config["initialPOSIXlikePermissions"]
+    # )
+    # is_ok = actions_logger.log_post(success, only_check=True)
+    # if not is_ok: return False
+
+    if Settings.get().USE_METADATA_FILE:
+        # chmod hack, no longer can change via API
+        filesystem.chmod_recursive(yml_metadata, Settings.get().config["initialPOSIXlikePermissions"])
 
     path = base_path + os.sep + directory.name
     Logger.log(3, "Processing of %s done." % path)
