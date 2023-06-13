@@ -302,7 +302,7 @@ def loadYaml(file_path: str) -> dict:
     return configuration
 
 
-def get_token_from_yaml(yaml_dict: dict, token: str, default_value: Any = None) -> Any:
+def get_token_from_yaml(yaml_dict: dict, token: str, default_value: Any = None, error_message_importance: int = 3) -> Any:
     """
     Return space_id from YAML file.
     or None when file doesn't contain it.
@@ -312,7 +312,7 @@ def get_token_from_yaml(yaml_dict: dict, token: str, default_value: Any = None) 
         if onedata_part:
             return onedata_part.get(Settings.get().config["metadataFileTags"][token], default_value)
 
-    Logger.log(3, "No onedata tag in YAML")
+    Logger.log(error_message_importance, f"No Onedata tag, nor token '{token}' in YAML")
     return None
 
 
