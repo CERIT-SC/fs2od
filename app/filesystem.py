@@ -15,11 +15,15 @@ import fnmatch
 def scan_watched_directories(only_check: bool = False) -> None:
     """
     Goes through each directory in config file, tests if exists and if so, scans for new datasets
+    If only_check is True, it just checks, if space exists, but does not create new when it does not
     """
     Logger.log(4, f"scanWatchedDirectories(only_check={only_check}):")
 
-    for directory in Settings.get().config["watchedDirectories"]:  # level of config file directory
-        _scanWatchedDirectory(directory, only_check)
+    for config_directory_entry in Settings.get().config["watchedDirectories"]:  # level of config file directory
+        directories_to_scan = traverse_through_directories_wrapper(config_directory_entry)
+
+        for directory in directories_to_scan:
+            _scanWatchedDirectory(directory, only_check)
 
 
 def traverse_through_directories_wrapper(regex_like_path: str) -> list:
