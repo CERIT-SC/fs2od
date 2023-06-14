@@ -11,7 +11,7 @@ import workflow
 import support
 
 
-def scanWatchedDirectories(only_check: bool = False) -> None:
+def scan_watched_directories(only_check: bool = False) -> None:
     """
     Goes through each directory in config file, tests if exists and if so, scans for new datasets
     """
