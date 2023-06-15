@@ -3,6 +3,14 @@
 watchedDirectories:
   - "/volumes/volume1/test"
   #- "/volumes/volumeX/test"
+  # directories regex - Unix shell-style wildcards (11.8 fnmatch — Unix filename pattern matching in The Python Library Reference 3.11.3)
+  # whole name regex
+  #- "/volumes/volumeX/*" # this goes to /volumes/volumeX and scans all its subdirectories
+  #- "/volumes/*/*" # this goes to /volumes and for all its subdirectories scans all subdirectories
+  #- "/*/volumes/volumeX/" # this covers all root's subdirectories, which have inside them pattern volumes/volumeX
+  # part of the name regex
+  #- "/volumes/volume*/test" # this goes to /volumes, in that finds any volume that satisfies regex volume*, and then has subdirectory test
+  #- "/volumes/volume*/*test*" # this goes to /volumes, finds any subdirectory with pattern volume[something] and its subdirectory [something]test[something]
 
 ## Metadata settings
 # Name of YAML files with metadata. Only if subdirectory contains one of specifed YAML files, it is proccesed by the application.
