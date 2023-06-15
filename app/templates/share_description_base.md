@@ -9,6 +9,19 @@ Basic dataset details:
 ## Usage
 You can browse through the content of the dataset in this web interface in the tab `Files`.
 
+
+[//]: # (## Metadata file)
+
+[//]: # (Here is the actual copy of metadata file:)
+
+[//]: # (```yaml)
+
+[//]: # (metadata: content)
+
+[//]: # (```)
+
+$metadata_section
+
 ## Download
 You can run following command to download whole content of the dataset:
 ```sh
@@ -25,17 +38,5 @@ or you can run the download script directly from the repository:
 ```sh
 curl -s https://raw.githubusercontent.com/CERIT-SC/onedata-downloader/master/download.py | python3 - $share_file_id
 ```
-
-[//]: # (## Metadata file)
-
-[//]: # (Here is the actual copy of metadata file:)
-
-[//]: # (```yaml)
-
-[//]: # (metadata: content)
-
-[//]: # (```)
-
-$metadata_section
 
 Data life cycle of this dataset is managed by fs2od (https://fs2od.readthedocs.io).
