@@ -24,7 +24,7 @@ def runScan(args):
     if args.no_metadata_usage:
         Settings.get().USE_METADATA_FILE = False
 
-    filesystem.scanWatchedDirectories()
+    filesystem.scan_watched_directories()
 
 
 def run_test_remove(args):
@@ -51,7 +51,7 @@ def runSandbox(args):
 
 
 def runCheck(args):
-    filesystem.scanWatchedDirectories(True)
+    filesystem.scan_watched_directories(True)
 
 
 def main():

@@ -9,17 +9,63 @@ from utils import Logger
 import spaces
 import workflow
 import support
+import fnmatch
 import tempfile
 
 
-def scanWatchedDirectories(only_check: bool = False) -> None:
+def scan_watched_directories(only_check: bool = False) -> None:
     """
     Goes through each directory in config file, tests if exists and if so, scans for new datasets
+    If only_check is True, it just checks, if space exists, but does not create new when it does not
     """
     Logger.log(4, f"scanWatchedDirectories(only_check={only_check}):")
 
-    for directory in Settings.get().config["watchedDirectories"]:  # level of config file directory
-        _scanWatchedDirectory(directory, only_check)
+    for config_directory_entry in Settings.get().config["watchedDirectories"]:  # level of config file directory
+        directories_to_scan = traverse_through_directories_wrapper(config_directory_entry)
+
+        for directory in directories_to_scan:
+            _scanWatchedDirectory(directory, only_check)
+
+
+def traverse_through_directories_wrapper(regex_like_path: str) -> list:
+    """
+    This function is only wrapper (helper function) for traverse_through_directories_wrapper().
+    It prepares path for this function
+    """
+    Logger.log(3, f"traverse_through_directories_wrapper(regex_like_path={regex_like_path})")
+    # do not want empty filenames
+    regex_like_path = regex_like_path.rstrip(os.sep)
+    # one special occasion, the root (/) itself
+    if not regex_like_path:
+        regex_like_path = os.sep
+
+    path_list = os.path.split(regex_like_path)
+
+    return traverse_through_directories(path_list)
+
+
+def traverse_through_directories(path_list: tuple) -> list:
+    """
+    Traverses through directories and returns directories (only directories) satisfying the pattern given in config file
+    If there is no directory which satisfies pattern, returns empty list
+    Warning: this function is recursive. For the folders depth higher than sys.getrecursionlimit()
+    it is needed to change recursion limit using sys.setrecursionlimit(new_limit)
+    """
+    Logger.log(5, f"traverse_through_directories(path_list={path_list})")
+    # os.sep representing root (/)
+    paths = [os.sep]
+    if path_list[0] != os.sep:
+        paths = traverse_through_directories(os.path.split(path_list[0]))
+
+    new_paths = []
+    for path in paths:
+        regex_name = path_list[1]
+
+        for dirent in os.scandir(path):
+            if fnmatch.fnmatch(dirent.name, regex_name) and os.path.isdir(dirent.path):
+                new_paths.append(dirent.path)
+
+    return new_paths
 
 
 def _process_denied_providers(space_id: str, yaml_file_path: str, directory: os.DirEntry) -> bool:
