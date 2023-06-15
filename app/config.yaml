@@ -31,6 +31,9 @@ datasetPrefix: ""
 # Import attributes from metadata files to metadata stored by a Space in Onedata
 importMetadata: False
 
+# If enabled, parses metadata read from metadata (yaml) file to share. Renewed everytime when continuous import disabled
+parseMetadataToShare: False
+
 ## Output detail level
 # 0 - silent mode - nothing printed
 # 1 - error

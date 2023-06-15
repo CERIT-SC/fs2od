@@ -9,6 +9,7 @@ from utils import Logger
 import spaces
 import workflow
 import support
+import tempfile
 
 
 def scanWatchedDirectories(only_check: bool = False) -> None:
@@ -25,7 +26,7 @@ def _process_denied_providers(space_id: str, yaml_file_path: str, directory: os.
     Logger.log(4, f"_process_denied_providers(space_id={space_id},yaml_path={yaml_file_path}):")
 
     yaml_dict = loadYaml(yaml_file_path)
-    denied_providers = get_token_from_yaml(yaml_dict, "deniedProviders", None)
+    denied_providers = get_token_from_yaml(yaml_dict, "deniedProviders", default_value=None, error_message_importance=4)
 
     if denied_providers is None:
         return True  # it is good it is not in file
@@ -52,7 +53,7 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
     yml_metadata = os.path.join(directory.path, Settings.get().FS2OD_METADATA_FILENAME)
     if os.path.exists(yml_metadata):
         yml_metadata_content = loadYaml(yml_metadata)
-        removing_time = get_token_from_yaml(yml_metadata_content, "removingTime")
+        removing_time = get_token_from_yaml(yml_metadata_content, "removingTime", error_message_importance=4)
 
         if removing_time == "removed":
             Logger.log(4, f"Not processing directory {directory.name} (support already revoked).")
@@ -242,31 +243,64 @@ def create_file(file_path: str) -> bool:
     return True
 
 
+def load_file_contents(file_path: str, binary_mode: bool = False) -> Union[bytes, list]:
+    """
+    Reads contents of a file and returns it in desired form
+    If binary_mode is False, it reads in textual mode (mode_char + t) and returns list of lines
+    If binary_mode is True, it reads it in binary mode (mode_char + b) and returns all bytes
+    If there is an error with opened file, function returns empty type (type based on previous description)
+    """
+    Logger.log(4, f"load_file_contents(path={file_path})")
+    if not os.path.exists(file_path):
+        Logger.log(1, f"File {file_path} doesn't exists.")
+        return b""
+
+    if not binary_mode:
+        data = []
+    else:
+        data = b""
+
+    try:
+        if not binary_mode:
+            opened_file = open(file_path, "r", encoding="UTF-8")
+            data = opened_file.readlines()
+        else:
+            opened_file = open(file_path, "rb")
+            # should return as much as possible (The Python Library Reference, Release 3.11.3, Chapter 7.2.)
+            data = opened_file.read()
+    except OSError as e:
+        Logger.log(1, f"File {file_path} cannot be opened to read. Error: {e}.")
+        return data
+    except Exception as e:
+        Logger.log(1, f"File {file_path} cannot be opened to read. Error: {e}.")
+        return data
+    else:
+        opened_file.close()
+
+    return data
+
+
 def loadYaml(file_path: str) -> dict:
     """
     Loads yaml file from file_path and returns it in form of dictionary.
     If file does not exist or cannot be loaded, returns empty dict.
     """
-    if not os.path.exists(file_path):
-        Logger.log(1, "File %s doesn't exists." % file_path)
-        return dict()
+    stream = load_file_contents(file_path, binary_mode=True)
 
-    with open(file_path, "r") as stream:
-        # configuration = yaml.safe_load(stream) # pyyaml
-        yaml = ruamel.yaml.YAML(typ="safe")
-        configuration = yaml.load(stream)
-        # if load empty file
-        if not configuration:
-            configuration = dict()
+    yaml = ruamel.yaml.YAML(typ="safe")
+    configuration = yaml.load(stream)
+    # if load empty file
+    if not configuration:
+        configuration = dict()
 
-        Logger.log(5, "Configuration:", pretty_print=configuration)
+    Logger.log(5, "Configuration:", pretty_print=configuration)
 
     return configuration
 
 
-def get_token_from_yaml(yaml_dict: dict, token: str, default_value: Any = None) -> Any:
+def get_token_from_yaml(yaml_dict: dict, token: str, default_value: Any = None, error_message_importance: int = 3) -> Any:
     """
-    Return space_id from YAML file.
+    Return given token from YAML file.
     or None when file doesn't contain it.
     """
     if yaml_dict:
@@ -274,8 +308,33 @@ def get_token_from_yaml(yaml_dict: dict, token: str, default_value: Any = None) 
         if onedata_part:
             return onedata_part.get(Settings.get().config["metadataFileTags"][token], default_value)
 
-    Logger.log(3, "No onedata tag in YAML")
+    Logger.log(error_message_importance, f"No Onedata tag, nor token '{token}' in YAML")
     return None
+
+
+def convert_dict_to_yaml(dictionary: dict) -> str:
+    """
+    Converts dictionary object to YAML fs2od-compatible string
+    On error returns empty string
+    """
+    Logger.log(4, f"convert_dict_to_yaml()")
+    # store new yaml file
+    ryaml = ruamel.yaml.YAML()
+    ryaml.width = (
+        200  # count of characters on a line, if there is more chars, line is broken
+    )
+    ryaml.indent(sequence=4, offset=2)
+    with tempfile.TemporaryFile("w+", encoding="UTF-8") as temp_file:
+        # this function behaves the best when writing right to file
+        ryaml.dump(dictionary, temp_file)
+        # must be sure that changes are written to temporary file
+        temp_file.flush()
+        # now, pointer to file is on position after last written character, must set it to first position in file
+        temp_file.seek(0)
+        # now we are reading what we have written
+        yaml_string = temp_file.read()
+
+    return yaml_string
 
 
 def setValueToYaml(file_path, yaml_dict, valueType, value):
@@ -311,20 +370,14 @@ def setValueToYaml(file_path, yaml_dict, valueType, value):
 
         # open yaml file
         with open(file_path, "w") as f:
-            # store new yaml file
-            ryaml = ruamel.yaml.YAML()
-            ryaml.width = (
-                200  # count of characters on a line, if there is more chars, line is breaked
-            )
-            ryaml.indent(sequence=4, offset=2)
-            ryaml.dump(yaml_dict, f)
+            f.write(convert_dict_to_yaml(yaml_dict))
     else:
         Logger.log(1, "Metadata file %s doesn't exists." % file_path)
 
 
 def set_values_to_yaml(file_path: str, yaml_dict: dict, new_values_dict: dict) -> bool:
     """
-    Set values to onedata tag in yaml.
+    Set values to Onedata tag in yaml.
     Returns True if successful, otherwise False.
     Possible errors: metadata file does not exist, cannot write to metadata file, unexpected error
     """
@@ -399,3 +452,23 @@ def chmod_recursive(path: Union[os.DirEntry, str], mode: int) -> bool:
     Logger.log(5, f"Mode for path {path} was changed to {oct(mode)}")
 
     return True
+
+
+def get_dir_entry_of_directory(path: str) -> Union[os.DirEntry, None]:
+    """
+    This function converts path string to os.DirEntry value
+    Warning: if parent directory is not readable, it has undefined behavior
+    On success returns DirEntry object, otherwise None
+    """
+    if not os.path.isdir(os.path.join(path, "..")):
+        return None
+
+    path = path.rstrip("/")
+    directory_name = os.path.basename(path)
+
+    for dir_entry in os.scandir(os.path.join(path, "..")):
+        if dir_entry.name == directory_name:
+            return dir_entry
+
+    return None
+
