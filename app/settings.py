@@ -322,6 +322,7 @@ class Settings:
         self._test_existence(self.config, "institutionName")
         self._test_existence(self.config, "datasetPrefix", "")
         self._test_existence(self.config, "importMetadata", True)
+        self._test_existence(self.config, "parseMetadataToShare", False)
 
         self._test_existence(self.config, "verboseLevel", 3)
         self._test_existence(self.config, "testMode", False)
