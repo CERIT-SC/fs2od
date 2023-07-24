@@ -6,7 +6,7 @@ from pprint import pprint
 from urllib.parse import urlparse
 
 from settings import Settings
-from typing import List, Union
+from typing import List, Union, Tuple
 
 
 def _convert_to_urlparse_result(url: str) -> Union[urllib.parse.ParseResult, bool]:
