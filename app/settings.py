@@ -311,6 +311,7 @@ class Settings:
 
         self._test_existence(self.config, "metadataFileTags", dict())
         self._test_existence(self.config["metadataFileTags"], "onedata", "Onedata")
+        self._test_existence(self.config["metadataFileTags"], "onezone", "Onezone")
         self._test_existence(self.config["metadataFileTags"], "space", "Space")
         self._test_existence(self.config["metadataFileTags"], "publicURL", "PublicURL")
         self._test_existence(self.config["metadataFileTags"], "inviteToken", "InviteToken")
