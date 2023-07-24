@@ -117,7 +117,7 @@ def create_share_description(directory: Union[os.DirEntry, str], ignore_config_p
     if not yaml_file:
         return "", ""
 
-    yaml_contents = filesystem.loadYaml(yaml_file)
+    yaml_contents = filesystem.load_yaml(yaml_file)
     if not yaml_contents:
         return "", ""
 

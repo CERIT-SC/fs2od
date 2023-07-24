@@ -2,10 +2,10 @@ import datetime
 import shutil
 import os
 import time
-from typing import Any, Union
+from typing import Any, Union, Optional, Tuple
 import ruamel.yaml
 from settings import Settings
-from utils import Logger
+from utils import Logger, Utils
 import spaces
 import workflow
 import support
@@ -71,7 +71,7 @@ def traverse_through_directories(path_list: tuple) -> list:
 def _process_denied_providers(space_id: str, yaml_file_path: str, directory: os.DirEntry) -> bool:
     Logger.log(4, f"_process_denied_providers(space_id={space_id},yaml_path={yaml_file_path}):")
 
-    yaml_dict = loadYaml(yaml_file_path)
+    yaml_dict = load_yaml(yaml_file_path)
     denied_providers = get_token_from_yaml(yaml_dict, "deniedProviders", default_value=None, error_message_importance=4)
 
     if denied_providers is None:
@@ -98,15 +98,14 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
 
     yml_metadata = os.path.join(directory.path, Settings.get().FS2OD_METADATA_FILENAME)
     if os.path.exists(yml_metadata):
-        yml_metadata_content = loadYaml(yml_metadata)
+        yml_metadata_content = load_yaml(yml_metadata)
         removing_time = get_token_from_yaml(yml_metadata_content, "removingTime", error_message_importance=4)
 
         if removing_time == "removed":
             Logger.log(4, f"Not processing directory {directory.name} (support already revoked).")
             return False
 
-    yml_content = loadYaml(yml_file)
-    space_id = yamlContainsSpaceId(yml_content)
+    yml_content = load_yaml(yml_file)
 
     # test if yaml contains space_id, if no, create new space
     if not space_id:
@@ -122,7 +121,7 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
             return False
 
         # after creating space, asking for information one more time
-        yml_content = loadYaml(yml_file)
+        yml_content = load_yaml(yml_file)
         space_id = yamlContainsSpaceId(yml_content)
 
     if not spaces.space_exists(space_id):
@@ -147,7 +146,7 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
         Logger.log(4, f"Not checking for removal of {directory.name} (not contains metadata file).")
         return False
 
-    yaml_dict = loadYaml(yml_metadata)
+    yaml_dict = load_yaml(yml_metadata)
     if not yaml_dict:
         Logger.log(4, f"Metadata file for space with ID {space_id} and path {directory.path} is empty. "
                       f"Not processing further")
@@ -155,7 +154,7 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
 
     _process_denied_providers(space_id, yml_metadata, directory)
 
-    yaml_dict = loadYaml(yml_metadata)
+    yaml_dict = load_yaml(yml_metadata)
     setValueToYaml(
         file_path=yml_metadata,
         yaml_dict=yaml_dict,
@@ -234,7 +233,7 @@ def setup_continuous_import(directory: os.DirEntry):
         Logger.log(4, f"YML file in {directory.path} does not exist")
         return
 
-    yml_content = loadYaml(yml_file)
+    yml_content = load_yaml(yml_file)
     # test if yaml contains space_id
     space_id = yamlContainsSpaceId(yml_content)
     if not space_id:
@@ -326,16 +325,27 @@ def load_file_contents(file_path: str, binary_mode: bool = False) -> Union[bytes
     return data
 
 
-def loadYaml(file_path: str) -> dict:
+def load_yaml(file_path: str) -> Optional[dict]:
     """
-    Loads yaml file from file_path and returns it in form of dictionary.
-    If file does not exist or cannot be loaded, returns empty dict.
+    Loads a yaml file from file_path and returns it in a form of dictionary.
+    If the file does not exist or cannot be loaded, returns an empty dict.
+    If the file is not in the correct YAML format, returns None.
     """
+    Logger.log(4, f"load_yaml(path={file_path})")
     stream = load_file_contents(file_path, binary_mode=True)
 
+    # there is no need for log, log is done in load_file_contents() function
+    if stream is None:
+        return None
+
     yaml = ruamel.yaml.YAML(typ="safe")
-    configuration = yaml.load(stream)
-    # if load empty file
+    try:
+        configuration = yaml.load(stream)
+    except Exception as e:
+        Logger.log(2, f"File with path {file_path} is not in valid YAML format. Error: {e}")
+        return None
+
+    # if an empty file was loaded
     if not configuration:
         configuration = dict()
 
