@@ -288,6 +288,25 @@ def create_file(file_path: str) -> bool:
     return True
 
 
+def append_to_file(file_path: str, line: str) -> bool:
+    """
+    Tries to append to file with a specified by filename.
+    Returns True when line was appended to file otherwise False
+    Possible error: insufficient rights
+    """
+    Logger.log(4, f"append_to_file(path={file_path},line={line})")
+    try:
+        f = open(file_path, "a")
+    except OSError as e:
+        Logger.log(1, f"File {file_path} could not be opened for append. Error: {e}")
+        return False
+
+    f.write(line)
+    f.close()
+
+    return True
+
+
 def load_file_contents(file_path: str, binary_mode: bool = False) -> Union[bytes, list, None]:
     """
     Reads contents of a file and returns it in desired form
