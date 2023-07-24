@@ -288,22 +288,18 @@ def create_file(file_path: str) -> bool:
     return True
 
 
-def load_file_contents(file_path: str, binary_mode: bool = False) -> Union[bytes, list]:
+def load_file_contents(file_path: str, binary_mode: bool = False) -> Union[bytes, list, None]:
     """
     Reads contents of a file and returns it in desired form
     If binary_mode is False, it reads in textual mode (mode_char + t) and returns list of lines
     If binary_mode is True, it reads it in binary mode (mode_char + b) and returns all bytes
-    If there is an error with opened file, function returns empty type (type based on previous description)
+    If there is an error with opened file, function returns None
     """
     Logger.log(4, f"load_file_contents(path={file_path})")
-    if not os.path.exists(file_path):
-        Logger.log(1, f"File {file_path} doesn't exists.")
-        return b""
 
-    if not binary_mode:
-        data = []
-    else:
-        data = b""
+    if not os.path.exists(file_path):
+        Logger.log(1, f"File {file_path} doesn't exist.")
+        return None
 
     try:
         if not binary_mode:
@@ -313,12 +309,9 @@ def load_file_contents(file_path: str, binary_mode: bool = False) -> Union[bytes
             opened_file = open(file_path, "rb")
             # should return as much as possible (The Python Library Reference, Release 3.11.3, Chapter 7.2.)
             data = opened_file.read()
-    except OSError as e:
+    except (OSError, Exception) as e:
         Logger.log(1, f"File {file_path} cannot be opened to read. Error: {e}.")
-        return data
-    except Exception as e:
-        Logger.log(1, f"File {file_path} cannot be opened to read. Error: {e}.")
-        return data
+        return None
     else:
         opened_file.close()
 
