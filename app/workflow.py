@@ -219,6 +219,7 @@ def register_space(directory: os.DirEntry) -> bool:
     actions_logger.log_pre("information", yml_file)
     # write onedata parameters (space_id, invite_token) to file
     yaml_onedata_dict = dict()
+    yaml_onedata_dict[Settings.get().config["metadataFileTags"]["onezone"]] = Settings.get().ONEZONE_HOST
     yaml_onedata_dict[Settings.get().config["metadataFileTags"]["space"]] = space_id
     yaml_onedata_dict[Settings.get().config["metadataFileTags"]["inviteToken"]] = token["token"]
     status = filesystem.set_values_to_yaml(yml_file, yml_content, yaml_onedata_dict)
