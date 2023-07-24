@@ -337,6 +337,32 @@ def load_file_contents(file_path: str, binary_mode: bool = False) -> Union[bytes
     return data
 
 
+def append_to_file_if_pattern_does_not_exist(file_path: str, user_friendly_pattern: str,
+                                             replacement: Tuple[str, ...], with_newline: bool = True) -> bool:
+    Logger.log(3, f"append_to_file_if_pattern_does_not_exist(path={file_path},pattern={user_friendly_pattern})")
+    contents = load_file_contents(file_path)
+
+    text_to_append = user_friendly_pattern.replace("%sss", "%s").replace("%ss", "%s")
+    text_to_append, *_ = Utils.replace_regex_caret_dollar(text_to_append)
+    for replaced_word in replacement:
+        text_to_append = text_to_append.replace("%s", replaced_word, 1)  # only one for each %s
+    text_to_append_print = text_to_append
+    if with_newline:
+        text_to_append += "\n"
+
+    if contents is None:
+        Logger.log(2, f"Text '{text_to_append_print}' could not be appended to file {file_path}; file cannot be opened")
+        return False
+
+    regex_pattern = Utils.user_friendly_pattern_to_regex_pattern(user_friendly_pattern)
+    if Utils.does_pattern_exist_in_text(regex_pattern, "\n".join(contents), end=True):
+        Logger.log(3, f"Text '{text_to_append_print}' needn't be appended to file {file_path}; already in file")
+        return True
+
+    Logger.log(4, f"Text '{text_to_append_print}' appended to file {file_path}")
+    return append_to_file(file_path, text_to_append)
+
+
 def load_yaml(file_path: str) -> Optional[dict]:
     """
     Loads a yaml file from file_path and returns it in a form of dictionary.
