@@ -107,6 +107,16 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
 
     yml_content = load_yaml(yml_file)
 
+    if yml_content is None:
+        time_now = datetime.datetime.now()
+        append_to_file_if_pattern_does_not_exist(
+            yml_file, "^# %s.%s.%s %s:%s - This metadata file was checked by fs2od and found to be invalid$",
+            (str(time_now.day), str(time_now.month), str(time_now.year), str(time_now.hour), str(time_now.minute)))
+        Logger.log(3, f"YAML file {yml_file} in {directory.name} is not in a right format, skipping")
+
+        return False
+
+    space_id = yamlContainsSpaceId(yml_content)
     # test if yaml contains space_id, if no, create new space
     if not space_id:
         if only_check:
@@ -125,7 +135,7 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
         space_id = yamlContainsSpaceId(yml_content)
 
     if not spaces.space_exists(space_id):
-        Logger.log(3, "SpaceID for %s found in yaml file, but does not exist anymore." % directory.name)
+        Logger.log(3, f"SpaceID for {directory.name} found in yaml file, but does not exist anymore.")
         return False
 
     Logger.log(4, f"Space in {directory.name} with ID {space_id} exists, setting up continuous file import")
