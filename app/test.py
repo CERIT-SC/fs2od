@@ -238,7 +238,7 @@ def get_requested_instances(arguments: Arguments) -> List[tuple]:
 
 def print_instances(instances: List[tuple]) -> None:
     if len(instances) == 0:
-        print("No instances to delete")
+        print("No instances matching rules found")
         exit(0)
 
     spaces_count = 0
