@@ -85,7 +85,7 @@ def register_space(directory: os.DirEntry) -> bool:
         Logger.log(4, "Space for %s not created (not contains yaml or no dir)." % directory.name)
         return False
 
-    yml_content = filesystem.loadYaml(yml_file)
+    yml_content = filesystem.load_yaml(yml_file)
 
     # test if yaml contains space_id
     if filesystem.yamlContainsSpaceId(yml_content):

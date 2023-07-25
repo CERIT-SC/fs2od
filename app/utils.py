@@ -6,7 +6,7 @@ from pprint import pprint
 from urllib.parse import urlparse
 
 from settings import Settings
-from typing import List, Union
+from typing import List, Union, Tuple
 
 
 def _convert_to_urlparse_result(url: str) -> Union[urllib.parse.ParseResult, bool]:
@@ -134,6 +134,80 @@ class Utils:
         url2_object = _convert_to_urlparse_result(url_2)
 
         return url1_object.netloc == url2_object.netloc
+
+    @staticmethod
+    def implies(hypothesis: bool, conclusion: bool) -> bool:
+        if hypothesis:
+            return conclusion
+
+        return True
+
+    @staticmethod
+    def replace_regex_caret_dollar(pattern: str) -> Tuple[str, bool, bool]:
+        """
+        Replaces one trailing caret and one trailing dollar if existent.
+        Returns newly created pattern, and two booleans, if caret and dollar were replaced, respectively
+        """
+        caret = False
+        if pattern.startswith("^"):
+            caret = True
+            pattern = pattern[1:]
+        dollar = False
+        if pattern.endswith("$"):
+            dollar = True
+            pattern = pattern[:-1]
+
+        return pattern, caret, dollar
+
+    @staticmethod
+    def user_friendly_pattern_to_regex_pattern(pattern: str) -> str:
+        """
+        Converts a user-friendly pattern to regular expressions pattern
+        User-friendly pattern may contain these special symbols:
+        ^ - line beginning
+        $ - line end
+        %s - any group of characters - at least one
+        %ss - any group of characters - zero or more
+        %sss - exactly one, any, character
+        """
+        # preparing
+        pattern, caret, dollar = Utils.replace_regex_caret_dollar(pattern)
+
+        # escaping possible unwanted regex characters
+        pattern = re.escape(pattern)
+
+        # reassembly
+        if caret:
+            pattern = "^" + pattern
+        if dollar:
+            pattern = pattern + "$"
+        pattern = pattern.replace("%sss", ".")
+        pattern = pattern.replace("%ss", ".*")
+        pattern = pattern.replace("%s", ".+")
+
+        return pattern
+
+    @staticmethod
+    def does_pattern_exist_in_text(regex_pattern: str, text: str, ignore_whitespaces: bool = True,
+                                   beginning: bool = False, end: bool = False):
+        """
+        Checks if a regex pattern exists in given text.
+        If beginning is True, returns True only if match starts on the first character
+        If end is True, returns True only if match ends on the last character
+        If ignore_whitespace is True, it will ignore whitespaces at the beginning and the end of the text
+        """
+        if ignore_whitespaces:
+            text = text.strip()
+
+        matches = list(re.finditer(regex_pattern, text, re.MULTILINE))
+        if not matches:
+            return False
+
+        # if previous True, the output depends on match check, if False, we does not need the result of the check
+        beginning = Utils.implies(beginning, matches[0].start() == 0)
+        end = Utils.implies(end, matches[-1].end() == len(text))
+
+        return beginning and end
 
 
 class Logger:

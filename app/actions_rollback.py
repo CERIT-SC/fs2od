@@ -220,7 +220,7 @@ def action_information(file_name: str, status: str) -> bool:
         Logger.log(1, f"rollback - no file name was provided")
         return False
 
-    data_dictionary = filesystem.loadYaml(file_name)
+    data_dictionary = filesystem.load_yaml(file_name)
     if not data_dictionary:
         Logger.log(3, "rollback - file does not exist on filesystem or file is empty, everything is OK")
         return True

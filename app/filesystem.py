@@ -2,10 +2,10 @@ import datetime
 import shutil
 import os
 import time
-from typing import Any, Union
+from typing import Any, Union, Optional, Tuple
 import ruamel.yaml
 from settings import Settings
-from utils import Logger
+from utils import Logger, Utils
 import spaces
 import workflow
 import support
@@ -71,7 +71,7 @@ def traverse_through_directories(path_list: tuple) -> list:
 def _process_denied_providers(space_id: str, yaml_file_path: str, directory: os.DirEntry) -> bool:
     Logger.log(4, f"_process_denied_providers(space_id={space_id},yaml_path={yaml_file_path}):")
 
-    yaml_dict = loadYaml(yaml_file_path)
+    yaml_dict = load_yaml(yaml_file_path)
     denied_providers = get_token_from_yaml(yaml_dict, "deniedProviders", default_value=None, error_message_importance=4)
 
     if denied_providers is None:
@@ -98,16 +98,25 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
 
     yml_metadata = os.path.join(directory.path, Settings.get().FS2OD_METADATA_FILENAME)
     if os.path.exists(yml_metadata):
-        yml_metadata_content = loadYaml(yml_metadata)
+        yml_metadata_content = load_yaml(yml_metadata)
         removing_time = get_token_from_yaml(yml_metadata_content, "removingTime", error_message_importance=4)
 
         if removing_time == "removed":
             Logger.log(4, f"Not processing directory {directory.name} (support already revoked).")
             return False
 
-    yml_content = loadYaml(yml_file)
-    space_id = yamlContainsSpaceId(yml_content)
+    yml_content = load_yaml(yml_file)
 
+    if yml_content is None:
+        time_now = datetime.datetime.now()
+        append_to_file_if_pattern_does_not_exist(
+            yml_file, "^# %s.%s.%s %s:%s - This metadata file was checked by fs2od and found to be invalid$",
+            (str(time_now.day), str(time_now.month), str(time_now.year), str(time_now.hour), str(time_now.minute)))
+        Logger.log(3, f"YAML file {yml_file} in {directory.name} is not in a right format, skipping")
+
+        return False
+
+    space_id = yamlContainsSpaceId(yml_content)
     # test if yaml contains space_id, if no, create new space
     if not space_id:
         if only_check:
@@ -122,11 +131,11 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
             return False
 
         # after creating space, asking for information one more time
-        yml_content = loadYaml(yml_file)
+        yml_content = load_yaml(yml_file)
         space_id = yamlContainsSpaceId(yml_content)
 
     if not spaces.space_exists(space_id):
-        Logger.log(3, "SpaceID for %s found in yaml file, but does not exist anymore." % directory.name)
+        Logger.log(3, f"SpaceID for {directory.name} found in yaml file, but does not exist anymore.")
         return False
 
     Logger.log(4, f"Space in {directory.name} with ID {space_id} exists, setting up continuous file import")
@@ -147,7 +156,7 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
         Logger.log(4, f"Not checking for removal of {directory.name} (not contains metadata file).")
         return False
 
-    yaml_dict = loadYaml(yml_metadata)
+    yaml_dict = load_yaml(yml_metadata)
     if not yaml_dict:
         Logger.log(4, f"Metadata file for space with ID {space_id} and path {directory.path} is empty. "
                       f"Not processing further")
@@ -155,7 +164,7 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
 
     _process_denied_providers(space_id, yml_metadata, directory)
 
-    yaml_dict = loadYaml(yml_metadata)
+    yaml_dict = load_yaml(yml_metadata)
     setValueToYaml(
         file_path=yml_metadata,
         yaml_dict=yaml_dict,
@@ -234,7 +243,7 @@ def setup_continuous_import(directory: os.DirEntry):
         Logger.log(4, f"YML file in {directory.path} does not exist")
         return
 
-    yml_content = loadYaml(yml_file)
+    yml_content = load_yaml(yml_file)
     # test if yaml contains space_id
     space_id = yamlContainsSpaceId(yml_content)
     if not space_id:
@@ -289,22 +298,37 @@ def create_file(file_path: str) -> bool:
     return True
 
 
-def load_file_contents(file_path: str, binary_mode: bool = False) -> Union[bytes, list]:
+def append_to_file(file_path: str, line: str) -> bool:
+    """
+    Tries to append to file with a specified by filename.
+    Returns True when line was appended to file otherwise False
+    Possible error: insufficient rights
+    """
+    Logger.log(4, f"append_to_file(path={file_path},line={line})")
+    try:
+        f = open(file_path, "a")
+    except OSError as e:
+        Logger.log(1, f"File {file_path} could not be opened for append. Error: {e}")
+        return False
+
+    f.write(line)
+    f.close()
+
+    return True
+
+
+def load_file_contents(file_path: str, binary_mode: bool = False) -> Union[bytes, list, None]:
     """
     Reads contents of a file and returns it in desired form
     If binary_mode is False, it reads in textual mode (mode_char + t) and returns list of lines
     If binary_mode is True, it reads it in binary mode (mode_char + b) and returns all bytes
-    If there is an error with opened file, function returns empty type (type based on previous description)
+    If there is an error with opened file, function returns None
     """
     Logger.log(4, f"load_file_contents(path={file_path})")
-    if not os.path.exists(file_path):
-        Logger.log(1, f"File {file_path} doesn't exists.")
-        return b""
 
-    if not binary_mode:
-        data = []
-    else:
-        data = b""
+    if not os.path.exists(file_path):
+        Logger.log(1, f"File {file_path} doesn't exist.")
+        return None
 
     try:
         if not binary_mode:
@@ -314,28 +338,62 @@ def load_file_contents(file_path: str, binary_mode: bool = False) -> Union[bytes
             opened_file = open(file_path, "rb")
             # should return as much as possible (The Python Library Reference, Release 3.11.3, Chapter 7.2.)
             data = opened_file.read()
-    except OSError as e:
+    except (OSError, Exception) as e:
         Logger.log(1, f"File {file_path} cannot be opened to read. Error: {e}.")
-        return data
-    except Exception as e:
-        Logger.log(1, f"File {file_path} cannot be opened to read. Error: {e}.")
-        return data
+        return None
     else:
         opened_file.close()
 
     return data
 
 
-def loadYaml(file_path: str) -> dict:
+def append_to_file_if_pattern_does_not_exist(file_path: str, user_friendly_pattern: str,
+                                             replacement: Tuple[str, ...], with_newline: bool = True) -> bool:
+    Logger.log(3, f"append_to_file_if_pattern_does_not_exist(path={file_path},pattern={user_friendly_pattern})")
+    contents = load_file_contents(file_path)
+
+    text_to_append = user_friendly_pattern.replace("%sss", "%s").replace("%ss", "%s")
+    text_to_append, *_ = Utils.replace_regex_caret_dollar(text_to_append)
+    for replaced_word in replacement:
+        text_to_append = text_to_append.replace("%s", replaced_word, 1)  # only one for each %s
+    text_to_append_print = text_to_append
+    if with_newline:
+        text_to_append += "\n"
+
+    if contents is None:
+        Logger.log(2, f"Text '{text_to_append_print}' could not be appended to file {file_path}; file cannot be opened")
+        return False
+
+    regex_pattern = Utils.user_friendly_pattern_to_regex_pattern(user_friendly_pattern)
+    if Utils.does_pattern_exist_in_text(regex_pattern, "\n".join(contents), end=True):
+        Logger.log(3, f"Text '{text_to_append_print}' needn't be appended to file {file_path}; already in file")
+        return True
+
+    Logger.log(4, f"Text '{text_to_append_print}' appended to file {file_path}")
+    return append_to_file(file_path, text_to_append)
+
+
+def load_yaml(file_path: str) -> Optional[dict]:
     """
-    Loads yaml file from file_path and returns it in form of dictionary.
-    If file does not exist or cannot be loaded, returns empty dict.
+    Loads a yaml file from file_path and returns it in a form of dictionary.
+    If the file does not exist or cannot be loaded, returns an empty dict.
+    If the file is not in the correct YAML format, returns None.
     """
+    Logger.log(4, f"load_yaml(path={file_path})")
     stream = load_file_contents(file_path, binary_mode=True)
 
+    # there is no need for log, log is done in load_file_contents() function
+    if stream is None:
+        return None
+
     yaml = ruamel.yaml.YAML(typ="safe")
-    configuration = yaml.load(stream)
-    # if load empty file
+    try:
+        configuration = yaml.load(stream)
+    except Exception as e:
+        Logger.log(2, f"File with path {file_path} is not in valid YAML format. Error: {e}")
+        return None
+
+    # if an empty file was loaded
     if not configuration:
         configuration = dict()
 

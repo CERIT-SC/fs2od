@@ -128,7 +128,7 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
     yaml_metadata = os.path.join(directory.path, Settings.get().FS2OD_METADATA_FILENAME)
     config_file_name = os.path.basename(yaml_metadata)
 
-    yaml_metadata_dict = filesystem.loadYaml(yaml_metadata)
+    yaml_metadata_dict = filesystem.load_yaml(yaml_metadata)
 
     if not yaml_metadata_dict:
         Logger.log(4, f"Not removing space in {directory.path} with id {space_id} (not contains metadata file).")
@@ -327,7 +327,7 @@ def remove_support_primary(space_id: str, yaml_file_path: str, directory: os.Dir
     time_now = datetime.datetime.now()
     email_sent = False
 
-    yaml_dict = filesystem.loadYaml(yaml_file_path)
+    yaml_dict = filesystem.load_yaml(yaml_file_path)
     last_program_run_time = filesystem.get_token_from_yaml(yaml_dict, "lastProgramRun", None)
 
     if not last_program_run_time:
