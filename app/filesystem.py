@@ -146,7 +146,7 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
     if Settings.get().config["continousFileImport"]["enabled"]:
         _auto_set_continuous_import(space_id, directory)
     else:
-        spaces.disableContinuousImport(space_id)
+        spaces.disableContinuousImport(space_id, directory)
 
     if not Settings.get().USE_METADATA_FILE:
         # not using metadata file so can skip next lines
@@ -227,7 +227,7 @@ def _auto_set_continuous_import(space_id: str, directory: os.DirEntry):
     if os.path.isfile(running_file):
         spaces.enableContinuousImport(space_id)
     else:
-        spaces.disableContinuousImport(space_id)
+        spaces.disableContinuousImport(space_id, directory)
 
 
 def setup_continuous_import(directory: os.DirEntry):

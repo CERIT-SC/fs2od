@@ -384,7 +384,7 @@ def enableContinuousImport(space_id):
             startAutoStorageImport(space_id)
 
 
-def disableContinuousImport(space_id):
+def disableContinuousImport(space_id: str, directory: os.DirEntry):
     Logger.log(4, "disableContinuousImport(%s):" % space_id)
     if getContinuousImportStatus(space_id):
         result = setContinuousImport(space_id, False)
