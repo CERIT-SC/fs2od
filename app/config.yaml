@@ -23,7 +23,13 @@ metadataFileTags:
   removingTime: RemovingTime
   lastProgramRun: LastProgramRun
 
-fs2odMetadataFilename: ".fs2od"
+# separate fs2od metadata file
+fs2odMetadataFile:
+  enabled: False
+  filename: ".fs2od"
+  # if True, access info is stored to this file; if False, access info is stored to Original metadata file
+  storeAccessInfo: True
+
 
 # Name of institution importing datasets to Onedata
 institutionName: MUNI ICS

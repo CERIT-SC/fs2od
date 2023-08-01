@@ -161,9 +161,11 @@ class Settings:
 
         self.MESSAGING: Messaging = Messaging.create(self.config)
 
-        self.FS2OD_METADATA_FILENAME = self.config["fs2odMetadataFilename"]
-
-        self.USE_METADATA_FILE = True
+        self.USE_SEPARATE_METADATA_FILE: bool = self.config["fs2odMetadataFile"]["enabled"]
+        self.SEPARATE_METADATA_FILENAME: str = self.config["fs2odMetadataFile"]["filename"]
+        self.SEPARATE_METADATA_STORE_ACCESS: bool = self.config["fs2odMetadataFile"]["storeAccessInfo"]
+        if not self.USE_SEPARATE_METADATA_FILE:
+            self.SEPARATE_METADATA_STORE_ACCESS = False
 
     @staticmethod
     def _failed(message):
