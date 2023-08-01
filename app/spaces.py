@@ -1,4 +1,5 @@
 import json
+import os
 import time
 import storages
 import filesystem
@@ -429,7 +430,7 @@ def disableContinuousImport(space_id: str, directory: os.DirEntry):
 
             # Set metadata for the space
             if Settings.get().config["importMetadata"]:
-                metadata.setSpaceMetadataFromYaml(space_id)
+                metadata.set_space_metadata_from_yaml(directory)
 
             # set the space size to space occupancy
             setSpaceSize(space_id)
