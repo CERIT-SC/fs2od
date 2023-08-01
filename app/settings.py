@@ -68,6 +68,33 @@ class Settings:
         """
         Virtually private constructor.
         """
+        self.debug: int = 5
+        self.TEST: bool = False
+        self.TEST_PREFIX: str = ""
+        self.ONEZONE_HOST: str = ""
+        self.ONEZONE_API_KEY: str = ""
+        self.MAIN_ONEPROVIDER_HOST: str = ""
+        self.MAIN_ONEPROVIDER_API_KEY: str = ""
+        self.ONEZONE_API_URL: str = ""
+        self.ONEPROVIDER_API_URL: str = ""
+        self.ONEPROVIDERS_API_URL: List[str] = []
+        self.ONEPROVIDERS_DOMAIN_NAMES: List[str] = []
+        self.ONEZONE_AUTH_HEADERS: dict[str, str] = {}
+        self.ONEPROVIDER_AUTH_HEADERS: dict[str, str] = {}
+        self.ONEPROVIDERS_AUTH_HEADERS: List[dict] = []
+        self.ONEPROVIDERS_STORAGE_IDS: List[List[str]] = []
+        self.DATA_REPLICATION_ENABLED: bool = False
+        self.DATA_REPLICATION_REPLICAS: int = 0
+        self.DAREG_ENABLED: bool = False
+        self.MIN_ONEDATA_NAME_LENGTH: int = 2
+        self.MAX_ONEDATA_NAME_LENGTH: int = 50
+        self.TIME_UNTIL_REMOVED: str = "never"
+        self.TIME_FORMATTING_STRING: str = "%d. %m. %Y %H:%M"
+        self.REMOVE_FROM_FILESYSTEM: bool = False
+        self.MESSAGING: Messaging = Messaging()
+        self.USE_SEPARATE_METADATA_FILE: bool = False
+        self.SEPARATE_METADATA_FILENAME: str = ""
+        self.SEPARATE_METADATA_STORE_ACCESS: bool = True
         if Settings.__instance is not None:
             raise Exception(
                 "This class is a singleton! Created once, otherwise use Settings.get_instance()"
@@ -77,7 +104,7 @@ class Settings:
             Settings.__instance = self
 
     @staticmethod
-    def get():
+    def get() -> Settings:
         """
         Static access method, return instance of Settings or instantiate it.
         """
@@ -103,61 +130,61 @@ class Settings:
 
         self.check_configuration()
 
-        self.debug = self.config["verboseLevel"]
+        self.debug: bool = self.config["verboseLevel"]
 
-        self.TEST = self.config["testMode"]
-        self.TEST_PREFIX = self.config["testModePrefix"]
+        self.TEST: bool = self.config["testMode"]
+        self.TEST_PREFIX: str = self.config["testModePrefix"]
 
         # Setup the access Onedata variables
-        self.ONEZONE_HOST = self.config["restAccess"]["onezone"]["host"]
-        self.ONEZONE_API_KEY = self.config["restAccess"]["onezone"]["apiToken"]
+        self.ONEZONE_HOST: str = self.config["restAccess"]["onezone"]["host"]
+        self.ONEZONE_API_KEY: str = self.config["restAccess"]["onezone"]["apiToken"]
 
         providers: list = self.config["restAccess"]["oneproviders"]
         for provider_index in range(len(providers)):
             if providers[provider_index]["isPrimary"]:
-                self.MAIN_ONEPROVIDER_HOST = providers[provider_index]["host"]
-                self.MAIN_ONEPROVIDER_API_KEY = providers[provider_index]["apiToken"]
+                self.MAIN_ONEPROVIDER_HOST: str = providers[provider_index]["host"]
+                self.MAIN_ONEPROVIDER_API_KEY: str = providers[provider_index]["apiToken"]
 
                 # now we have the certainty that when iterating through providers,
                 # we will not access main provider
                 providers.pop(provider_index)
                 break
 
-        self.ONEZONE_API_URL = self.ONEZONE_HOST + "/api/v3/"
+        self.ONEZONE_API_URL: str = self.ONEZONE_HOST + "/api/v3/"
         self.ONEPROVIDER_API_URL: str = self.MAIN_ONEPROVIDER_HOST + "/api/v3/"
-        self.ONEPROVIDERS_API_URL: list = [self.ONEPROVIDER_API_URL] + [
+        self.ONEPROVIDERS_API_URL: list[str] = [self.ONEPROVIDER_API_URL] + [
             provider["host"] + "/api/v3/"
             for provider in self.config["restAccess"]["oneproviders"]
         ]
 
-        self.ONEPROVIDERS_DOMAIN_NAMES: list = [
+        self.ONEPROVIDERS_DOMAIN_NAMES: list[str] = [
             self._get_domain_name_from_url(api_url) for api_url in self.ONEPROVIDERS_API_URL
         ]
 
-        self.ONEZONE_AUTH_HEADERS = {"x-auth-token": self.ONEZONE_API_KEY}
-        self.ONEPROVIDER_AUTH_HEADERS: dict = {"x-auth-token": self.MAIN_ONEPROVIDER_API_KEY}
+        self.ONEZONE_AUTH_HEADERS: dict[str, str] = {"x-auth-token": self.ONEZONE_API_KEY}
+        self.ONEPROVIDER_AUTH_HEADERS: dict[str, str] = {"x-auth-token": self.MAIN_ONEPROVIDER_API_KEY}
 
         # all authentication headers for oneproviders in one place
-        self.ONEPROVIDERS_AUTH_HEADERS: list = [self.ONEPROVIDER_AUTH_HEADERS] + [
+        self.ONEPROVIDERS_AUTH_HEADERS: List[dict] = [self.ONEPROVIDER_AUTH_HEADERS] + [
             {"x-auth-token": provider["apiToken"]}
             for provider in self.config["restAccess"]["oneproviders"]
         ]
 
-        self.ONEPROVIDERS_STORAGE_IDS = [[]] + [
+        self.ONEPROVIDERS_STORAGE_IDS: List[List[str]] = [[]] + [
             provider["storageIds"] for provider in providers
         ]
 
         self.DATA_REPLICATION_ENABLED: bool = self.config["dataReplication"]["enabled"]
-        self.DATA_REPLICATION_REPLICAS: bool = self.config["dataReplication"]["numberOfReplicas"]
+        self.DATA_REPLICATION_REPLICAS: int = self.config["dataReplication"]["numberOfReplicas"]
         self.DAREG_ENABLED: bool = self.config["dareg"]["enabled"]
 
         # Onedata name must be 2-50 characters long
         self.MIN_ONEDATA_NAME_LENGTH = 2
         self.MAX_ONEDATA_NAME_LENGTH = 50
 
-        self.TIME_UNTIL_REMOVED = self.config["dataReplication"]["timeUntilRemoved"]
+        self.TIME_UNTIL_REMOVED: str = self.config["dataReplication"]["timeUntilRemoved"]
         self.TIME_FORMATTING_STRING = "%d. %m. %Y %H:%M"
-        self.REMOVE_FROM_FILESYSTEM = self.config["dataReplication"]["removeFromFilesystem"]
+        self.REMOVE_FROM_FILESYSTEM: bool = self.config["dataReplication"]["removeFromFilesystem"]
 
         self.MESSAGING: Messaging = Messaging.create(self.config)
 
@@ -320,7 +347,12 @@ class Settings:
         self._test_existence(self.config["metadataFileTags"], "deniedProviders", "DeniedProviders")
         self._test_existence(self.config["metadataFileTags"], "removingTime", "RemovingTime")
         self._test_existence(self.config["metadataFileTags"], "lastProgramRun", "LastProgramRun")
-        self._test_existence(self.config, "fs2odMetadataFilename", ".fs2od")
+
+        self._test_existence(self.config, "fs2odMetadataFile", dict())
+        self._test_existence(self.config["fs2odMetadataFile"], "enabled", False, parent_name="fs2odMetadataFile")
+        self._test_existence(self.config["fs2odMetadataFile"], "filename", ".fs2od", parent_name="fs2odMetadataFile")
+        self._test_if_empty(self.config["fs2odMetadataFile"], "filename", parent_name="fs2odMetadataFile")
+        self._test_existence(self.config["fs2odMetadataFile"], "storeAccessInfo", True, parent_name="fs2odMetadataFile")
 
         self._test_existence(self.config, "institutionName")
         self._test_existence(self.config, "datasetPrefix", "")
