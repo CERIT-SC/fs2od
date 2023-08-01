@@ -339,9 +339,20 @@ def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
     return space_id
 
 
-def set_space_posix_permissions_recursive(space_id: str, posix_mode: str) -> None:
-    file_id = get_space(space_id)["fileId"]
+def set_space_posix_permissions_recursive(space_id: str, posix_mode: str) -> bool:
+    """
+    Recursively sets POSIX permissions of space defined by given space_id
+    If given space does not belong to primary Oneprovider, returns False, otherwise True
+    """
+    space_info = get_space(space_id)
+    file_id = space_info.get("fileId", None)
+
+    if file_id is None:
+        return False
+
     files.set_file_attribute_recursive(file_id, posix_mode, except_root=True)
+
+    return True
 
 
 def enableContinuousImport(space_id):
