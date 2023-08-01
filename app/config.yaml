@@ -15,6 +15,7 @@ metadataFiles:
 # Names of tags in metadata YAML file
 metadataFileTags:
   onedata: Onedata2
+  onezone: Onezone
   space: Space
   publicURL: PublicURL
   inviteToken: InviteToken
