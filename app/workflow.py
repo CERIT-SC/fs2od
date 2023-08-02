@@ -3,7 +3,6 @@ import os
 import sys
 import time
 from pprint import pprint
-from string import Template
 import actions_log
 import dareg
 import files
@@ -86,7 +85,7 @@ def register_space(directory: os.DirEntry) -> bool:
         Logger.log(4, "Space for %s not created (not contains yaml or no dir)." % directory.name)
         return False
 
-    yml_content = filesystem.loadYaml(yml_file)
+    yml_content = filesystem.load_yaml(yml_file)
 
     # test if yaml contains space_id
     if filesystem.yamlContainsSpaceId(yml_content):
@@ -220,6 +219,7 @@ def register_space(directory: os.DirEntry) -> bool:
     actions_logger.log_pre("information", yml_file)
     # write onedata parameters (space_id, invite_token) to file
     yaml_onedata_dict = dict()
+    yaml_onedata_dict[Settings.get().config["metadataFileTags"]["onezone"]] = Settings.get().ONEZONE_HOST
     yaml_onedata_dict[Settings.get().config["metadataFileTags"]["space"]] = space_id
     yaml_onedata_dict[Settings.get().config["metadataFileTags"]["inviteToken"]] = token["token"]
     status = filesystem.set_values_to_yaml(yml_file, yml_content, yaml_onedata_dict)
@@ -244,30 +244,10 @@ def register_space(directory: os.DirEntry) -> bool:
 
     time.sleep(3 * Settings.get().config["sleepFactor"])
 
-    actions_logger.log_pre("auto_storage_import", "")
-    # first import of files to Onedata space
-    status = spaces.startAutoStorageImport(space_id)
-    time.sleep(3 * Settings.get().config["sleepFactor"])
-    is_ok = actions_logger.log_post(status, only_check=True)
-    if not is_ok: return False
-
-    # set up permissions
     actions_logger.log_pre("file_id", "")
     file_id = spaces.get_space(space_id=space_id)["fileId"]
     is_ok = actions_logger.log_post(file_id, only_check=True)
     if not is_ok: return False
-
-    # actions_logger.log_pre("set_files_to_posix", "")
-    # success = files.setFileAttributeRecursive(
-    #     file_id=file_id,
-    #     posix_mode=Settings.get().config["initialPOSIXlikePermissions"]
-    # )
-    # is_ok = actions_logger.log_post(success, only_check=True)
-    # if not is_ok: return False
-
-    if Settings.get().USE_METADATA_FILE:
-        # chmod hack, no longer can change via API
-        filesystem.chmod_recursive(yml_metadata, Settings.get().config["initialPOSIXlikePermissions"])
 
     # create public share
     actions_logger.log_pre("share", dataset_name)
@@ -281,20 +261,19 @@ def register_space(directory: os.DirEntry) -> bool:
     if Settings.get().config["dareg"]["enabled"]:
         dareg.update_dataset(space_id, token["token"], share["publicUrl"])
 
+    time.sleep(Settings.get().config["sleepFactor"])
+
+    actions_logger.log_pre("share_description", "")
+    share_description = shares.create_share_description(directory)[0]
+    is_ok = actions_logger.log_post(share_description, only_check=True)
+    if not is_ok: return False
+
     # add Share description
     actions_logger.log_pre("share_update", "")
-    with open("share_description_base.md", "r") as file:
-        to_substitute = {
-            "dataset_name": dataset_name,
-            "institution_name": Settings.get().config["institutionName"],
-            "share_file_id": share["rootFileId"],
-        }
-        src = Template(file.read())
-        result = src.substitute(to_substitute)
-        response = shares.updateShare(
-            shid=share["shareId"],
-            description=result
-        )
+    response = shares.updateShare(
+        shid=share["shareId"],
+        description=share_description
+    )
     is_ok = actions_logger.log_post(response.ok, only_check=True)
     if not is_ok: return False
 
@@ -309,9 +288,30 @@ def register_space(directory: os.DirEntry) -> bool:
     # set metadata for the space
     actions_logger.log_pre("space_metadata", "")
     if Settings.get().config["importMetadata"]:
-        response = metadata.setSpaceMetadataFromYaml(space_id)
-    is_ok = actions_logger.log_post(response.ok, only_check=True)
+        status = metadata.set_space_metadata_from_yaml(directory)
+    is_ok = actions_logger.log_post(status, only_check=True)
     if not is_ok: return False
+
+    actions_logger.log_pre("auto_storage_import", "")
+    # first import of files to Onedata space
+    status = spaces.startAutoStorageImport(space_id)
+    time.sleep(3 * Settings.get().config["sleepFactor"])
+    is_ok = actions_logger.log_post(status, only_check=True)
+    if not is_ok: return False
+
+    # set up permissions
+
+    # actions_logger.log_pre("set_files_to_posix", "")
+    # success = files.setFileAttributeRecursive(
+    #     file_id=file_id,
+    #     posix_mode=Settings.get().config["initialPOSIXlikePermissions"]
+    # )
+    # is_ok = actions_logger.log_post(success, only_check=True)
+    # if not is_ok: return False
+
+    if Settings.get().USE_METADATA_FILE:
+        # chmod hack, no longer can change via API
+        filesystem.chmod_recursive(yml_metadata, Settings.get().config["initialPOSIXlikePermissions"])
 
     path = base_path + os.sep + directory.name
     Logger.log(3, "Processing of %s done." % path)

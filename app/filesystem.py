@@ -2,30 +2,77 @@ import datetime
 import shutil
 import os
 import time
-from typing import Any, Union
+from typing import Any, Union, Optional, Tuple
 import ruamel.yaml
 from settings import Settings
-from utils import Logger
+from utils import Logger, Utils
 import spaces
 import workflow
 import support
+import fnmatch
+import tempfile
 
 
-def scanWatchedDirectories(only_check: bool = False) -> None:
+def scan_watched_directories(only_check: bool = False) -> None:
     """
     Goes through each directory in config file, tests if exists and if so, scans for new datasets
+    If only_check is True, it just checks, if space exists, but does not create new when it does not
     """
     Logger.log(4, f"scanWatchedDirectories(only_check={only_check}):")
 
-    for directory in Settings.get().config["watchedDirectories"]:  # level of config file directory
-        _scanWatchedDirectory(directory, only_check)
+    for config_directory_entry in Settings.get().config["watchedDirectories"]:  # level of config file directory
+        directories_to_scan = traverse_through_directories_wrapper(config_directory_entry)
+
+        for directory in directories_to_scan:
+            _scanWatchedDirectory(directory, only_check)
+
+
+def traverse_through_directories_wrapper(regex_like_path: str) -> list:
+    """
+    This function is only wrapper (helper function) for traverse_through_directories_wrapper().
+    It prepares path for this function
+    """
+    Logger.log(3, f"traverse_through_directories_wrapper(regex_like_path={regex_like_path})")
+    # do not want empty filenames
+    regex_like_path = regex_like_path.rstrip(os.sep)
+    # one special occasion, the root (/) itself
+    if not regex_like_path:
+        regex_like_path = os.sep
+
+    path_list = os.path.split(regex_like_path)
+
+    return traverse_through_directories(path_list)
+
+
+def traverse_through_directories(path_list: tuple) -> list:
+    """
+    Traverses through directories and returns directories (only directories) satisfying the pattern given in config file
+    If there is no directory which satisfies pattern, returns empty list
+    Warning: this function is recursive. For the folders depth higher than sys.getrecursionlimit()
+    it is needed to change recursion limit using sys.setrecursionlimit(new_limit)
+    """
+    Logger.log(5, f"traverse_through_directories(path_list={path_list})")
+    # os.sep representing root (/)
+    paths = [os.sep]
+    if path_list[0] != os.sep:
+        paths = traverse_through_directories(os.path.split(path_list[0]))
+
+    new_paths = []
+    for path in paths:
+        regex_name = path_list[1]
+
+        for dirent in os.scandir(path):
+            if fnmatch.fnmatch(dirent.name, regex_name) and os.path.isdir(dirent.path):
+                new_paths.append(dirent.path)
+
+    return new_paths
 
 
 def _process_denied_providers(space_id: str, yaml_file_path: str, directory: os.DirEntry) -> bool:
     Logger.log(4, f"_process_denied_providers(space_id={space_id},yaml_path={yaml_file_path}):")
 
-    yaml_dict = loadYaml(yaml_file_path)
-    denied_providers = get_token_from_yaml(yaml_dict, "deniedProviders", None)
+    yaml_dict = load_yaml(yaml_file_path)
+    denied_providers = get_token_from_yaml(yaml_dict, "deniedProviders", default_value=None, error_message_importance=4)
 
     if denied_providers is None:
         return True  # it is good it is not in file
@@ -51,16 +98,25 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
 
     yml_metadata = os.path.join(directory.path, Settings.get().FS2OD_METADATA_FILENAME)
     if os.path.exists(yml_metadata):
-        yml_metadata_content = loadYaml(yml_metadata)
-        removing_time = get_token_from_yaml(yml_metadata_content, "removingTime")
+        yml_metadata_content = load_yaml(yml_metadata)
+        removing_time = get_token_from_yaml(yml_metadata_content, "removingTime", error_message_importance=4)
 
         if removing_time == "removed":
             Logger.log(4, f"Not processing directory {directory.name} (support already revoked).")
             return False
 
-    yml_content = loadYaml(yml_file)
-    space_id = yamlContainsSpaceId(yml_content)
+    yml_content = load_yaml(yml_file)
 
+    if yml_content is None:
+        time_now = datetime.datetime.now()
+        append_to_file_if_pattern_does_not_exist(
+            yml_file, "^# %s.%s.%s %s:%s - This metadata file was checked by fs2od and found to be invalid$",
+            (str(time_now.day), str(time_now.month), str(time_now.year), str(time_now.hour), str(time_now.minute)))
+        Logger.log(3, f"YAML file {yml_file} in {directory.name} is not in a right format, skipping")
+
+        return False
+
+    space_id = yamlContainsSpaceId(yml_content)
     # test if yaml contains space_id, if no, create new space
     if not space_id:
         if only_check:
@@ -75,11 +131,11 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
             return False
 
         # after creating space, asking for information one more time
-        yml_content = loadYaml(yml_file)
+        yml_content = load_yaml(yml_file)
         space_id = yamlContainsSpaceId(yml_content)
 
     if not spaces.space_exists(space_id):
-        Logger.log(3, "SpaceID for %s found in yaml file, but does not exist anymore." % directory.name)
+        Logger.log(3, f"SpaceID for {directory.name} found in yaml file, but does not exist anymore.")
         return False
 
     Logger.log(4, f"Space in {directory.name} with ID {space_id} exists, setting up continuous file import")
@@ -90,7 +146,7 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
     if Settings.get().config["continousFileImport"]["enabled"]:
         _auto_set_continuous_import(space_id, directory)
     else:
-        spaces.disableContinuousImport(space_id)
+        spaces.disableContinuousImport(space_id, directory)
 
     if not Settings.get().USE_METADATA_FILE:
         # not using metadata file so can skip next lines
@@ -100,7 +156,7 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
         Logger.log(4, f"Not checking for removal of {directory.name} (not contains metadata file).")
         return False
 
-    yaml_dict = loadYaml(yml_metadata)
+    yaml_dict = load_yaml(yml_metadata)
     if not yaml_dict:
         Logger.log(4, f"Metadata file for space with ID {space_id} and path {directory.path} is empty. "
                       f"Not processing further")
@@ -108,7 +164,7 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
 
     _process_denied_providers(space_id, yml_metadata, directory)
 
-    yaml_dict = loadYaml(yml_metadata)
+    yaml_dict = load_yaml(yml_metadata)
     setValueToYaml(
         file_path=yml_metadata,
         yaml_dict=yaml_dict,
@@ -171,7 +227,7 @@ def _auto_set_continuous_import(space_id: str, directory: os.DirEntry):
     if os.path.isfile(running_file):
         spaces.enableContinuousImport(space_id)
     else:
-        spaces.disableContinuousImport(space_id)
+        spaces.disableContinuousImport(space_id, directory)
 
 
 def setup_continuous_import(directory: os.DirEntry):
@@ -187,7 +243,7 @@ def setup_continuous_import(directory: os.DirEntry):
         Logger.log(4, f"YML file in {directory.path} does not exist")
         return
 
-    yml_content = loadYaml(yml_file)
+    yml_content = load_yaml(yml_file)
     # test if yaml contains space_id
     space_id = yamlContainsSpaceId(yml_content)
     if not space_id:
@@ -242,31 +298,113 @@ def create_file(file_path: str) -> bool:
     return True
 
 
-def loadYaml(file_path: str) -> dict:
+def append_to_file(file_path: str, line: str) -> bool:
     """
-    Loads yaml file from file_path and returns it in form of dictionary.
-    If file does not exist or cannot be loaded, returns empty dict.
+    Tries to append to file with a specified by filename.
+    Returns True when line was appended to file otherwise False
+    Possible error: insufficient rights
     """
+    Logger.log(4, f"append_to_file(path={file_path},line={line})")
+    try:
+        f = open(file_path, "a")
+    except OSError as e:
+        Logger.log(1, f"File {file_path} could not be opened for append. Error: {e}")
+        return False
+
+    f.write(line)
+    f.close()
+
+    return True
+
+
+def load_file_contents(file_path: str, binary_mode: bool = False) -> Union[bytes, list, None]:
+    """
+    Reads contents of a file and returns it in desired form
+    If binary_mode is False, it reads in textual mode (mode_char + t) and returns list of lines
+    If binary_mode is True, it reads it in binary mode (mode_char + b) and returns all bytes
+    If there is an error with opened file, function returns None
+    """
+    Logger.log(4, f"load_file_contents(path={file_path})")
+
     if not os.path.exists(file_path):
-        Logger.log(1, "File %s doesn't exists." % file_path)
-        return dict()
+        Logger.log(1, f"File {file_path} doesn't exist.")
+        return None
 
-    with open(file_path, "r") as stream:
-        # configuration = yaml.safe_load(stream) # pyyaml
-        yaml = ruamel.yaml.YAML(typ="safe")
+    try:
+        if not binary_mode:
+            opened_file = open(file_path, "r", encoding="UTF-8")
+            data = opened_file.readlines()
+        else:
+            opened_file = open(file_path, "rb")
+            # should return as much as possible (The Python Library Reference, Release 3.11.3, Chapter 7.2.)
+            data = opened_file.read()
+    except (OSError, Exception) as e:
+        Logger.log(1, f"File {file_path} cannot be opened to read. Error: {e}.")
+        return None
+    else:
+        opened_file.close()
+
+    return data
+
+
+def append_to_file_if_pattern_does_not_exist(file_path: str, user_friendly_pattern: str,
+                                             replacement: Tuple[str, ...], with_newline: bool = True) -> bool:
+    Logger.log(3, f"append_to_file_if_pattern_does_not_exist(path={file_path},pattern={user_friendly_pattern})")
+    contents = load_file_contents(file_path)
+
+    text_to_append = user_friendly_pattern.replace("%sss", "%s").replace("%ss", "%s")
+    text_to_append, *_ = Utils.replace_regex_caret_dollar(text_to_append)
+    for replaced_word in replacement:
+        text_to_append = text_to_append.replace("%s", replaced_word, 1)  # only one for each %s
+    text_to_append_print = text_to_append
+    if with_newline:
+        text_to_append += "\n"
+
+    if contents is None:
+        Logger.log(2, f"Text '{text_to_append_print}' could not be appended to file {file_path}; file cannot be opened")
+        return False
+
+    regex_pattern = Utils.user_friendly_pattern_to_regex_pattern(user_friendly_pattern)
+    if Utils.does_pattern_exist_in_text(regex_pattern, "\n".join(contents), end=True):
+        Logger.log(3, f"Text '{text_to_append_print}' needn't be appended to file {file_path}; already in file")
+        return True
+
+    Logger.log(4, f"Text '{text_to_append_print}' appended to file {file_path}")
+    return append_to_file(file_path, text_to_append)
+
+
+def load_yaml(file_path: str) -> Optional[dict]:
+    """
+    Loads a yaml file from file_path and returns it in a form of dictionary.
+    If the file does not exist or cannot be loaded, returns an empty dict.
+    If the file is not in the correct YAML format, returns None.
+    """
+    Logger.log(4, f"load_yaml(path={file_path})")
+    stream = load_file_contents(file_path, binary_mode=True)
+
+    # there is no need for log, log is done in load_file_contents() function
+    if stream is None:
+        return None
+
+    yaml = ruamel.yaml.YAML(typ="safe")
+    try:
         configuration = yaml.load(stream)
-        # if load empty file
-        if not configuration:
-            configuration = dict()
+    except Exception as e:
+        Logger.log(2, f"File with path {file_path} is not in valid YAML format. Error: {e}")
+        return None
 
-        Logger.log(5, "Configuration:", pretty_print=configuration)
+    # if an empty file was loaded
+    if not configuration:
+        configuration = dict()
+
+    Logger.log(5, "Configuration:", pretty_print=configuration)
 
     return configuration
 
 
-def get_token_from_yaml(yaml_dict: dict, token: str, default_value: Any = None) -> Any:
+def get_token_from_yaml(yaml_dict: dict, token: str, default_value: Any = None, error_message_importance: int = 3) -> Any:
     """
-    Return space_id from YAML file.
+    Return given token from YAML file.
     or None when file doesn't contain it.
     """
     if yaml_dict:
@@ -274,8 +412,33 @@ def get_token_from_yaml(yaml_dict: dict, token: str, default_value: Any = None) 
         if onedata_part:
             return onedata_part.get(Settings.get().config["metadataFileTags"][token], default_value)
 
-    Logger.log(3, "No onedata tag in YAML")
+    Logger.log(error_message_importance, f"No Onedata tag, nor token '{token}' in YAML")
     return None
+
+
+def convert_dict_to_yaml(dictionary: dict) -> str:
+    """
+    Converts dictionary object to YAML fs2od-compatible string
+    On error returns empty string
+    """
+    Logger.log(4, f"convert_dict_to_yaml()")
+    # store new yaml file
+    ryaml = ruamel.yaml.YAML()
+    ryaml.width = (
+        200  # count of characters on a line, if there is more chars, line is broken
+    )
+    ryaml.indent(sequence=4, offset=2)
+    with tempfile.TemporaryFile("w+", encoding="UTF-8") as temp_file:
+        # this function behaves the best when writing right to file
+        ryaml.dump(dictionary, temp_file)
+        # must be sure that changes are written to temporary file
+        temp_file.flush()
+        # now, pointer to file is on position after last written character, must set it to first position in file
+        temp_file.seek(0)
+        # now we are reading what we have written
+        yaml_string = temp_file.read()
+
+    return yaml_string
 
 
 def setValueToYaml(file_path, yaml_dict, valueType, value):
@@ -311,20 +474,14 @@ def setValueToYaml(file_path, yaml_dict, valueType, value):
 
         # open yaml file
         with open(file_path, "w") as f:
-            # store new yaml file
-            ryaml = ruamel.yaml.YAML()
-            ryaml.width = (
-                200  # count of characters on a line, if there is more chars, line is breaked
-            )
-            ryaml.indent(sequence=4, offset=2)
-            ryaml.dump(yaml_dict, f)
+            f.write(convert_dict_to_yaml(yaml_dict))
     else:
         Logger.log(1, "Metadata file %s doesn't exists." % file_path)
 
 
 def set_values_to_yaml(file_path: str, yaml_dict: dict, new_values_dict: dict) -> bool:
     """
-    Set values to onedata tag in yaml.
+    Set values to Onedata tag in yaml.
     Returns True if successful, otherwise False.
     Possible errors: metadata file does not exist, cannot write to metadata file, unexpected error
     """
@@ -399,3 +556,23 @@ def chmod_recursive(path: Union[os.DirEntry, str], mode: int) -> bool:
     Logger.log(5, f"Mode for path {path} was changed to {oct(mode)}")
 
     return True
+
+
+def get_dir_entry_of_directory(path: str) -> Union[os.DirEntry, None]:
+    """
+    This function converts path string to os.DirEntry value
+    Warning: if parent directory is not readable, it has undefined behavior
+    On success returns DirEntry object, otherwise None
+    """
+    if not os.path.isdir(os.path.join(path, "..")):
+        return None
+
+    path = path.rstrip("/")
+    directory_name = os.path.basename(path)
+
+    for dir_entry in os.scandir(os.path.join(path, "..")):
+        if dir_entry.name == directory_name:
+            return dir_entry
+
+    return None
+

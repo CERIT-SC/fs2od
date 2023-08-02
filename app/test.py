@@ -238,7 +238,7 @@ def get_requested_instances(arguments: Arguments) -> List[tuple]:
 
 def print_instances(instances: List[tuple]) -> None:
     if len(instances) == 0:
-        print("No instances to delete")
+        print("No instances matching rules found")
         exit(0)
 
     spaces_count = 0
@@ -326,7 +326,11 @@ def change_posix_permissions(arguments: Arguments, posix_permissions: int) -> No
     print_safety_notice(f"POSIX permissions will be changed recursively to {posix_permissions} to these spaces.")
 
     for instance_type, instance_id, instance_name in instances:
-        spaces.set_space_posix_permissions_recursive(instance_id, posix_permissions)
+        status = spaces.set_space_posix_permissions_recursive(instance_id, posix_permissions)
+        if not status:
+            print(f"Change of POSIX permissions of space {instance_name} with id {instance_id} failed, "
+                  f"space does not belong to primary Oneprovider")
+
         print(f"Changed POSIX permissions of space {instance_name} with id {instance_id} to {posix_permissions}")
 
 

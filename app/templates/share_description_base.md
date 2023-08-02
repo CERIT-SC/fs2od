@@ -9,9 +9,22 @@ Basic dataset details:
 ## Usage
 You can browse through the content of the dataset in this web interface in the tab `Files`.
 
+
+[//]: # (## Metadata file)
+
+[//]: # (Here is the actual copy of metadata file:)
+
+[//]: # (```yaml)
+
+[//]: # (metadata: content)
+
+[//]: # (```)
+
+$metadata_section
+
 ## Download
 You can run following command to download whole content of the dataset:
-```
+```sh
 # get the download script
 wget https://raw.githubusercontent.com/CERIT-SC/onedata-downloader/master/download.py
 
@@ -22,7 +35,7 @@ python3 download.py $share_file_id
 python3 download.py --help
 ```
 or you can run the download script directly from the repository:
-```
+```sh
 curl -s https://raw.githubusercontent.com/CERIT-SC/onedata-downloader/master/download.py | python3 - $share_file_id
 ```
 

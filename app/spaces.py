@@ -1,7 +1,9 @@
 import json
+import os
 import time
 import storages
 import filesystem
+import shares
 from settings import Settings
 from utils import Logger, Utils
 import request, tokens, files, metadata, dareg
@@ -49,6 +51,28 @@ def get_space(space_id: str, ok_statuses: tuple = (200,)) -> dict:
         return response
     else:
         return {}
+
+
+def get_space_shares(space_id: str) -> list:
+    """
+    Returns list of space shares (their ids)
+    If any error occurred, returns empty list
+    """
+    Logger.log(4, f"get_space_shares({space_id})")
+    # https://onedata.org/#/home/api/stable/onezone?anchor=operation/list_space_shares
+    url = "onezone/spaces/" + space_id + "/shares"
+    response = request.get(url)
+
+    if not response.ok:
+        Logger.log(1, f"Shares for space with id {space_id} could not be retrieved")
+        return []
+
+    response_json = response.json()
+    if "shares" not in response_json:
+        Logger.log(2, f"Response for shares for space with id {space_id} ok, but actual spaces could not be retrieved")
+        return []
+
+    return response_json["shares"]
 
 
 def get_space_mount_point(space_id: str, oneprovider_index=0) -> str:
@@ -316,9 +340,20 @@ def createAndSupportSpaceForGroup(name, group_id, storage_id, capacity):
     return space_id
 
 
-def set_space_posix_permissions_recursive(space_id: str, posix_mode: str) -> None:
-    file_id = get_space(space_id)["fileId"]
+def set_space_posix_permissions_recursive(space_id: str, posix_mode: str) -> bool:
+    """
+    Recursively sets POSIX permissions of space defined by given space_id
+    If given space does not belong to primary Oneprovider, returns False, otherwise True
+    """
+    space_info = get_space(space_id)
+    file_id = space_info.get("fileId", None)
+
+    if file_id is None:
+        return False
+
     files.set_file_attribute_recursive(file_id, posix_mode, except_root=True)
+
+    return True
 
 
 def enableContinuousImport(space_id):
@@ -350,7 +385,7 @@ def enableContinuousImport(space_id):
             startAutoStorageImport(space_id)
 
 
-def disableContinuousImport(space_id):
+def disableContinuousImport(space_id: str, directory: os.DirEntry):
     Logger.log(4, "disableContinuousImport(%s):" % space_id)
     if getContinuousImportStatus(space_id):
         result = setContinuousImport(space_id, False)
@@ -365,9 +400,9 @@ def disableContinuousImport(space_id):
             startAutoStorageImport(space_id)
 
             for try_number in range(WAITING_FOR_AUTO_STORAGE_IMPORT_FINISH_TRIES):
-                Logger.log(5, "Waiting for auto storage import to finish started")
+                Logger.log(3, f"Waiting for auto storage import to finish started for space with id {space_id}")
                 if not is_storage_import_running(space_id):
-                    Logger.log(5, "Waiting for auto storage import to finish finished")
+                    Logger.log(3, f"Waiting for auto storage import to finish finished for space with id {space_id}")
                     break
 
                 Logger.log(5, f"Waiting for auto storage import try {try_number + 1}/"
@@ -385,9 +420,17 @@ def disableContinuousImport(space_id):
 
             set_space_posix_permissions_recursive(space_id, posix_mode_string)
 
+            # updating share id after edits
+            mount_point = get_space_mount_point(space_id)
+            share_description, used_share_id = shares.create_share_description(mount_point)
+            shares.updateShare(
+                shid=used_share_id,
+                description=share_description
+            )
+
             # Set metadata for the space
             if Settings.get().config["importMetadata"]:
-                metadata.setSpaceMetadataFromYaml(space_id)
+                metadata.set_space_metadata_from_yaml(directory)
 
             # set the space size to space occupancy
             setSpaceSize(space_id)

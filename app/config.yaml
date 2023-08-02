@@ -1,8 +1,10 @@
 # Directories which will be watched by this application. These directories are periodically (or manulay) checked
 # and in case of subdirectory is detected its processing are started. 
 watchedDirectories:
-  - "/volumes/volume1/test"
-  #- "/volumes/volumeX/test"
+  - "/volume/datasets" # this goes to /volume/datasets and scans all its subdirectories
+  # examples with regex
+  #- "/volume/datasets/*" # this goes to /volume/datasets and for all its subdirectories scans all subdirectories
+  #- "/volume/user*/dataset" # this goes to /volume, in that finds any directory that satisfies regex user*, and scans all subdirectoriesof directory dataset
 
 ## Metadata settings
 # Name of YAML files with metadata. Only if subdirectory contains one of specifed YAML files, it is proccesed by the application.
@@ -13,6 +15,7 @@ metadataFiles:
 # Names of tags in metadata YAML file
 metadataFileTags:
   onedata: Onedata2
+  onezone: Onezone
   space: Space
   publicURL: PublicURL
   inviteToken: InviteToken
@@ -30,6 +33,9 @@ datasetPrefix: ""
 
 # Import attributes from metadata files to metadata stored by a Space in Onedata
 importMetadata: False
+
+# If enabled, parses metadata read from metadata (yaml) file to share. Renewed everytime when continuous import disabled
+parseMetadataToShare: False
 
 ## Output detail level
 # 0 - silent mode - nothing printed

@@ -1,5 +1,7 @@
 import json
 import requests
+
+from utils import Logger
 from settings import Settings
 from request import response_print, debug_print
 
@@ -79,7 +81,7 @@ def get_index() -> bytes:
     """
     url = Settings.get().config["dareg"]["host"]
     response = requests.get(url)
-    print(response.text)
+    Logger.log(5, response.text)
 
     response_print(response)
 
