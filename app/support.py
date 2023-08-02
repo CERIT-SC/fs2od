@@ -421,7 +421,7 @@ def remove_support_primary(space_id: str, yaml_file_path: str, directory: os.Dir
         removed_running = _remove_running_file_if_existent(space_id, directory)
         if removed_running:
             Logger.log(4, f"Running file for {directory.path} was removed, removing directory will be done in next run.")
-            spaces.disableContinuousImport(space_id)
+            spaces.disableContinuousImport(space_id, directory)
             return
 
         remove_support_primary_NOW(space_id, directory)

@@ -1,16 +1,18 @@
+import os
 from pprint import pprint
 import json
 import yaml
+import filesystem
 from settings import Settings
 from utils import Logger
 import spaces, files, request
 
 
-def _setFileJsonMetadata(file_id, data):
-    Logger.log(4, "_setFileJsonMetadata(%s, data):" % file_id)
+def _set_file_json_metadata(file_id: str, data: dict):
+    Logger.log(4, f"_set_file_json_metadata({file_id}, {data}):")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/set_json_metadata
     if not data:
-        Logger.log(2, "No data given to setFileJsonMetadata (file ID %s)" % file_id)
+        Logger.log(2, f"No data given to _set_file_json_metadata (file ID {file_id})")
 
     url = "oneprovider/data/" + file_id + "/metadata/json"
     headers = dict({"Content-type": "application/json"})
@@ -18,40 +20,25 @@ def _setFileJsonMetadata(file_id, data):
     return response
 
 
-def _loadConfigYAML(space_id):
-    """
-    Load configuration YAML file from root directory of space and return its file_id and content.
-    Return None as content if such metadatafile doesn't exist.
-    """
-    Logger.log(4, "_loadConfigYAML(%s):" % space_id)
-    # get file_id of space dir
-    space = spaces.get_space(space_id)
-    file_id = space["fileId"]
+def set_space_metadata_from_yaml(directory: os.DirEntry) -> bool:
+    Logger.log(4, f"set_space_metadata_from_yaml({directory.path}):")
 
-    # find ymls
-    space_content = files.list_directory(file_id)
-    for metadataFile in Settings.get().config["metadataFiles"]:
-        list_yml_files = list(
-            filter(lambda x: metadataFile in x["name"], space_content["children"])
-        )
+    yml_file = filesystem.getMetaDataFile(directory)
+    yml_content = filesystem.load_yaml(yml_file)
 
-    if len(list_yml_files) > 1:
-        Logger.log(2, "There are more than one metadata file in space with space ID %s" % space_id)
-    elif len(list_yml_files) < 1:
-        Logger.log(1, "There aren't any metadata file in space with space ID %s" % space_id)
-        return file_id, None
+    if yml_content is None:
+        # no need for log, already done
+        return False
 
-    # get metadata file
-    yml_file = list_yml_files[0]
-    yml_byte_stream = files.downloadFileContent(yml_file["id"])
+    space_id = filesystem.yamlContainsSpaceId(yml_content)
+    if not space_id:
+        Logger.log(3, f"File '{yml_file}' does not contain space_id")
+        return False
 
-    data = yaml.load(yml_byte_stream.decode(), Loader=yaml.BaseLoader)
-    # yaml = ruamel.yaml.YAML(pure=True) # ruamel
-    # data = yaml.load(yml_byte_stream.decode()) # ruamel
-    return file_id, data
+    space_info = spaces.get_space(space_id)
+    if "fileId" not in space_info or not space_info["fileId"]:
+        Logger.log(3, f"Cannot get information for space with ID {space_id}")
+        return False
+    file_id = space_info["fileId"]
 
-
-def setSpaceMetadataFromYaml(space_id):
-    Logger.log(4, "setSpaceMetadataFromYaml(%s):" % space_id)
-    file_id, data = _loadConfigYAML(space_id)
-    return _setFileJsonMetadata(file_id, data)
+    return _set_file_json_metadata(file_id, yml_content).ok

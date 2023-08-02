@@ -288,8 +288,8 @@ def register_space(directory: os.DirEntry) -> bool:
     # set metadata for the space
     actions_logger.log_pre("space_metadata", "")
     if Settings.get().config["importMetadata"]:
-        response = metadata.setSpaceMetadataFromYaml(space_id)
-    is_ok = actions_logger.log_post(response.ok, only_check=True)
+        status = metadata.set_space_metadata_from_yaml(directory)
+    is_ok = actions_logger.log_post(status, only_check=True)
     if not is_ok: return False
 
     actions_logger.log_pre("auto_storage_import", "")
