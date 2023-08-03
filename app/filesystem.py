@@ -91,8 +91,8 @@ def _process_denied_providers(space_id: str, yaml_file_path: str, directory: os.
 def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
     Logger.log(4, f"_process_possible_space(dir={directory.path},only_check={only_check}):")
     # test if directory contains a yaml file
-    yml_file = getMetaDataFile(directory)
-    if not yml_file:
+    yml_trigger_file = get_trigger_metadata_file(directory)
+    if not yml_trigger_file:
         Logger.log(4, f"Not processing directory {directory.name} (not contains yaml).")
         return False
 
@@ -110,9 +110,9 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
     if yml_content is None:
         time_now = datetime.datetime.now()
         append_to_file_if_pattern_does_not_exist(
-            yml_file, "^# %s.%s.%s %s:%s - This metadata file was checked by fs2od and found to be invalid$",
+            yml_trigger_file, "^# %s.%s.%s %s:%s - This metadata file was checked by fs2od and found to be invalid$",
             (str(time_now.day), str(time_now.month), str(time_now.year), str(time_now.hour), str(time_now.minute)))
-        Logger.log(3, f"YAML file {yml_file} in {directory.name} is not in a right format, skipping")
+        Logger.log(3, f"YAML file {yml_trigger_file} in {directory.name} is not in a right format, skipping")
 
         return False
 
@@ -131,7 +131,7 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
             return False
 
         # after creating space, asking for information one more time
-        yml_content = load_yaml(yml_file)
+        yml_content = load_yaml(yml_trigger_file)
         space_id = yamlContainsSpaceId(yml_content)
 
     if not spaces.space_exists(space_id):
@@ -198,18 +198,20 @@ def _scanWatchedDirectory(base_path: str, only_check: bool) -> None:
     Logger.log(3, "Finish processing path %s" % base_path)
 
 
-def getMetaDataFile(directory: os.DirEntry) -> str:
+def get_trigger_metadata_file(directory: os.DirEntry) -> str:
     """
     Gets metadata file based on provided directory and names of possible yaml files provided in configfile.
     If metadata file found, returns path to it, otherwise empty string.
     """
-    Logger.log(4, "getMetaDataFile(%s):" % directory.path)
-    for file in Settings.get().config["metadataFiles"]:
-        yml_file = directory.path + os.sep + file
+    Logger.log(4, f"get_metadata_file({directory.path})")
+
+    for file in Settings.get().METADATA_FILES:
+        metadata_file = os.path.join(directory, file)
+
         # check if given metadata file exists in directory
-        if os.path.isfile(yml_file):
+        if os.path.isfile(metadata_file):
             # check if a metadata file has been already found
-            return yml_file
+            return metadata_file
 
     # no metadata file found
     Logger.log(4, "No file with metadata found in %s " % directory.path)
@@ -254,8 +256,8 @@ def setup_continuous_import(directory: os.DirEntry):
         return
 
     # test if directory contains a yaml file
-    yml_file = getMetaDataFile(directory)
-    if not yml_file:
+    yml_trigger_file = get_trigger_metadata_file(directory)
+    if not yml_trigger_file:
         Logger.log(4, f"YML file in {directory.path} does not exist")
         return
 

@@ -80,8 +80,8 @@ def register_space(directory: os.DirEntry) -> bool:
         return False
 
     # test if directory contains a yaml file
-    yml_file = filesystem.getMetaDataFile(directory)
-    if not yml_file:
+    yml_trigger_file = filesystem.get_trigger_metadata_file(directory)
+    if not yml_trigger_file:
         Logger.log(4, "Space for %s not created (not contains yaml or no dir)." % directory.name)
         return False
 
@@ -279,7 +279,7 @@ def register_space(directory: os.DirEntry) -> bool:
 
     # write onedata parameter (publicURL) to file
     filesystem.setValueToYaml(
-        yml_file,
+        yml_trigger_file,
         yml_content,
         Settings.get().config["metadataFileTags"]["publicURL"],
         share["publicUrl"],

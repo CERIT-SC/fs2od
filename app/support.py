@@ -113,8 +113,8 @@ def _transfer_file_to_providers(file_id: str, provider_ids: list, path_to_file: 
 def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry) -> bool:
     Logger.log(4, f"_sync_information_about_space_removal(space_id={space_id},directory_path={directory.path})")
     # test if directory contains a yaml file
-    yaml_file = filesystem.getMetaDataFile(directory)
-    if not yaml_file:
+    yaml_trigger_file = filesystem.get_trigger_metadata_file(directory)
+    if not yaml_trigger_file:
         Logger.log(4, f"Not removing space in {directory.path} with id {space_id} (not contains yaml).")
         return False
 
@@ -172,7 +172,7 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
 
         # thinking about situation, when will not be removed from filesystem, but we need to keep the system integrity
         if completed:
-            os.remove(yaml_file)
+            os.remove(yaml_trigger_file)
 
         return completed
 
