@@ -113,11 +113,14 @@ def create_share_description(directory: Union[os.DirEntry, str], ignore_config_p
     if directory is None:
         return "", ""
 
-    yaml_file = filesystem.getMetaDataFile(directory)
-    if not yaml_file:
+    yml_trigger_file = filesystem.get_trigger_metadata_file(directory)
+    if not yml_trigger_file:
         return "", ""
 
-    yaml_contents = filesystem.load_yaml(yaml_file)
+    yml_access_info_file = filesystem.get_access_info_storage_file(directory, yml_trigger_file)
+    filesystem.create_file_if_does_not_exist(yml_access_info_file)
+
+    yaml_contents = filesystem.load_yaml(yml_access_info_file)
     if not yaml_contents:
         return "", ""
 

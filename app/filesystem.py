@@ -91,28 +91,31 @@ def _process_denied_providers(space_id: str, yaml_file_path: str, directory: os.
 def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
     Logger.log(4, f"_process_possible_space(dir={directory.path},only_check={only_check}):")
     # test if directory contains a yaml file
-    yml_file = getMetaDataFile(directory)
-    if not yml_file:
+    yml_trigger_file = get_trigger_metadata_file(directory)
+    if not yml_trigger_file:
         Logger.log(4, f"Not processing directory {directory.name} (not contains yaml).")
         return False
 
-    yml_metadata = os.path.join(directory.path, Settings.get().FS2OD_METADATA_FILENAME)
-    if os.path.exists(yml_metadata):
-        yml_metadata_content = load_yaml(yml_metadata)
+    yml_access_info_file = get_access_info_storage_file(directory, yml_trigger_file)
+    create_file_if_does_not_exist(yml_access_info_file)
+
+    yml_metadata_file = os.path.join(directory.path, Settings.get().SEPARATE_METADATA_FILENAME)
+    if os.path.exists(yml_metadata_file):
+        yml_metadata_content = load_yaml(yml_metadata_file)
         removing_time = get_token_from_yaml(yml_metadata_content, "removingTime", error_message_importance=4)
 
         if removing_time == "removed":
             Logger.log(4, f"Not processing directory {directory.name} (support already revoked).")
             return False
 
-    yml_content = load_yaml(yml_file)
+    yml_content = load_yaml(yml_access_info_file)
 
     if yml_content is None:
         time_now = datetime.datetime.now()
         append_to_file_if_pattern_does_not_exist(
-            yml_file, "^# %s.%s.%s %s:%s - This metadata file was checked by fs2od and found to be invalid$",
+            yml_trigger_file, "^# %s.%s.%s %s:%s - This metadata file was checked by fs2od and found to be invalid$",
             (str(time_now.day), str(time_now.month), str(time_now.year), str(time_now.hour), str(time_now.minute)))
-        Logger.log(3, f"YAML file {yml_file} in {directory.name} is not in a right format, skipping")
+        Logger.log(3, f"YAML file {yml_trigger_file} in {directory.name} is not in a right format, skipping")
 
         return False
 
@@ -131,7 +134,7 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
             return False
 
         # after creating space, asking for information one more time
-        yml_content = load_yaml(yml_file)
+        yml_content = load_yaml(yml_trigger_file)
         space_id = yamlContainsSpaceId(yml_content)
 
     if not spaces.space_exists(space_id):
@@ -148,25 +151,25 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
     else:
         spaces.disableContinuousImport(space_id, directory)
 
-    if not Settings.get().USE_METADATA_FILE:
+    if not Settings.get().USE_SEPARATE_METADATA_FILE:
         # not using metadata file so can skip next lines
         return True
 
-    if not os.path.exists(yml_metadata):
+    if not os.path.exists(yml_metadata_file):
         Logger.log(4, f"Not checking for removal of {directory.name} (not contains metadata file).")
         return False
 
-    yaml_dict = load_yaml(yml_metadata)
+    yaml_dict = load_yaml(yml_metadata_file)
     if not yaml_dict:
         Logger.log(4, f"Metadata file for space with ID {space_id} and path {directory.path} is empty. "
                       f"Not processing further")
         return False
 
-    _process_denied_providers(space_id, yml_metadata, directory)
+    _process_denied_providers(space_id, yml_metadata_file, directory)
 
-    yaml_dict = load_yaml(yml_metadata)
+    yaml_dict = load_yaml(yml_metadata_file)
     setValueToYaml(
-        file_path=yml_metadata,
+        file_path=yml_metadata_file,
         yaml_dict=yaml_dict,
         valueType="LastProgramRun",
         value=datetime.datetime.now().isoformat()
@@ -198,22 +201,40 @@ def _scanWatchedDirectory(base_path: str, only_check: bool) -> None:
     Logger.log(3, "Finish processing path %s" % base_path)
 
 
-def getMetaDataFile(directory: os.DirEntry) -> str:
+def get_trigger_metadata_file(directory: os.DirEntry) -> str:
     """
     Gets metadata file based on provided directory and names of possible yaml files provided in configfile.
     If metadata file found, returns path to it, otherwise empty string.
     """
-    Logger.log(4, "getMetaDataFile(%s):" % directory.path)
-    for file in Settings.get().config["metadataFiles"]:
-        yml_file = directory.path + os.sep + file
+    Logger.log(4, f"get_metadata_file({directory.path})")
+
+    for file in Settings.get().METADATA_FILES:
+        metadata_file = os.path.join(directory, file)
+
         # check if given metadata file exists in directory
-        if os.path.isfile(yml_file):
+        if os.path.isfile(metadata_file):
             # check if a metadata file has been already found
-            return yml_file
+            return metadata_file
 
     # no metadata file found
     Logger.log(4, "No file with metadata found in %s " % directory.path)
     return ""
+
+
+def get_access_info_storage_file(directory: os.DirEntry, metadata_trigger_name: Optional[str]):
+    """
+    Returns filename, where access info should be stored
+    User parses already found metadata file filename. If no file is parsed, it executes a function to find
+    a triggering metadata filename
+    """
+    Logger.log(4, f"get_access_info_storage_file({directory.path}, {metadata_trigger_name})")
+    if Settings.get().SEPARATE_METADATA_STORE_ACCESS:
+        return os.path.join(directory, Settings.get().SEPARATE_METADATA_FILENAME)
+
+    if metadata_trigger_name is None:
+        return get_trigger_metadata_file(directory)
+
+    return metadata_trigger_name
 
 
 def _auto_set_continuous_import(space_id: str, directory: os.DirEntry):
@@ -238,21 +259,24 @@ def setup_continuous_import(directory: os.DirEntry):
         return
 
     # test if directory contains a yaml file
-    yml_file = getMetaDataFile(directory)
-    if not yml_file:
+    yml_trigger_file = get_trigger_metadata_file(directory)
+    if not yml_trigger_file:
         Logger.log(4, f"YML file in {directory.path} does not exist")
         return
 
-    yml_content = load_yaml(yml_file)
+    yml_access_info_file = get_access_info_storage_file(directory, yml_trigger_file)
+    create_file_if_does_not_exist(yml_access_info_file)
+
+    yml_content = load_yaml(yml_access_info_file)
     # test if yaml contains space_id
     space_id = yamlContainsSpaceId(yml_content)
     if not space_id:
-        Logger.log(4, f"Space id not found in {yml_file}")
+        Logger.log(4, f"Space id not found in {yml_access_info_file}")
         return
 
     # test if such space exists
     if not spaces.space_exists(space_id):
-        Logger.log(1, "Space ID %s found in %s isn't correct." % (space_id, yml_file))
+        Logger.log(1, "Space ID %s found in %s isn't correct." % (space_id, yml_access_info_file))
         return
 
     _auto_set_continuous_import(space_id, directory)

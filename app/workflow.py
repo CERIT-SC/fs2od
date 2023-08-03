@@ -80,12 +80,15 @@ def register_space(directory: os.DirEntry) -> bool:
         return False
 
     # test if directory contains a yaml file
-    yml_file = filesystem.getMetaDataFile(directory)
-    if not yml_file:
+    yml_trigger_file = filesystem.get_trigger_metadata_file(directory)
+    if not yml_trigger_file:
         Logger.log(4, "Space for %s not created (not contains yaml or no dir)." % directory.name)
         return False
 
-    yml_content = filesystem.load_yaml(yml_file)
+    yml_access_info_file = filesystem.get_access_info_storage_file(directory, yml_trigger_file)
+    filesystem.create_file_if_does_not_exist(yml_access_info_file)
+
+    yml_content = filesystem.load_yaml(yml_access_info_file)
 
     # test if yaml contains space_id
     if filesystem.yamlContainsSpaceId(yml_content):
@@ -216,26 +219,20 @@ def register_space(directory: os.DirEntry) -> bool:
         dareg.log(space_id, "info", "group added to space")
     time.sleep(1 * Settings.get().config["sleepFactor"])
 
-    actions_logger.log_pre("information", yml_file)
+    actions_logger.log_pre("information", yml_access_info_file)
     # write onedata parameters (space_id, invite_token) to file
     yaml_onedata_dict = dict()
     yaml_onedata_dict[Settings.get().config["metadataFileTags"]["onezone"]] = Settings.get().ONEZONE_HOST
     yaml_onedata_dict[Settings.get().config["metadataFileTags"]["space"]] = space_id
     yaml_onedata_dict[Settings.get().config["metadataFileTags"]["inviteToken"]] = token["token"]
-    status = filesystem.set_values_to_yaml(yml_file, yml_content, yaml_onedata_dict)
+    status = filesystem.set_values_to_yaml(yml_access_info_file, yml_content, yaml_onedata_dict)
     is_ok = actions_logger.log_post(status)
     if not is_ok: return False
 
-    yml_metadata = os.path.join(directory.path, Settings.get().FS2OD_METADATA_FILENAME)
-    if Settings.get().USE_METADATA_FILE:
-        # creating separate metadata file for fs2od data
-        actions_logger.log_pre("create_metadata_file", "")
-        status = filesystem.create_file(yml_metadata)
-        is_ok = actions_logger.log_post(status, only_check=True)
-        if not is_ok: return False
-
+    yml_metadata = os.path.join(directory.path, Settings.get().SEPARATE_METADATA_FILENAME)
+    if Settings.get().USE_SEPARATE_METADATA_FILE:
         actions_logger.log_pre("fill_metadata_file", "")
-        yaml_metadata_dict = dict()
+        yaml_metadata_dict = filesystem.load_yaml(yml_metadata).get("Onedata2", dict())
         yaml_metadata_dict[Settings.get().config["metadataFileTags"]["deniedProviders"]] = []
         yaml_metadata_dict[Settings.get().config["metadataFileTags"]["lastProgramRun"]] = datetime.datetime.now().isoformat()
         status = filesystem.set_values_to_yaml(yml_metadata, {}, yaml_metadata_dict)
@@ -279,7 +276,7 @@ def register_space(directory: os.DirEntry) -> bool:
 
     # write onedata parameter (publicURL) to file
     filesystem.setValueToYaml(
-        yml_file,
+        yml_trigger_file,
         yml_content,
         Settings.get().config["metadataFileTags"]["publicURL"],
         share["publicUrl"],
@@ -309,9 +306,9 @@ def register_space(directory: os.DirEntry) -> bool:
     # is_ok = actions_logger.log_post(success, only_check=True)
     # if not is_ok: return False
 
-    if Settings.get().USE_METADATA_FILE:
-        # chmod hack, no longer can change via API
-        filesystem.chmod_recursive(yml_metadata, Settings.get().config["initialPOSIXlikePermissions"])
+    # if Settings.get().USE_METADATA_FILE:
+    #     # chmod hack, no longer can change via API
+    #     filesystem.chmod_recursive(yml_metadata, Settings.get().config["initialPOSIXlikePermissions"])
 
     path = base_path + os.sep + directory.name
     Logger.log(3, "Processing of %s done." % path)
