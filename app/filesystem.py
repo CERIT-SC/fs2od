@@ -216,6 +216,22 @@ def getMetaDataFile(directory: os.DirEntry) -> str:
     return ""
 
 
+def get_access_info_storage_file(directory: os.DirEntry, metadata_trigger_name: Optional[str]):
+    """
+    Returns filename, where access info should be stored
+    User parses already found metadata file filename. If no file is parsed, it executes a function to find
+    a triggering metadata filename
+    """
+    Logger.log(4, f"get_access_info_storage_file({directory.path}, {metadata_trigger_name})")
+    if Settings.get().SEPARATE_METADATA_STORE_ACCESS:
+        return os.path.join(directory, Settings.get().SEPARATE_METADATA_FILENAME)
+
+    if metadata_trigger_name is None:
+        return get_trigger_metadata_file(directory)
+
+    return metadata_trigger_name
+
+
 def _auto_set_continuous_import(space_id: str, directory: os.DirEntry):
     Logger.log(4, f"_auto_set_continuous_import(space_id={space_id},dir={directory.path}):")
     running_file = (
