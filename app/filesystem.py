@@ -151,7 +151,7 @@ def _process_possible_space(directory: os.DirEntry, only_check: bool) -> bool:
     else:
         spaces.disableContinuousImport(space_id)
 
-    if not Settings.get().USE_METADATA_FILE:
+    if not Settings.get().USE_SEPARATE_METADATA_FILE:
         # not using metadata file so can skip next lines
         return True
 

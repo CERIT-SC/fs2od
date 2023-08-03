@@ -229,14 +229,8 @@ def register_space(directory: os.DirEntry) -> bool:
     is_ok = actions_logger.log_post(status)
     if not is_ok: return False
 
-    yml_metadata = os.path.join(directory.path, Settings.get().FS2OD_METADATA_FILENAME)
-    if Settings.get().USE_METADATA_FILE:
-        # creating separate metadata file for fs2od data
-        actions_logger.log_pre("create_metadata_file", "")
-        status = filesystem.create_file(yml_metadata)
-        is_ok = actions_logger.log_post(status, only_check=True)
-        if not is_ok: return False
-
+    yml_metadata = os.path.join(directory.path, Settings.get().SEPARATE_METADATA_FILENAME)
+    if Settings.get().USE_SEPARATE_METADATA_FILE:
         actions_logger.log_pre("fill_metadata_file", "")
         yaml_metadata_dict = dict()
         yaml_metadata_dict[Settings.get().config["metadataFileTags"]["deniedProviders"]] = []

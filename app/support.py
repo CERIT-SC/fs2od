@@ -125,7 +125,7 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
         return False
 
     space_file_id = space_information["fileId"]
-    yaml_metadata = os.path.join(directory.path, Settings.get().FS2OD_METADATA_FILENAME)
+    yaml_metadata = os.path.join(directory.path, Settings.get().SEPARATE_METADATA_FILENAME)
     config_file_name = os.path.basename(yaml_metadata)
 
     yaml_metadata_dict = filesystem.load_yaml(yaml_metadata)
