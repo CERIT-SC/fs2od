@@ -71,6 +71,7 @@ class Settings:
         self.debug: int = 5
         self.TEST: bool = False
         self.TEST_PREFIX: str = ""
+        self.METADATA_FILES: List[str] = []
         self.ONEZONE_HOST: str = ""
         self.ONEZONE_API_KEY: str = ""
         self.MAIN_ONEPROVIDER_HOST: str = ""
@@ -134,6 +135,8 @@ class Settings:
 
         self.TEST: bool = self.config["testMode"]
         self.TEST_PREFIX: str = self.config["testModePrefix"]
+
+        self.METADATA_FILES: List[str] = self.config["metadataFiles"]
 
         # Setup the access Onedata variables
         self.ONEZONE_HOST: str = self.config["restAccess"]["onezone"]["host"]
