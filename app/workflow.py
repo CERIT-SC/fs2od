@@ -306,9 +306,9 @@ def register_space(directory: os.DirEntry) -> bool:
     # is_ok = actions_logger.log_post(success, only_check=True)
     # if not is_ok: return False
 
-    if Settings.get().USE_METADATA_FILE:
-        # chmod hack, no longer can change via API
-        filesystem.chmod_recursive(yml_metadata, Settings.get().config["initialPOSIXlikePermissions"])
+    # if Settings.get().USE_METADATA_FILE:
+    #     # chmod hack, no longer can change via API
+    #     filesystem.chmod_recursive(yml_metadata, Settings.get().config["initialPOSIXlikePermissions"])
 
     path = base_path + os.sep + directory.name
     Logger.log(3, "Processing of %s done." % path)
