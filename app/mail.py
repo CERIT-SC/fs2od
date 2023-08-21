@@ -208,7 +208,7 @@ def disconnect(connection: typing.Union[smtplib.SMTP, smtplib.SMTP_SSL]):
     connection.quit()
 
 
-def send_using_creds(message: str, html_message: str, credentials: Messaging.EmailCreds, email_info: Messaging.Email):
+def send_using_creds(message: str, html_message: str, credentials: Messaging.EmailCreds, recipients: Recipients):
     Logger.log(4, f"mail.send_using_creds()")
     if not Settings.get().MESSAGING.email_creds.enabled:
         Logger.log(4, f"Not sending email, disabled in config")
@@ -234,7 +234,13 @@ def send_using_creds(message: str, html_message: str, credentials: Messaging.Ema
 
     email_message['Subject'] = subject
     email_message['From'] = credentials.message_sender
-    email_message['To'] = ", ".join(email_info.to)
+
+    to, cc, bcc = recipients.stringify()
+    email_message['To'] = to
+    if cc:
+        email_message['Cc'] = cc
+    if bcc:
+        email_message['Bcc'] = bcc
 
     part = MIMEText(body, 'plain')
     email_message.attach(part)
