@@ -239,36 +239,6 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
     return completed
 
 
-
-def _send_email_about_deletion(space_id: str, directory: os.DirEntry, removing_time: str, yaml_file_path: str):
-    Logger.log(4, f"_send_email_about_deletion(space_id={space_id},dir={directory.path},removing_time={removing_time})")
-    deletion_text_file = _get_filename_by_localization("deletion.txt")
-    deletion_html_file = _get_filename_by_localization("deletion.html")
-    with open(deletion_text_file, "r", encoding="utf-8") as f:
-        template_text = f.read()
-    with open(deletion_html_file, "r", encoding="utf-8") as f:
-        template_html = f.read()
-    template = string.Template(template_text)
-    template_h = string.Template(template_html)
-    to_substitute = {
-        "space_name": directory.name,
-        "space_id": space_id,
-        "space_path": directory.path,
-        "date": removing_time,
-        "config_file": os.path.basename(yaml_file_path),
-        "now": datetime.datetime.now().strftime(Settings.get().TIME_FORMATTING_STRING)
-    }
-    result_text = template.substitute(to_substitute)
-    result_html = template_h.substitute(to_substitute)
-
-    mail.send_using_creds(
-        message=result_text,
-        html_message=result_html,
-        credentials=Settings.get().MESSAGING.email_creds,
-        email_info=Settings.get().MESSAGING.email
-    )
-
-
 def remove_support_primary_NOW(space_id: str, directory: os.DirEntry) -> bool:
     Logger.log(3, f"remove_support_primary_now(space_id={space_id},directory_path={directory.path})")
     # not disabling or removing QoS because revoking support of provider is possible even when QoS is set
