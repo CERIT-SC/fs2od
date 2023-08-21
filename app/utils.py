@@ -4,9 +4,8 @@ import uuid
 from datetime import datetime, timedelta
 from pprint import pprint
 from urllib.parse import urlparse
-
 from settings import Settings
-from typing import List, Union, Tuple
+from typing import List, Union, Tuple, Optional, Any
 
 
 def _convert_to_urlparse_result(url: str) -> Union[urllib.parse.ParseResult, bool]:
@@ -26,6 +25,28 @@ def _convert_to_urlparse_result(url: str) -> Union[urllib.parse.ParseResult, boo
         return False
 
     return url_object
+
+
+def _traverse_through_dictionary(keys_list: list, actual_key_index: int, dictionary: dict) -> Any:
+    """
+    Recursive function which traverses through dictionary and finds value using key list
+    If it is not the last iteration and dictionary is not of the dictionary type, returns None
+    If given key is not found anywhere during traversing, returns None
+    If the last two conditions were not fulfilled, returns found value
+    """
+    if actual_key_index == len(keys_list):
+        return dictionary
+
+    if not isinstance(dictionary, dict):
+        return None
+
+    actual_key = keys_list[actual_key_index]
+    next_dictionary = dictionary.get(actual_key, None)
+
+    if next_dictionary is None:
+        return None
+
+    return _traverse_through_dictionary(keys_list, actual_key_index + 1, next_dictionary)
 
 
 class Utils:
@@ -208,6 +229,39 @@ class Utils:
         end = Utils.implies(end, matches[-1].end() == len(text))
 
         return beginning and end
+
+    @staticmethod
+    def get_value_from_dictionary(key_tree_pattern: str, dictionary: dict, default: Any = None,
+                                  separator: str = "->") -> Optional[Any]:
+        """
+        Traverses through dictionary and returns value based on a keys-tree given in key_tree_pattern
+        key_tree_pattern is a string directing the function, how to get to specific value
+        dictionary is default dictionary, where given key_tree_pattern will be found
+        default is value, which will be returned if given keys-tree value is not found
+        separator specifies how the individual values are separated inside the key_tree_pattern string
+        If value is not found using given parameters, default value is returned.
+        If a default value was not set, None is returned.
+        >>> dictionary = {
+        >>>     "a": {
+        >>>         "b": {
+        >>>             "c": 42,
+        >>>             "d": 23
+        >>>         },
+        >>>         "u": "string_value"
+        >>>     }
+        >>> }
+        >>> Utils.get_value_from_dictionary(key_tree_pattern = "a->b->c", dictionary = dictionary, default = "other")  # 42
+        >>> Utils.get_value_from_dictionary(key_tree_pattern = "a->b->d", dictionary = dictionary, default = "other")  # 23
+        >>> Utils.get_value_from_dictionary(key_tree_pattern = "a->b->c->d", dictionary = dictionary, default = "other")  # "other"
+        >>> Utils.get_value_from_dictionary(key_tree_pattern = "a->b", dictionary = dictionary, default = "other")  # {"c": 42, "d": 23}
+        """
+        key_tree_list = key_tree_pattern.split(separator)
+
+        value = _traverse_through_dictionary(key_tree_list, 0, dictionary)
+        if value is None:
+            return default
+
+        return value
 
 
 class Logger:
