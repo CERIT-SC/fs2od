@@ -427,3 +427,53 @@ def _prepare_recipients(directory: os.DirEntry, recipients_precursor: list) -> m
     Logger.log(5, f"Finished decoding data using recipient types commands")
 
     return recipients
+
+
+def send_email_with_contents(content_filenames: tuple[str, str], to_substitute: dict, recipients: mail.Recipients):
+    """
+    Sends email using content given by arguments.
+
+    content_filenames is a tuple containing string names of plain text and html template files respectively
+    to_substitute is already prepared dictionary with values to substitute in templates
+    recipients is a recipients object telling where to send given email
+    """
+    Logger.log(4, f"send_email_with_contents(content={content_filenames})")
+
+    text_filename, html_filename = content_filenames
+    template_text = filesystem.load_file_contents(text_filename)
+    template_html = filesystem.load_file_contents(html_filename)
+    if not template_text or not template_html:
+        return
+
+    template = string.Template("".join(template_text))
+    template_h = string.Template("".join(template_html))
+
+    result_text = template.substitute(to_substitute)
+    result_html = template_h.substitute(to_substitute)
+
+    mail.send_using_creds(
+        message=result_text,
+        html_message=result_html,
+        credentials=Settings.get().MESSAGING.email_creds,
+        recipients=recipients
+    )
+
+
+def send_email_about_deletion(space_id: str, directory: os.DirEntry, removing_time: str, yaml_file_path: str):
+    """
+    Sends email about deletion (when a space is about to be deleted)
+    """
+    Logger.log(3, f"send_email_about_deletion(id={space_id}, directory={directory.path})")
+    deletion_text_file = language.get_filename_by_localization("deletion.txt")
+    deletion_html_file = language.get_filename_by_localization("deletion.html")
+    to_substitute = {
+        "space_name": directory.name,
+        "space_id": space_id,
+        "space_path": directory.path,
+        "date": removing_time,
+        "config_file": os.path.basename(yaml_file_path),
+        "now": datetime.datetime.now().strftime(Settings.get().TIME_FORMATTING_STRING)
+    }
+    recipients = _prepare_recipients(directory, Settings.get().MESSAGING.email.to["space_deletion"])
+
+    send_email_with_contents((deletion_text_file, deletion_html_file), to_substitute, recipients)
