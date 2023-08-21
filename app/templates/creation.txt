@@ -1,0 +1,7 @@
+Creation of space "$space_name" - fs2od
+
+We are happy to announce you, that a new space "$space_name" (id $space_id, path $space_path) was successfully created.
+The new space is processed by Onezone $onezone_url and is publicly available on this link: $public_url.
+If you want to add a space to your Onedata profile, you should use this invite token: $invite_token.
+
+This email was sent automatically by fs2od $now.
