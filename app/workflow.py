@@ -1,13 +1,16 @@
 import datetime
 import os
+import string
 import sys
 import time
 from pprint import pprint
 import actions_log
+import commander
 import dareg
-import files
 import filesystem
 import groups
+import language
+import mail
 import metadata
 import qos
 import shares
@@ -18,6 +21,17 @@ from settings import Settings
 from utils import Logger, Utils
 
 actions_logger = actions_log.get_actions_logger()
+
+RECIPIENTS_COMMAND_MAP = commander.CommandMap({
+        "to": commander.Command(mail.Recipients.add_to),
+        "default": commander.Command(mail.Recipients.add_to),
+        "cc": commander.Command(mail.Recipients.add_cc),
+        "bcc": commander.Command(mail.Recipients.add_bcc)
+})
+
+METADATA_COMMAND_MAP = commander.CommandMap({
+    "metadata": commander.Command(Utils.get_value_from_dictionary)
+})
 
 
 def _get_storage_index(space_id: str, number_of_available_storages: int) -> int:
@@ -376,3 +390,40 @@ def deleteSpaceWithAllStuff(spaceId):
             print("Storage", storage["name"], "deleted. ")
             deleted_storages += 1
             time.sleep(0.5)
+
+
+def _prepare_recipients(directory: os.DirEntry, recipients_precursor: list) -> mail.Recipients:
+    """
+    Prepares recipients using data from configuration file and sometimes from metadata file.
+    Recipient precursors are read from a configuration file and can contain command for processing.
+    There can be a precursor, which does not contain any command; it is called a final value
+    Using command mapping the commands are executed and a recipient object is prepared.
+    Commands are executed in passes due to a logical diversity.
+    Available commands:
+    First pass:
+        metadata: tells the command executor that the value should be found traversing a metadata file
+    Second pass:
+        to: tells the command executor, that the value should be added to recipient type "To"
+        cc: tells the command executor, that the value should be added to recipient type "Cc (Carbon Copy)"
+        bcc: tells the command executor, that the value should be added to recipient type "Bcc (Blind Carbon Copy)"
+    The final values are then found in the Recipients object
+    """
+    Logger.log(4, f"_prepare_recipients(directory={directory.path})")
+    yaml_trigger_file = filesystem.get_trigger_metadata_file(directory)
+    yaml_dict = filesystem.load_yaml(yaml_trigger_file)
+
+    email_list_to = []
+    Logger.log(5, f"Decoding data using metadata command, number of entries: {len(recipients_precursor)}")
+    for address_command in recipients_precursor:
+        command_result = commander.execute_command(address_command, METADATA_COMMAND_MAP, dictionary=yaml_dict)
+        if command_result:
+            email_list_to.append(command_result)
+    Logger.log(5, f"Finished decoding using metadata command, number of recipients: {len(email_list_to)}")
+
+    Logger.log(5, f"Decoding data using recipient types commands")
+    recipients = mail.Recipients([], [], [])  # defining empty recipients
+    for address_command in email_list_to:
+        commander.execute_command(address_command, RECIPIENTS_COMMAND_MAP, self_object=recipients)
+    Logger.log(5, f"Finished decoding data using recipient types commands")
+
+    return recipients
