@@ -1,5 +1,3 @@
-import socket
-
 from settings import Settings, Messaging
 from utils import Logger
 import typing
@@ -8,6 +6,76 @@ import ssl
 from email.message import EmailMessage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+
+
+RecipientsT = typing.TypeVar("RecipientsT", bound="Recipients")
+
+
+class Recipients:
+    def __init__(self, to: list[str], cc: typing.Optional[list[str]] = None, bcc: typing.Optional[list[str]] = None):
+        self.to = [recipient.strip() for recipient in to]
+
+        self.cc = None
+        if cc is not None:
+            self.cc = [recipient.strip() for recipient in cc]
+
+        self.bcc = None
+        if bcc is not None:
+            self.bcc = [recipient.strip() for recipient in bcc]
+
+    def stringify(self) -> typing.Tuple[str, str, str]:
+        """
+        Stringifies recipients to be able used as in email header
+            (defined in RFC2822 https://datatracker.ietf.org/doc/html/rfc2822#section-3.4),
+            and returns tuple of three strings containing To, Cc, Bcc respectively
+        """
+        delimiter = ", "
+        to_str = delimiter.join(self.to)
+
+        cc_str = ""
+        if self.cc is not None:
+            cc_str = delimiter.join(self.cc)
+
+        bcc_str = ""
+        if self.cc is not None:
+            bcc_str = delimiter.join(self.bcc)
+
+        return to_str, cc_str, bcc_str
+
+    def add_to(self, recipient: str) -> None:
+        """
+        Adds new recipient to "To" type
+        """
+        recipient = recipient.strip()
+        self.to.append(recipient)
+
+    def add_cc(self, recipient: str) -> None:
+        """
+        Adds new recipient to "Cc" (Carbon Copy) type
+        """
+        recipient = recipient.strip()
+        self.cc.append(recipient)
+
+    def add_bcc(self, recipient: str) -> None:
+        """
+        Adds new recipient to "Bcc" (Blind Carbon Copy) type
+        """
+        recipient = recipient.strip()
+        self.bcc.append(recipient)
+
+    @staticmethod
+    def define(to: list[str], cc: typing.Optional[list[str]] = None, bcc: typing.Optional[list[str]] = None) \
+            -> RecipientsT:
+        """
+        Defines recipients of the message.
+        There are three possible recipient types (defined in
+            RFC2822 https://www.rfc-editor.org/rfc/rfc2822#section-3.6.3):
+        To: primary recipients of the message
+        Cc (Carbon Copy): Recipients which are not primary, but the message should be sent to them too
+        Bcc (Blind Carbon Copy): Recipients, which receive the same message as others, but their addresses
+            are not revealed to other recipients
+        """
+        return Recipients(to, cc, bcc)
 
 
 def _divide_to_subject_body(body: str) -> typing.Tuple[str, str]:
