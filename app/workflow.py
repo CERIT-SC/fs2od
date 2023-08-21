@@ -246,6 +246,7 @@ def register_space(directory: os.DirEntry) -> bool:
     yml_metadata = os.path.join(directory.path, Settings.get().SEPARATE_METADATA_FILENAME)
     if Settings.get().USE_SEPARATE_METADATA_FILE:
         actions_logger.log_pre("fill_metadata_file", "")
+        filesystem.create_file_if_does_not_exist(yml_metadata)
         yaml_metadata_dict = filesystem.load_yaml(yml_metadata).get("Onedata2", dict())
         yaml_metadata_dict[Settings.get().config["metadataFileTags"]["deniedProviders"]] = []
         yaml_metadata_dict[Settings.get().config["metadataFileTags"]["lastProgramRun"]] = datetime.datetime.now().isoformat()
