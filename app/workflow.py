@@ -291,7 +291,7 @@ def register_space(directory: os.DirEntry) -> bool:
 
     # write onedata parameter (publicURL) to file
     filesystem.setValueToYaml(
-        yml_trigger_file,
+        yml_access_info_file,
         yml_content,
         Settings.get().config["metadataFileTags"]["publicURL"],
         share["publicUrl"],
