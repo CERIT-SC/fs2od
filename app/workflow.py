@@ -324,6 +324,8 @@ def register_space(directory: os.DirEntry) -> bool:
     #     # chmod hack, no longer can change via API
     #     filesystem.chmod_recursive(yml_metadata, Settings.get().config["initialPOSIXlikePermissions"])
 
+    send_email_about_creation(directory, yml_access_info_file)
+
     path = base_path + os.sep + directory.name
     Logger.log(3, "Processing of %s done." % path)
     if Settings.get().config["dareg"]["enabled"]:
@@ -477,3 +479,27 @@ def send_email_about_deletion(space_id: str, directory: os.DirEntry, removing_ti
     recipients = _prepare_recipients(directory, Settings.get().MESSAGING.email.to["space_deletion"])
 
     send_email_with_contents((deletion_text_file, deletion_html_file), to_substitute, recipients)
+
+
+def send_email_about_creation(directory: os.DirEntry, yml_access_info_file: str):
+    """
+    Sends email about creation (when a space is created)
+    """
+    Logger.log(3, f"send_email_about_creation(directory={directory.path})")
+    creation_text_file = language.get_filename_by_localization("creation.txt")
+    creation_html_file = language.get_filename_by_localization("creation.html")
+
+    yaml_dict = filesystem.load_yaml(yml_access_info_file)
+
+    to_substitute = {
+        "space_name": directory.name,
+        "space_id": filesystem.get_token_from_yaml(yaml_dict, "space"),
+        "space_path": directory.path,
+        "onezone_url": filesystem.get_token_from_yaml(yaml_dict, "onezone"),
+        "public_url": filesystem.get_token_from_yaml(yaml_dict, "publicURL"),
+        "invite_token": filesystem.get_token_from_yaml(yaml_dict, "inviteToken"),
+        "now": datetime.datetime.now().strftime(Settings.get().TIME_FORMATTING_STRING)
+    }
+    recipients = _prepare_recipients(directory, Settings.get().MESSAGING.email.to["space_creation"])
+
+    send_email_with_contents((creation_text_file, creation_html_file), to_substitute, recipients)

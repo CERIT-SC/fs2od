@@ -1,14 +1,13 @@
 import datetime
 import os
-import string
 import filesystem
 import files
 import time
 import spaces
 import oneprovider
 import transfers
+import workflow
 from utils import Logger, Settings, Utils
-import mail
 
 MAX_TRANSFER_COMPLETED_CHECKS = 10
 
@@ -299,7 +298,7 @@ def remove_support_primary(space_id: str, yaml_file_path: str, directory: os.Dir
         Logger.log(2, f"Found space with id {space_id} and path {directory.path} to remove, "
                       f"WILL BE REMOVED {removing_time_log.upper()}!")
 
-        _send_email_about_deletion(space_id, directory, removing_time_log, yaml_file_path)
+        workflow.send_email_about_deletion(space_id, directory, removing_time_log, yaml_file_path)
         email_sent = True
 
         status = spaces.startAutoStorageImport(space_id)  # to be sure that SPA.yml file will be synced
@@ -351,7 +350,7 @@ def remove_support_primary(space_id: str, yaml_file_path: str, directory: os.Dir
                 response_on_weird_condition=True
             )
             if is_time_for_email and not email_sent:
-                _send_email_about_deletion(space_id, directory, removing_time_log, yaml_file_path)
+                workflow.send_email_about_deletion(space_id, directory, removing_time_log, yaml_file_path)
 
         else:
             Logger.log(4, f"Space with id {space_id} will be removed now, should have been at {removing_time_log}")
