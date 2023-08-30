@@ -20,7 +20,7 @@ class Messaging:
 
     class Email:
         def __init__(self):
-            self.to: str = ""
+            self.to: dict = {}
             self.time_before_action: List[datetime.timedelta] = []
             self.language: str = ""
 
@@ -472,7 +472,11 @@ class Settings:
                 email_creds["password"] = ""
             self._test_if_empty(email_creds, "messageSender", "")
 
-            self._test_existence(self.config["messaging"]["email"], "to")
+            self._test_existence(self.config["messaging"]["email"], "to", default={}, parent_name="email")
+            self._test_existence(
+                self.config["messaging"]["email"]["to"], "space_creation", parent_name="email->to")
+            self._test_existence(
+                self.config["messaging"]["email"]["to"], "space_deletion", parent_name="email->to")
             self._test_existence(self.config["messaging"]["email"], "timeBeforeAction", list())
 
             time_before_action = self.config["messaging"]["email"]["timeBeforeAction"]

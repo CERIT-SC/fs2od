@@ -1,13 +1,16 @@
 import datetime
 import os
+import string
 import sys
 import time
 from pprint import pprint
 import actions_log
+import commander
 import dareg
-import files
 import filesystem
 import groups
+import language
+import mail
 import metadata
 import qos
 import shares
@@ -18,6 +21,17 @@ from settings import Settings
 from utils import Logger, Utils
 
 actions_logger = actions_log.get_actions_logger()
+
+RECIPIENTS_COMMAND_MAP = commander.CommandMap({
+        "to": commander.Command(mail.Recipients.add_to),
+        "default": commander.Command(mail.Recipients.add_to),
+        "cc": commander.Command(mail.Recipients.add_cc),
+        "bcc": commander.Command(mail.Recipients.add_bcc)
+})
+
+METADATA_COMMAND_MAP = commander.CommandMap({
+    "metadata": commander.Command(Utils.get_value_from_dictionary)
+})
 
 
 def _get_storage_index(space_id: str, number_of_available_storages: int) -> int:
@@ -232,6 +246,7 @@ def register_space(directory: os.DirEntry) -> bool:
     yml_metadata = os.path.join(directory.path, Settings.get().SEPARATE_METADATA_FILENAME)
     if Settings.get().USE_SEPARATE_METADATA_FILE:
         actions_logger.log_pre("fill_metadata_file", "")
+        filesystem.create_file_if_does_not_exist(yml_metadata)
         yaml_metadata_dict = filesystem.load_yaml(yml_metadata).get("Onedata2", dict())
         yaml_metadata_dict[Settings.get().config["metadataFileTags"]["deniedProviders"]] = []
         yaml_metadata_dict[Settings.get().config["metadataFileTags"]["lastProgramRun"]] = datetime.datetime.now().isoformat()
@@ -276,7 +291,7 @@ def register_space(directory: os.DirEntry) -> bool:
 
     # write onedata parameter (publicURL) to file
     filesystem.setValueToYaml(
-        yml_trigger_file,
+        yml_access_info_file,
         yml_content,
         Settings.get().config["metadataFileTags"]["publicURL"],
         share["publicUrl"],
@@ -309,6 +324,8 @@ def register_space(directory: os.DirEntry) -> bool:
     # if Settings.get().USE_METADATA_FILE:
     #     # chmod hack, no longer can change via API
     #     filesystem.chmod_recursive(yml_metadata, Settings.get().config["initialPOSIXlikePermissions"])
+
+    send_email_about_creation(directory, yml_access_info_file)
 
     path = base_path + os.sep + directory.name
     Logger.log(3, "Processing of %s done." % path)
@@ -376,3 +393,114 @@ def deleteSpaceWithAllStuff(spaceId):
             print("Storage", storage["name"], "deleted. ")
             deleted_storages += 1
             time.sleep(0.5)
+
+
+def _prepare_recipients(directory: os.DirEntry, recipients_precursor: list) -> mail.Recipients:
+    """
+    Prepares recipients using data from configuration file and sometimes from metadata file.
+    Recipient precursors are read from a configuration file and can contain command for processing.
+    There can be a precursor, which does not contain any command; it is called a final value
+    Using command mapping the commands are executed and a recipient object is prepared.
+    Commands are executed in passes due to a logical diversity.
+    Available commands:
+    First pass:
+        metadata: tells the command executor that the value should be found traversing a metadata file
+    Second pass:
+        to: tells the command executor, that the value should be added to recipient type "To"
+        cc: tells the command executor, that the value should be added to recipient type "Cc (Carbon Copy)"
+        bcc: tells the command executor, that the value should be added to recipient type "Bcc (Blind Carbon Copy)"
+    The final values are then found in the Recipients object
+    """
+    Logger.log(4, f"_prepare_recipients(directory={directory.path})")
+    yaml_trigger_file = filesystem.get_trigger_metadata_file(directory)
+    yaml_dict = filesystem.load_yaml(yaml_trigger_file)
+
+    email_list_to = []
+    Logger.log(5, f"Decoding data using metadata command, number of entries: {len(recipients_precursor)}")
+    for address_command in recipients_precursor:
+        command_result = commander.execute_command(address_command, METADATA_COMMAND_MAP, dictionary=yaml_dict)
+        if command_result:
+            email_list_to.append(command_result)
+    Logger.log(5, f"Finished decoding using metadata command, number of recipients: {len(email_list_to)}")
+
+    Logger.log(5, f"Decoding data using recipient types commands")
+    recipients = mail.Recipients([], [], [])  # defining empty recipients
+    for address_command in email_list_to:
+        commander.execute_command(address_command, RECIPIENTS_COMMAND_MAP, self_object=recipients)
+    Logger.log(5, f"Finished decoding data using recipient types commands")
+
+    return recipients
+
+
+def send_email_with_contents(content_filenames: tuple[str, str], to_substitute: dict, recipients: mail.Recipients):
+    """
+    Sends email using content given by arguments.
+
+    content_filenames is a tuple containing string names of plain text and html template files respectively
+    to_substitute is already prepared dictionary with values to substitute in templates
+    recipients is a recipients object telling where to send given email
+    """
+    Logger.log(4, f"send_email_with_contents(content={content_filenames})")
+
+    text_filename, html_filename = content_filenames
+    template_text = filesystem.load_file_contents(text_filename)
+    template_html = filesystem.load_file_contents(html_filename)
+    if not template_text or not template_html:
+        return
+
+    template = string.Template("".join(template_text))
+    template_h = string.Template("".join(template_html))
+
+    result_text = template.substitute(to_substitute)
+    result_html = template_h.substitute(to_substitute)
+
+    mail.send_using_creds(
+        message=result_text,
+        html_message=result_html,
+        credentials=Settings.get().MESSAGING.email_creds,
+        recipients=recipients
+    )
+
+
+def send_email_about_deletion(space_id: str, directory: os.DirEntry, removing_time: str, yaml_file_path: str):
+    """
+    Sends email about deletion (when a space is about to be deleted)
+    """
+    Logger.log(3, f"send_email_about_deletion(id={space_id}, directory={directory.path})")
+    deletion_text_file = language.get_filename_by_localization("deletion.txt")
+    deletion_html_file = language.get_filename_by_localization("deletion.html")
+    to_substitute = {
+        "space_name": directory.name,
+        "space_id": space_id,
+        "space_path": directory.path,
+        "date": removing_time,
+        "config_file": os.path.basename(yaml_file_path),
+        "now": datetime.datetime.now().strftime(Settings.get().TIME_FORMATTING_STRING)
+    }
+    recipients = _prepare_recipients(directory, Settings.get().MESSAGING.email.to["space_deletion"])
+
+    send_email_with_contents((deletion_text_file, deletion_html_file), to_substitute, recipients)
+
+
+def send_email_about_creation(directory: os.DirEntry, yml_access_info_file: str):
+    """
+    Sends email about creation (when a space is created)
+    """
+    Logger.log(3, f"send_email_about_creation(directory={directory.path})")
+    creation_text_file = language.get_filename_by_localization("creation.txt")
+    creation_html_file = language.get_filename_by_localization("creation.html")
+
+    yaml_dict = filesystem.load_yaml(yml_access_info_file)
+
+    to_substitute = {
+        "space_name": directory.name,
+        "space_id": filesystem.get_token_from_yaml(yaml_dict, "space"),
+        "space_path": directory.path,
+        "onezone_url": filesystem.get_token_from_yaml(yaml_dict, "onezone"),
+        "public_url": filesystem.get_token_from_yaml(yaml_dict, "publicURL"),
+        "invite_token": filesystem.get_token_from_yaml(yaml_dict, "inviteToken"),
+        "now": datetime.datetime.now().strftime(Settings.get().TIME_FORMATTING_STRING)
+    }
+    recipients = _prepare_recipients(directory, Settings.get().MESSAGING.email.to["space_creation"])
+
+    send_email_with_contents((creation_text_file, creation_html_file), to_substitute, recipients)

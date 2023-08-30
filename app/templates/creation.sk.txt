@@ -1,0 +1,7 @@
+Oznámenie o vytvorení space "$space_name" - fs2od
+
+S radosťou Vám oznamujeme, že nový space "$space_name" (id $space_id, path $space_path) bol úspešne vytvorený.
+Tento space je spravovaný Onezone(ou) $onezone_url a je plne prístupný pre verejnosť - link: $public_url.
+V prípade, že si chcete tento space pridať do Vášho Onedata profilu, použite priložený pozývací token: $invite_token.
+
+This email was sent automatically by fs2od $now.

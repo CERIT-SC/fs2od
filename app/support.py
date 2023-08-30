@@ -1,14 +1,13 @@
 import datetime
 import os
-import string
 import filesystem
 import files
 import time
 import spaces
 import oneprovider
 import transfers
+import workflow
 from utils import Logger, Settings, Utils
-import mail
 
 MAX_TRANSFER_COMPLETED_CHECKS = 10
 
@@ -239,62 +238,6 @@ def _sync_information_about_space_removal(space_id: str, directory: os.DirEntry)
     return completed
 
 
-def _get_filename_by_localization(filename: str) -> str:
-    """
-    Returns file name extended with localization. If localized file does not exist, returns given file.
-    If given file does not exist, returns it with error in log
-    """
-    Logger.log(4, f"_get_filename_by_localization(filename={filename})")
-
-    if not os.path.exists(filename):
-        Logger.log(1, f"File with name {filename} does not exist, returning with possibility of crashing the program.")
-        return filename
-
-    language_extension = Settings.get().MESSAGING.email.language  # nothing if default, .ex when other
-    filename_list = filename.split(".")
-
-    if len(filename_list) == 1:
-        filename_list[0] += language_extension
-        return filename_list[0]
-
-    filename_list[-2] += language_extension
-
-    new_filename = ".".join(filename_list)
-    if os.path.exists(new_filename):
-        return new_filename
-
-    return filename
-
-
-def _send_email_about_deletion(space_id: str, directory: os.DirEntry, removing_time: str, yaml_file_path: str):
-    Logger.log(4, f"_send_email_about_deletion(space_id={space_id},dir={directory.path},removing_time={removing_time})")
-    deletion_text_file = _get_filename_by_localization("deletion.txt")
-    deletion_html_file = _get_filename_by_localization("deletion.html")
-    with open(deletion_text_file, "r", encoding="utf-8") as f:
-        template_text = f.read()
-    with open(deletion_html_file, "r", encoding="utf-8") as f:
-        template_html = f.read()
-    template = string.Template(template_text)
-    template_h = string.Template(template_html)
-    to_substitute = {
-        "space_name": directory.name,
-        "space_id": space_id,
-        "space_path": directory.path,
-        "date": removing_time,
-        "config_file": os.path.basename(yaml_file_path),
-        "now": datetime.datetime.now().strftime(Settings.get().TIME_FORMATTING_STRING)
-    }
-    result_text = template.substitute(to_substitute)
-    result_html = template_h.substitute(to_substitute)
-
-    mail.send_using_creds(
-        message=result_text,
-        html_message=result_html,
-        credentials=Settings.get().MESSAGING.email_creds,
-        email_info=Settings.get().MESSAGING.email
-    )
-
-
 def remove_support_primary_NOW(space_id: str, directory: os.DirEntry) -> bool:
     Logger.log(3, f"remove_support_primary_now(space_id={space_id},directory_path={directory.path})")
     # not disabling or removing QoS because revoking support of provider is possible even when QoS is set
@@ -355,7 +298,7 @@ def remove_support_primary(space_id: str, yaml_file_path: str, directory: os.Dir
         Logger.log(2, f"Found space with id {space_id} and path {directory.path} to remove, "
                       f"WILL BE REMOVED {removing_time_log.upper()}!")
 
-        _send_email_about_deletion(space_id, directory, removing_time_log, yaml_file_path)
+        workflow.send_email_about_deletion(space_id, directory, removing_time_log, yaml_file_path)
         email_sent = True
 
         status = spaces.startAutoStorageImport(space_id)  # to be sure that SPA.yml file will be synced
@@ -407,7 +350,7 @@ def remove_support_primary(space_id: str, yaml_file_path: str, directory: os.Dir
                 response_on_weird_condition=True
             )
             if is_time_for_email and not email_sent:
-                _send_email_about_deletion(space_id, directory, removing_time_log, yaml_file_path)
+                workflow.send_email_about_deletion(space_id, directory, removing_time_log, yaml_file_path)
 
         else:
             Logger.log(4, f"Space with id {space_id} will be removed now, should have been at {removing_time_log}")

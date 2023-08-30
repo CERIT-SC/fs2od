@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <title>Creation announcement</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+    a:hover {
+        text-decoration: underline;
+    }
+</style>
+<body style="display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; text-align: center; padding: 4px 12px;">
+    <h1>Creation announcement</h1>
+    <p style="line-height: 17pt;">
+        We are happy to announce you, that a new space "<span style="font-weight: bold;">$space_name</span>" with:<br><br>
+
+        id: &emsp; $space_id<br>
+        path: &emsp; $space_path<br><br>
+
+        was successfully created.<br>
+        The new space is processed by Onezone <a href="$onezone_url" target="_blank">$onezone_url</a> and is publicly available. If you want to add a space to your Onedata profile, you should use the invite token provided.<br><br>
+
+        public link: &emsp; <a href="$public_url" target="_blank">$public_url</a>.<br>
+        invite token: &emsp; $invite_token<br>
+    </p>
+
+    <p style="color: gray;">This email was sent automatically by <a href="https://github.com/CERIT-SC/fs2od" target="_blank" style="text-decoration: none;color: gray;"><span style="font-weight: bold;">fs2od</span></a> $now.</p>
+</body>
+</html>

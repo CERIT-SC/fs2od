@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="sk" xmlns="http://www.w3.org/1999/html">
+<html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
-    <title>Upozornenie na vymazanie</title>
+    <title>Oznámenie o vytvorení</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,16 +13,18 @@
     }
 </style>
 <body style="display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Roboto', sans-serif; text-align: center; padding: 4px 12px;">
-    <h1>Upozornenie na vymazanie</h1>
+    <h1>Oznámenie o vytvorení</h1>
     <p style="line-height: 17pt;">
-        Váš space "<span style="font-weight: bold;">$space_name</span>" s vlastnosťami:<br><br>
+        S radosťou Vám oznamujeme, že nový space "<span style="font-weight: bold;">$space_name</span>" s vlastnosťami:<br><br>
 
         id: &emsp; $space_id<br>
         cesta: &emsp; $space_path<br><br>
 
-        bude automaticky vymazaný<br>
-        <span style="font-weight: bold;">$date</span>.<br><br>
-        Ak si neželáte, aby sa tak stalo, je potrebné nastaviť RemovingTime na "never" alebo odstrániť celý tento riadok v súbore $config_file.
+        bol úspešne vytvorený.<br>
+        Tento space je spravovaný Onezone(ou) <a href="$onezone_url" target="_blank">$onezone_url</a> a je plne prístupný pre verejnosť. V prípade, že si chcete tento space pridať do Vášho Onedata profilu, použite priložený pozývací token.<br><br>
+
+        verejný link: &emsp; <a href="$public_url" target="_blank">$public_url</a>.<br>
+        pozývací token: &emsp; $invite_token<br>
     </p>
 
     <p style="color: gray;">Tento email automaticky zaslal systém <a href="https://github.com/CERIT-SC/fs2od" target="_blank" style="text-decoration: none;color: gray;"><span style="font-weight: bold;">fs2od</span></a> $now.</p>

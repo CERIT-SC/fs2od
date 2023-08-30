@@ -158,10 +158,27 @@ messaging:
       messageSender: ""
 
   email:
-    # Same format as messageSender
+    # Two possible formats are available:
+    # 1: Same format as messageSender
+    # 2: with prefix metadata:, e.g. metadata:Where->To->find (without space) - using this method, the sender will be
+    # determined by traversing through space metadata using keywords provided. This will act as a python dictionary
+    # "metadata:Where->To->find" will be processed as config["Where"]["To"]["find"]
+    # if given key combination is not found, the entry is skipped without app failure
+    # Three possible formats for recipient types are available:
+    # 1: prefix to:, or without prefix - primary recipient
+    # 2: prefix cc: - Carbon Copy - copy of the same message, recipient known to the primary recipient
+    # 3: prefix bcc - Blind Carbon Copy - copy of the same message, recipient not known to the primary or Cc recipient
+    # all commands (types - from first or second bucket) can be combined and does not matter on the order
+    # those commands are CASE SENSITIVE, so only exact values given by this definition are allowed
     to:
-      - ""
-      - ""
+      - space_creation:
+        - ""
+        - "name@email.example.com"  # sends email to name@email.example.com
+        - "metadata:Operator->NormalizedEmail"  # sends email to address defined in metadata file as metadata["Operator"]["NormalizedEmail"]
+        - "bcc:metadata:Admin->NormalizedEmail"  # sends blind copy email to address defined in metadata file as metadata["Admin"]["NormalizedEmail"]
+      - space_deletion:
+        - ""
+        - ""
     # Sends email when given timestamp is reached, same format as timeUntilRemoved
     timeBeforeAction:
       - 1m
