@@ -23,7 +23,7 @@ def _set_file_json_metadata(file_id: str, data: dict):
 def set_space_metadata_from_yaml(directory: os.DirEntry) -> bool:
     Logger.log(4, f"set_space_metadata_from_yaml({directory.path}):")
 
-    yml_file = filesystem.getMetaDataFile(directory)
+    yml_file = filesystem.get_trigger_metadata_file(directory)
     yml_content = filesystem.load_yaml(yml_file)
 
     if yml_content is None:
