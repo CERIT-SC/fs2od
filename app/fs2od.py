@@ -35,6 +35,10 @@ def run_test_change(args):
     test.change(args)
 
 
+def run_test_stats(args):
+    test.stats(args)
+
+
 def runTestRegisterSpace(args):
     test.registerSpace(args.register_space)
 

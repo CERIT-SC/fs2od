@@ -375,6 +375,153 @@ def change(args: argparse.Namespace) -> None:
         return
 
 
+def get_all_spaces_with_distribution(arguments: Arguments, used_providers: list) -> dict[str, dict[str, int, dict]]:
+    """
+    Returns dict of spaces with names and their distribution among providers
+    """
+    provider_spaces = {}
+
+    for provider_index in used_providers:
+        actual_spaces = get_provider_spaces_starting_with(arguments, provider_index)
+        for _, space_id, space_name in actual_spaces:
+            space_info = provider_spaces.get(space_id, {"name": space_name, "providers": []})
+            space_info["providers"].append(provider_index)
+            provider_spaces[space_id] = space_info
+
+    return provider_spaces
+
+
+def get_providers_index_id_map() -> list[str]:
+    """
+    Returns dict of providers with their index as key and id as value
+    """
+    providers = []
+    for provider_index in range(len(Settings.get().ONEPROVIDERS_API_URL)):
+        provider_id = oneprovider.get_provider_id(provider_index)
+        providers.append(provider_id)
+
+    return providers
+
+
+def get_occupation_of_space_on_provider(space_id: str, provider_index: int, providers_map: list[str]) -> tuple[int, int]:
+    """
+    Returns dict of providers with their occupation on given space
+    space_details = {
+        "name": "space_name",
+        "supportingProviders": {
+            "provider_id":int support,
+            "provider_id":int support
+        },
+        "spaceOccupancy":int occupancy,
+        ...
+    }
+    """
+    space_info = spaces.getSpaceDetails(space_id, provider_index)
+    support_size = space_info["supportingProviders"][providers_map[provider_index]]
+    space_occupancy = space_info["spaceOccupancy"]
+
+    return support_size, space_occupancy
+
+
+def append_occupation_information(spaces_list: dict, providers_map: list[str]):
+    """
+    Returns dict of spaces with names and their occupation information
+    Final dict looks like this:
+    spaces_list = {
+        "space_id": {
+            "name": "space_name",
+            "providers": [int, int, ...],
+            "occupancy": {
+                provider_index: tuple(
+                    "support": int,
+                    "occupancy": int
+                ),
+                provider_index: tuple(
+                    "support": int,
+                    "occupancy": int
+                ),
+                ...
+            }
+            ...
+        }
+    """
+    for space_id, space_info in spaces_list.items():
+        spaces_list[space_id]["occupancy"] = {}
+        space_providers = space_info["providers"]
+        for provider_index in space_providers:
+            occupancy = get_occupation_of_space_on_provider(space_id, provider_index, providers_map)
+            spaces_list[space_id]["occupancy"][provider_index] = occupancy
+
+    return spaces_list
+
+
+def print_stats(spaces_list: dict, used_providers: list) -> None:
+    total_provider_support = {provider_id: 0 for provider_id in used_providers}
+    total_provider_occupancy = {provider_id: 0 for provider_id in used_providers}
+
+    print("Statistics of spaces:")
+    print("----------------------")
+    print("Used providers:")
+    for provider_index in used_providers:
+        print(f"Provider index '{provider_index}': {Settings.get().ONEPROVIDERS_DOMAIN_NAMES[provider_index]}")
+    print("----------------------")
+
+    for space_id, space_info in spaces_list.items():
+        space_name = space_info["name"]
+        space_occupancy = space_info["occupancy"]
+        space_total_support = 0
+        space_total_occupancy = 0
+
+        print(f"Space '{space_name}' with id '{space_id}':")
+        for provider_index, provider_occupancy in space_occupancy.items():
+            provider_support = provider_occupancy[0]
+            provider_occupancy = provider_occupancy[1]
+            total_provider_support[provider_index] += provider_support
+            total_provider_occupancy[provider_index] += provider_occupancy
+            space_total_support += provider_support
+            space_total_occupancy += provider_occupancy
+            print(f"\t'{provider_index}': support: {provider_support:,} bytes, "
+                  f"occupancy: {provider_occupancy:,} bytes")
+        print(f"\tTotal support: {space_total_support:,} bytes, total occupancy: {space_total_occupancy:,} bytes")
+
+    print("----------------------")
+
+    print("Support and occupancy by provider:")
+    for provider_index in used_providers:
+        print(f"Provider '{provider_index}': support: {total_provider_support[provider_index]:,} bytes, "
+              f"occupancy: {total_provider_occupancy[provider_index]:,} bytes")
+    print("")
+    print("Total support and occupancy:")
+    print(f"Support: {sum(total_provider_support):,} bytes, occupancy: {sum(total_provider_occupancy):,} bytes")
+
+
+def separate_used_providers(arguments: Arguments, provider_map: list) -> list[int]:
+    number_of_providers = len(Settings.get().ONEPROVIDERS_API_URL)
+
+    provider_id = onezone.resolve_provider_id_from_id_or_hostname(arguments.provider)
+    generator = range(number_of_providers)
+    if provider_id and provider_id in provider_map:
+        generator = [provider_map.index(provider_id)]
+
+    return generator
+
+
+def stats(args: argparse.Namespace) -> None:
+    """
+    Show stats of spaces with given rule
+    """
+    print("Starting processing for stats")
+    args.with_more_providers = False
+    arguments = process_args(args)
+
+    provider_map = get_providers_index_id_map()
+    used_providers = separate_used_providers(arguments, provider_map)
+    spaces_list = get_all_spaces_with_distribution(arguments, used_providers)
+    append_occupation_information(spaces_list, provider_map)
+
+    print_stats(spaces_list, used_providers)
+
+
 def _testOnezone():
     Logger.log(4, "_testOnezone():")
     # test noauth request, test if an attribute exists
