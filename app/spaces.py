@@ -24,6 +24,24 @@ def getSpaces(oneprovider_index: int = 0):
     return response.json()
 
 
+def get_all_provider_spaces_with_names(oneprovider_index: int = 0) -> dict[str, str]:
+    """
+    Returning space ID as a key and name as value
+    """
+    Logger.log(4, f"get_all_provider_spaces_with_names(order={oneprovider_index}):")
+    space_ids = get_all_provider_spaces(oneprovider_index=oneprovider_index)
+    if "error" in space_ids:
+        return {}
+
+    user_spaces_with_names = get_all_user_spaces()
+    spaces_names = {space["spaceId"]: space["name"] for space in user_spaces_with_names}
+    space_ids = space_ids["ids"]
+
+    spaces = {key: spaces_names[key] for key in space_ids if key in spaces_names}
+
+    return spaces
+
+
 def removeSpace(space_id):
     Logger.log(4, "removeSpace(%s):" % space_id)
     # https://onedata.org/#/home/api/stable/onezone?anchor=operation/remove_space
