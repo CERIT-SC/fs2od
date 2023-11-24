@@ -364,7 +364,7 @@ def deleteSpaceWithAllStuff(spaceId):
     # spaces and groups associated to given spaces
     deleted_spaces = 0
     deleted_groups = 0
-    for space in spaces.getSpaces():
+    for space in spaces.get_all_user_spaces():
         if space_name in space["name"]:
 
             # remove group
