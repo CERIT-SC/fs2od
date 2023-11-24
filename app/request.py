@@ -47,7 +47,17 @@ def debug_print(response, ok_statuses: tuple = tuple()) -> None:
 
 def get(url, headers=dict(), ok_statuses: tuple = tuple(), oneprovider_index: int = 0):
     url, headers = process_url(url, headers, oneprovider_index=oneprovider_index)
-    response = requests.get(url, headers=headers)
+    # TODO: maybe add to config
+    TIMEOUT_SECS = 10
+    try:
+        response = requests.get(url, headers=headers, timeout=TIMEOUT_SECS)
+    except requests.exceptions.Timeout:
+        Logger.log(1, f"Request to {url} did not return in {TIMEOUT_SECS} seconds")
+        response = requests.Response()
+        response.status_code = 408  # Request timeout https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/408
+        response._content = b""
+        return response
+
     # commented because not ok is sometimes right response
     # timeout_counter = 3
     # while timeout_counter > 0:
