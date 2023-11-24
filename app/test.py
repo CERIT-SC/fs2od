@@ -202,6 +202,17 @@ def get_zone_spaces_starting_with(arguments: Arguments) -> List[tuple]:
     return wanted_instances
 
 
+def get_provider_spaces_starting_with(arguments: Arguments, provider_index: int) -> List[tuple]:
+    wanted_instances = []
+    for space_id, space_name in spaces.get_all_provider_spaces_with_names(provider_index).items():
+        if not space_name.startswith(arguments.starting_with):
+            continue
+
+        wanted_instances.append((InstanceType.space, space_id, space_name))
+
+    return wanted_instances
+
+
 def get_requested_instances_from_oneprovider(arguments: Arguments) -> List[tuple]:
     wanted_instances = []
 
