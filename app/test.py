@@ -191,7 +191,7 @@ def get_only_groups_under_spaces_starting_with(arguments: Arguments) -> List[tup
     return wanted_instances
 
 
-def get_spaces_starting_with(arguments: Arguments) -> List[tuple]:
+def get_zone_spaces_starting_with(arguments: Arguments) -> List[tuple]:
     wanted_instances = []
     for space in spaces.get_all_user_spaces():
         if not space["name"].startswith(arguments.starting_with):
@@ -221,7 +221,7 @@ def get_requested_instances_from_oneprovider(arguments: Arguments) -> List[tuple
             wanted_instances += get_all_users_groups_starting_with(arguments)
 
     if arguments.spaces:  # spaces
-        wanted_instances += get_spaces_starting_with(arguments)
+        wanted_instances += get_zone_spaces_starting_with(arguments)
 
     if arguments.storages:  # storages
         wanted_instances += get_storages_starting_with(arguments)
@@ -321,7 +321,7 @@ def change_posix_permissions(arguments: Arguments, posix_permissions: int) -> No
         print(f"Error, posix permissions not in right format, error message: {e}")
         return
 
-    instances = get_spaces_starting_with(arguments)
+    instances = get_zone_spaces_starting_with(arguments)
     print_instances(instances)
     print_safety_notice(f"POSIX permissions will be changed recursively to {posix_permissions} to these spaces.")
 
@@ -338,7 +338,7 @@ def change_directory_statistics(arguments: Arguments, status: str) -> None:
     change_to = True
     if status.lower() == "off":
         change_to = False
-    instances = get_spaces_starting_with(arguments)
+    instances = get_zone_spaces_starting_with(arguments)
     print_instances(instances)
     print_safety_notice(f"Directory statistics status will be changed to '{status}' to these spaces.")
 
