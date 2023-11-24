@@ -169,7 +169,7 @@ def get_all_users_groups_starting_with(arguments: Arguments) -> List[tuple]:
 
 def get_only_groups_under_spaces_starting_with(arguments: Arguments) -> List[tuple]:
     wanted_instances = []
-    for space in spaces.getSpaces():
+    for space in spaces.get_all_user_spaces():
         if "spaceId" not in space:
             Logger.log(4, "Space has no element spaceId. Skipping")
             continue
@@ -193,7 +193,7 @@ def get_only_groups_under_spaces_starting_with(arguments: Arguments) -> List[tup
 
 def get_spaces_starting_with(arguments: Arguments) -> List[tuple]:
     wanted_instances = []
-    for space in spaces.getSpaces():
+    for space in spaces.get_all_user_spaces():
         if not space["name"].startswith(arguments.starting_with):
             continue
 
@@ -387,7 +387,7 @@ def _testOneprovider(oneprovider_index: int = 0):
         return 1
 
     # test auth request
-    if "error" in spaces.getSpaces(oneprovider_index):
+    if "error" in spaces.get_all_user_spaces():
         Logger.log(1, "Oneprovider doesn't respond to auth request.")
         return 2
 

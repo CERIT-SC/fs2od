@@ -343,7 +343,7 @@ def deleteSpaceWithAllStuff(spaceId):
     Logger.log(1, "Not fully implemeted yet")
     sys.exit(1)
 
-    res_spaces = spaces.getSpaces()
+    res_spaces = spaces.get_all_user_spaces()
     for s in res_spaces:
         if spaceId == s["spaceId"]:
             space_name = s["name"]

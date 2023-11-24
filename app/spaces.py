@@ -16,10 +16,18 @@ MINIMAL_SPACE_SIZE = 1048576
 WAITING_FOR_AUTO_STORAGE_IMPORT_FINISH_TRIES = 10
 
 
-def getSpaces(oneprovider_index: int = 0):
-    Logger.log(4, f"getSpaces(order={oneprovider_index}):")
+def get_all_user_spaces() -> dict:
+    Logger.log(4, f"get_user_spaces:")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_all_spaces
     url = f"oneprovider/spaces"
+    response = request.get(url)
+    return response.json()
+
+
+def get_all_provider_spaces(oneprovider_index: int = 0) -> dict:
+    Logger.log(4, f"get_all_provider_spaces(order={oneprovider_index}):")
+    # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_all_spaces
+    url = f"onepanel/provider/spaces"
     response = request.get(url, oneprovider_index=oneprovider_index)
     return response.json()
 
@@ -141,7 +149,7 @@ def get_space_from_onezone(space_id) -> dict:
 
 def get_space_id_by_name(name: str) -> str:
     Logger.log(4, f"get_space_id_by_name({name}):")
-    for space in getSpaces():
+    for space in get_all_user_spaces():
         if space["name"].startswith(name):
             return space["spaceId"]
     return ""
