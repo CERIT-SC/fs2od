@@ -492,7 +492,7 @@ def print_stats(spaces_list: dict, used_providers: list) -> None:
               f"occupancy: {total_provider_occupancy[provider_index]:,} bytes")
     print("")
     print("Total support and occupancy:")
-    print(f"Support: {sum(total_provider_support):,} bytes, occupancy: {sum(total_provider_occupancy):,} bytes")
+    print(f"Support: {sum(total_provider_support.values()):,} bytes, occupancy: {sum(total_provider_occupancy.values()):,} bytes")
 
 
 def separate_used_providers(arguments: Arguments, provider_map: list) -> list[int]:
