@@ -2,9 +2,7 @@
 
 import argparse
 import sys
-from pprint import pprint
 from settings import Settings
-from utils import Logger
 import filesystem
 import test
 import sandbox
@@ -176,6 +174,10 @@ def main():
     parser_2_5.add_argument(
         "--of_provider", required=False, default="", type=str, metavar="PROVIDER",
         help="Provider of instances to remove"
+    )
+    parser_2_5.add_argument(
+        "-r", "--human-readable", required=False, action="store_true",
+        help="If included, tests will be performed regardless setup"
     )
     parser_2_5.set_defaults(func=run_test_stats)
 

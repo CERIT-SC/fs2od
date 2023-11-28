@@ -15,6 +15,22 @@ from settings import Settings
 from utils import Logger
 
 
+def transform_unit(bytes_number: int, human_readable: bool = False, precision: int = 2) -> str:
+    """
+    Returns human-readable string of bytes_number
+    """
+    if not human_readable:
+        return f"{bytes_number:,} bytes"
+
+    suffixes = ["B", "kB", "MB", "GB", "TB", "PB"]
+    suffix_index = 0
+    while bytes_number > 1024 and suffix_index < len(suffixes) - 1:
+        bytes_number /= 1024
+        suffix_index += 1
+
+    return f"{bytes_number:.{precision}f} {suffixes[suffix_index]}"
+
+
 class Arguments:
     def __init__(self, starting_with: str, provider: str, has_more_providers: bool = False):
         self.starting_with: str = starting_with
@@ -455,7 +471,7 @@ def append_occupation_information(spaces_list: dict, providers_map: list[str]):
     return spaces_list
 
 
-def print_stats(spaces_list: dict, used_providers: list) -> None:
+def print_stats(spaces_list: dict, used_providers: list, human_readable: bool) -> None:
     total_provider_support = {provider_id: 0 for provider_id in used_providers}
     total_provider_occupancy = {provider_id: 0 for provider_id in used_providers}
 
@@ -480,19 +496,22 @@ def print_stats(spaces_list: dict, used_providers: list) -> None:
             total_provider_occupancy[provider_index] += provider_occupancy
             space_total_support += provider_support
             space_total_occupancy += provider_occupancy
-            print(f"\t'{provider_index}': support: {provider_support:,} bytes, "
-                  f"occupancy: {provider_occupancy:,} bytes")
-        print(f"\tTotal support: {space_total_support:,} bytes, total occupancy: {space_total_occupancy:,} bytes")
+            print(f"\t'{provider_index}': support: {transform_unit(provider_support, human_readable)}, "
+                  f"occupancy: {transform_unit(provider_occupancy, human_readable)} bytes")
+        print(f"\tTotal support: {transform_unit(space_total_support, human_readable)}, "
+              f"total occupancy: {transform_unit(space_total_occupancy, human_readable)}")
 
     print("----------------------")
 
     print("Support and occupancy by provider:")
     for provider_index in used_providers:
-        print(f"Provider '{provider_index}': support: {total_provider_support[provider_index]:,} bytes, "
-              f"occupancy: {total_provider_occupancy[provider_index]:,} bytes")
+        print(f"Provider '{provider_index}': "
+              f"support: {transform_unit(total_provider_support[provider_index], human_readable)}, "
+              f"occupancy: {transform_unit(total_provider_occupancy[provider_index], human_readable)}")
     print("")
     print("Total support and occupancy:")
-    print(f"Support: {sum(total_provider_support.values()):,} bytes, occupancy: {sum(total_provider_occupancy.values()):,} bytes")
+    print(f"Support: {transform_unit(sum(total_provider_support.values()), human_readable)}, "
+          f"occupancy: {transform_unit(sum(total_provider_occupancy.values()), human_readable)}")
 
 
 def separate_used_providers(arguments: Arguments, provider_map: list) -> list[int]:
@@ -519,7 +538,7 @@ def stats(args: argparse.Namespace) -> None:
     spaces_list = get_all_spaces_with_distribution(arguments, used_providers)
     append_occupation_information(spaces_list, provider_map)
 
-    print_stats(spaces_list, used_providers)
+    print_stats(spaces_list, used_providers, args.human_readable)
 
 
 def _testOnezone():
