@@ -17,7 +17,7 @@ WAITING_FOR_AUTO_STORAGE_IMPORT_FINISH_TRIES = 10
 
 
 def get_all_user_spaces() -> dict:
-    Logger.log(4, f"get_user_spaces:")
+    Logger.log(4, f"get_all_user_spaces()")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_all_spaces
     url = f"oneprovider/spaces"
     response = request.get(url)
@@ -106,7 +106,7 @@ def get_space_mount_point(space_id: str, oneprovider_index=0) -> str:
     Returns mount point of a storage provided by given Oneprovider for space
     If there is no support or storage is not of POSIX type, returns empty string
     """
-    Logger.log(4, f"get_space_primary_mount_point(space_id={space_id},op_index={oneprovider_index})")
+    Logger.log(4, f"get_space_mount_point(space_id={space_id},op_index={oneprovider_index})")
 
     # space details must be from onepanel
     space_details = getSpaceDetails(space_id, oneprovider_index=oneprovider_index)
@@ -299,7 +299,7 @@ def revoke_space_support(space_id: str, oneprovider_index: int = 0) -> bool:
     Returns true or false based on successfulness of this operation.
     Not revoking support due to non-existent space id on this provider is considered as successful operation
     """
-    Logger.log(4, f"revokeSpaceSupport(space_id={space_id},oneprovider_index={oneprovider_index}):")
+    Logger.log(4, f"revoke_space_support(space_id={space_id},oneprovider_index={oneprovider_index}):")
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/revoke_space_support
     url = "onepanel/provider/spaces/" + space_id
     response = request.delete(url, ok_statuses=(204, 404), oneprovider_index=oneprovider_index)
@@ -371,6 +371,7 @@ def set_space_posix_permissions_recursive(space_id: str, posix_mode: str) -> boo
     Recursively sets POSIX permissions of space defined by given space_id
     If given space does not belong to primary Oneprovider, returns False, otherwise True
     """
+    Logger.log(6, f"set_space_posix_permissions_recursive(space_id={space_id},posix_mode={posix_mode})")
     space_info = get_space(space_id)
     file_id = space_info.get("fileId", None)
 
