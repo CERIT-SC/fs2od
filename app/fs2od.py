@@ -177,7 +177,7 @@ def main():
     )
     parser_2_5.add_argument(
         "-r", "--human-readable", required=False, action="store_true",
-        help="If included, tests will be performed regardless setup"
+        help="If included, sizes will be printed in more human-readable way"
     )
     parser_2_5.set_defaults(func=run_test_stats)
 
