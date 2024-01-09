@@ -16,12 +16,38 @@ MINIMAL_SPACE_SIZE = 1048576
 WAITING_FOR_AUTO_STORAGE_IMPORT_FINISH_TRIES = 10
 
 
-def getSpaces(oneprovider_index: int = 0):
-    Logger.log(4, f"getSpaces(order={oneprovider_index}):")
+def get_all_user_spaces() -> dict:
+    Logger.log(4, f"get_all_user_spaces()")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_all_spaces
     url = f"oneprovider/spaces"
+    response = request.get(url)
+    return response.json()
+
+
+def get_all_provider_spaces(oneprovider_index: int = 0) -> dict:
+    Logger.log(4, f"get_all_provider_spaces(order={oneprovider_index}):")
+    # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_all_spaces
+    url = f"onepanel/provider/spaces"
     response = request.get(url, oneprovider_index=oneprovider_index)
     return response.json()
+
+
+def get_all_provider_spaces_with_names(oneprovider_index: int = 0) -> dict[str, str]:
+    """
+    Returning space ID as a key and name as value
+    """
+    Logger.log(4, f"get_all_provider_spaces_with_names(order={oneprovider_index}):")
+    space_ids = get_all_provider_spaces(oneprovider_index=oneprovider_index)
+    if "error" in space_ids:
+        return {}
+
+    user_spaces_with_names = get_all_user_spaces()
+    spaces_names = {space["spaceId"]: space["name"] for space in user_spaces_with_names}
+    space_ids = space_ids["ids"]
+
+    spaces = {key: spaces_names[key] for key in space_ids if key in spaces_names}
+
+    return spaces
 
 
 def removeSpace(space_id):
@@ -32,7 +58,7 @@ def removeSpace(space_id):
     return response
 
 
-def get_space(space_id: str, ok_statuses: tuple = (200,)) -> dict:
+def get_space(space_id: str, ok_statuses: tuple = (200,), oneprovider_index: int = 0) -> dict:
     """
     Returns the basic information about space with given id.
     If response is not ok, but accepted by ok_statuses, returns {"spaceId": "allowed_ok_status"}
@@ -42,7 +68,7 @@ def get_space(space_id: str, ok_statuses: tuple = (200,)) -> dict:
     Logger.log(4, f"get_space({space_id},ok_statuses={ok_statuses}):")
     # https://onedata.org/#/home/api/stable/oneprovider?anchor=operation/get_space
     url = "oneprovider/spaces/" + space_id
-    response = request.get(url, ok_statuses=ok_statuses)
+    response = request.get(url, ok_statuses=ok_statuses, oneprovider_index=oneprovider_index)
     if response.ok:
         return response.json()
     elif response.status_code in ok_statuses:
@@ -80,7 +106,7 @@ def get_space_mount_point(space_id: str, oneprovider_index=0) -> str:
     Returns mount point of a storage provided by given Oneprovider for space
     If there is no support or storage is not of POSIX type, returns empty string
     """
-    Logger.log(4, f"get_space_primary_mount_point(space_id={space_id},op_index={oneprovider_index})")
+    Logger.log(4, f"get_space_mount_point(space_id={space_id},op_index={oneprovider_index})")
 
     # space details must be from onepanel
     space_details = getSpaceDetails(space_id, oneprovider_index=oneprovider_index)
@@ -123,7 +149,7 @@ def get_space_from_onezone(space_id) -> dict:
 
 def get_space_id_by_name(name: str) -> str:
     Logger.log(4, f"get_space_id_by_name({name}):")
-    for space in getSpaces():
+    for space in get_all_user_spaces():
         if space["name"].startswith(name):
             return space["spaceId"]
     return ""
@@ -273,7 +299,7 @@ def revoke_space_support(space_id: str, oneprovider_index: int = 0) -> bool:
     Returns true or false based on successfulness of this operation.
     Not revoking support due to non-existent space id on this provider is considered as successful operation
     """
-    Logger.log(4, f"revokeSpaceSupport(space_id={space_id},oneprovider_index={oneprovider_index}):")
+    Logger.log(4, f"revoke_space_support(space_id={space_id},oneprovider_index={oneprovider_index}):")
     # https://onedata.org/#/home/api/stable/onepanel?anchor=operation/revoke_space_support
     url = "onepanel/provider/spaces/" + space_id
     response = request.delete(url, ok_statuses=(204, 404), oneprovider_index=oneprovider_index)
@@ -345,6 +371,7 @@ def set_space_posix_permissions_recursive(space_id: str, posix_mode: str) -> boo
     Recursively sets POSIX permissions of space defined by given space_id
     If given space does not belong to primary Oneprovider, returns False, otherwise True
     """
+    Logger.log(6, f"set_space_posix_permissions_recursive(space_id={space_id},posix_mode={posix_mode})")
     space_info = get_space(space_id)
     file_id = space_info.get("fileId", None)
 

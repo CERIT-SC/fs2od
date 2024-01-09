@@ -1,4 +1,3 @@
-from settings import Settings
 from utils import Logger
 import request
 
@@ -17,3 +16,16 @@ def get_configuration(index: int = 0) -> dict:
         return response.json()
     else:
         return {}
+
+
+def get_provider_id(index: int = 0) -> str:
+    """
+    Returns provider id for Oneprovider with given index.
+    On success returns string with provider id
+    Otherwise returns empty string
+    """
+    Logger.log(4, f"get_provider_id(order={index}):")
+    conf = get_configuration(index)
+    if not conf:
+        return ""
+    return conf["providerId"]

@@ -2,9 +2,7 @@
 
 import argparse
 import sys
-from pprint import pprint
 from settings import Settings
-from utils import Logger
 import filesystem
 import test
 import sandbox
@@ -33,6 +31,10 @@ def run_test_remove(args):
 
 def run_test_change(args):
     test.change(args)
+
+
+def run_test_stats(args):
+    test.stats(args)
 
 
 def runTestRegisterSpace(args):
@@ -160,6 +162,24 @@ def main():
         help="If included, tests will be performed regardless setup"
     )
     parser_2_4.set_defaults(func=runTestConnection)
+
+    parser_2_5 = subparser_2.add_parser(
+        "stats",
+        help="Show statistics of instances (space occupancy) with a given rule.",
+    )
+    parser_2_5.add_argument(
+        "--starting_with", required=False, default=None, type=str, metavar="NAME",
+        help="Prefix of instances to remove (default is testModePrefix value from config file)"
+    )
+    parser_2_5.add_argument(
+        "--of_provider", required=False, default="", type=str, metavar="PROVIDER",
+        help="Provider of instances to remove"
+    )
+    parser_2_5.add_argument(
+        "-r", "--human-readable", required=False, action="store_true",
+        help="If included, sizes will be printed in more human-readable way"
+    )
+    parser_2_5.set_defaults(func=run_test_stats)
 
     parser_3 = subparsers.add_parser(
         "sandbox", help="Run manually a workflow specifed in the file sandbox.py"
