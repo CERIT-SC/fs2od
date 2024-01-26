@@ -486,6 +486,7 @@ def send_email_about_creation(directory: os.DirEntry, yml_access_info_file: str)
     """
     Sends email about creation (when a space is created)
     """
+    return
     Logger.log(3, f"send_email_about_creation(directory={directory.path})")
     creation_text_file = language.get_filename_by_localization("creation.txt")
     creation_html_file = language.get_filename_by_localization("creation.html")
