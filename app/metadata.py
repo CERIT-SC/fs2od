@@ -6,6 +6,7 @@ import filesystem
 from settings import Settings
 from utils import Logger
 import spaces, files, request
+from builtin import json_extender  # due to ability to convert date and datetime
 
 
 def _set_file_json_metadata(file_id: str, data: dict):
@@ -16,7 +17,7 @@ def _set_file_json_metadata(file_id: str, data: dict):
 
     url = "oneprovider/data/" + file_id + "/metadata/json"
     headers = dict({"Content-type": "application/json"})
-    response = request.put(url, headers=headers, data=json.dumps(data))
+    response = request.put(url, headers=headers, data=json.dumps(data, cls=json_extender.JSONEncoder))
     return response
 
 
