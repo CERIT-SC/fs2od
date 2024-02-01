@@ -477,7 +477,7 @@ def send_email_about_deletion(space_id: str, directory: os.DirEntry, removing_ti
         "config_file": os.path.basename(yaml_file_path),
         "now": datetime.datetime.now().strftime(Settings.get().TIME_FORMATTING_STRING)
     }
-    recipients = _prepare_recipients(directory, Settings.get().MESSAGING.email.to["space_deletion"])
+    recipients = _prepare_recipients(directory, Settings.get().MESSAGING.email.to.space_deletion)
 
     send_email_with_contents((deletion_text_file, deletion_html_file), to_substitute, recipients)
 
@@ -486,7 +486,6 @@ def send_email_about_creation(directory: os.DirEntry, yml_access_info_file: str)
     """
     Sends email about creation (when a space is created)
     """
-    return
     Logger.log(3, f"send_email_about_creation(directory={directory.path})")
     creation_text_file = language.get_filename_by_localization("creation.txt")
     creation_html_file = language.get_filename_by_localization("creation.html")
@@ -502,6 +501,6 @@ def send_email_about_creation(directory: os.DirEntry, yml_access_info_file: str)
         "invite_token": filesystem.get_token_from_yaml(yaml_dict, "inviteToken"),
         "now": datetime.datetime.now().strftime(Settings.get().TIME_FORMATTING_STRING)
     }
-    recipients = _prepare_recipients(directory, Settings.get().MESSAGING.email.to["space_creation"])
+    recipients = _prepare_recipients(directory, Settings.get().MESSAGING.email.to.space_creation)
 
     send_email_with_contents((creation_text_file, creation_html_file), to_substitute, recipients)

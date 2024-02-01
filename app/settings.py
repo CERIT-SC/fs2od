@@ -25,7 +25,7 @@ class Messaging:
 
     class Email:
         def __init__(self):
-            self.to: dict = {}
+            self.to: Messaging.EmailReceivers = Messaging.EmailReceivers()
             self.time_before_action: List[datetime.timedelta] = []
             self.language: str = ""
 
@@ -48,7 +48,8 @@ class Messaging:
             messaging.email_creds.encryption_method = email_credentials_config["encryptionMethod"]
             messaging.email_creds.message_sender = email_credentials_config["messageSender"]
 
-            messaging.email.to = email_config["to"]
+            messaging.email.to.space_creation = email_config["to"]["space_creation"]
+            messaging.email.to.space_deletion = email_config["to"]["space_deletion"]
             messaging.email.time_before_action = email_config["timeBeforeAction"]
             messaging.email.time_before_action.sort(reverse=True)
 
