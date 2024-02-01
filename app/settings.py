@@ -18,6 +18,11 @@ class Messaging:
             self.encryption_method: str = ""
             self.message_sender: str = ""
 
+    class EmailReceivers:
+        def __init__(self):
+            self.space_creation: list = []
+            self.space_deletion: list = []
+
     class Email:
         def __init__(self):
             self.to: dict = {}
