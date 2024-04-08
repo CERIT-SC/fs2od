@@ -2,7 +2,7 @@ import argparse
 import os
 import sys
 import time
-from typing import Optional, List
+from typing import Optional, List, Callable
 import dareg
 import groups
 import mail
@@ -13,6 +13,9 @@ import storages
 import tokens
 from settings import Settings
 from utils import Logger
+
+
+REMOVAL_TRIES = 10
 
 
 def transform_unit(bytes_number: int, human_readable: bool = False, precision: int = 2) -> str:
@@ -294,6 +297,55 @@ def print_instances(instances: List[tuple]) -> None:
     print(f"Spaces: \t{spaces_count}\nStorages: \t{storages_count}\nTokens: \t{tokens_count}\nGroups: \t{groups_count}")
 
 
+def try_removal(tries: int, function: Callable, instance_id: str, instance_type: str, instance_name: str) -> bool:
+    instance_type = instance_type.lower()
+
+    is_ok = function(instance_id).ok
+    if is_ok:
+        return True
+    print(f"Try 1/{tries}, trying to delete {instance_type} {instance_name} with id {instance_id}.")
+
+    for try_number in range(2, tries + 1, 1):
+        time.sleep(3 * Settings.get().config["sleepFactor"])
+        print(f"Try {try_number}/{tries}: trying to delete {instance_type} {instance_name} with id {instance_id}.")
+        is_ok = function(instance_id).ok
+        if is_ok:
+            return True
+
+    return False
+
+
+def print_errors(error_messages: list[str]) -> None:
+    for error_message in error_messages:
+        print(error_message)
+
+
+def remove_instance(instance: tuple, error_messages: list):
+    instance_type, instance_id, instance_name = instance
+
+    is_ok = False
+    if instance_type == InstanceType.space:
+        instance_type = "Space"
+        is_ok = try_removal(REMOVAL_TRIES, spaces.removeSpace, instance_id, instance_type, instance_name)
+    elif instance_type == InstanceType.space_oz:
+        instance_type = "Space"
+        is_ok = try_removal(REMOVAL_TRIES, spaces.removeSpace, instance_id, instance_type, instance_name)
+    elif instance_type == InstanceType.storage:
+        instance_type = "Storage"
+        is_ok = try_removal(REMOVAL_TRIES, storages.removeStorage, instance_id, instance_type, instance_name)
+    elif instance_type == InstanceType.token:
+        instance_type = "Token"
+        is_ok = try_removal(REMOVAL_TRIES, tokens.deleteNamedToken, instance_id, instance_type, instance_name)
+    elif instance_type == InstanceType.group:
+        instance_type = "Group"
+        is_ok = try_removal(REMOVAL_TRIES, groups.removeGroup, instance_id, instance_type, instance_name)
+
+    if is_ok:
+        print(f"{instance_type} {instance_name} with id {instance_id} deleted.")
+    else:
+        error_messages.append(f"Error: {instance_type} {instance_name} with id {instance_id} could not be deleted.")
+
+
 def remove(args: argparse.Namespace) -> None:
     """
     Delete all instances of a given characteristics.
@@ -306,38 +358,11 @@ def remove(args: argparse.Namespace) -> None:
     # if this program continues, it means, that user typed yes
     error_messages = []
 
-    for instance_type, instance_id, instance_name in instances:
-        is_ok = False
-        if instance_type == InstanceType.space:
-            is_ok = spaces.removeSpace(instance_id).ok
-            instance_type = "Space"
+    for instance in instances:
+        remove_instance(instance, error_messages)
+        time.sleep(0.5 * Settings.get().config["sleepFactor"])
 
-        if instance_type == InstanceType.space_oz:
-            is_ok = spaces.removeSpace(instance_id).ok
-            instance_type = "Space"
-
-        if instance_type == InstanceType.storage:
-            time.sleep(1)  # sometimes storage need to be propagated
-            is_ok = storages.removeStorage(instance_id).ok
-            instance_type = "Storage"
-
-        if instance_type == InstanceType.token:
-            is_ok = tokens.deleteNamedToken(instance_id).ok
-            instance_type = "Token"
-
-        if instance_type == InstanceType.group:
-            is_ok = groups.removeGroup(instance_id).ok
-            instance_type = "Group"
-
-        if is_ok:
-            print(f"{instance_type} {instance_name} with id {instance_id} deleted.")
-        else:
-            error_messages.append(f"Error: {instance_type} {instance_name} with id {instance_id} could not be deleted.")
-
-        time.sleep(0.5)
-
-    for error_message in error_messages:
-        print(error_message)
+    print_errors(error_messages)
 
 
 def change_posix_permissions(arguments: Arguments, posix_permissions: int) -> None:
