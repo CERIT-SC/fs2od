@@ -1,12 +1,10 @@
-import os
-from pprint import pprint
 import json
-import yaml
+import os
 import filesystem
-from settings import Settings
+import json_extender
+import request
+import spaces
 from utils import Logger
-import spaces, files, request
-from builtin import json_extender  # due to ability to convert date and datetime
 
 
 def _set_file_json_metadata(file_id: str, data: dict):
