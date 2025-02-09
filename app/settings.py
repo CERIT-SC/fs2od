@@ -116,7 +116,6 @@ class Settings:
         self.ONEPROVIDERS_STORAGE_IDS: List[List[str]] = []
         self.DATA_REPLICATION_ENABLED: bool = False
         self.DATA_REPLICATION_REPLICAS: int = 0
-        self.DAREG_ENABLED: bool = False
         self.MIN_ONEDATA_NAME_LENGTH: int = 2
         self.MAX_ONEDATA_NAME_LENGTH: int = 50
         self.TIME_UNTIL_REMOVED: str = "never"
