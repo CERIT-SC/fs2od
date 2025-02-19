@@ -37,7 +37,7 @@ class Dareg:
             "onedata_dataset_id": dataset_id,
             "project": self.project
         }
-        auth = f"Bearer {self.token}"
+        auth = f"Token {self.token}"
 
         headers = {
             "Authorization": auth,
