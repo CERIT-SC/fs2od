@@ -1,38 +1,26 @@
-image: docker:23.0
+image: 
+  name: gcr.io/kaniko-project/executor:v1.23.2-debug
+  entrypoint: [""]
 
 stages:
-  - prepareImage
-  - prepareImageDevel
-
-variables:
-  DOCKER_TLS_CERTDIR: ""
-
-services:
-  - docker:dind
-
-before_script:
-  - docker info
-  # - docker login -u "gitlab-ci-token" -p $CI_JOB_TOKEN $CI_REGISTRY
-  - docker login -u tomsvo -p $DOCKERHUB_ACCESS_TOKEN
+  - build
 
 buildImage:
-  stage: prepareImage
+  stage: build
   script:
-    
-    # - docker pull registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest || true
-    # - docker build --cache-from registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest -t registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest -f Dockerfile .
-    # - docker push registry.gitlab.ics.muni.cz:443/cryoem-dc/fs2od:latest
-    - docker pull tomsvo/fs2od:latest || true
-    - docker build --cache-from tomsvo/fs2od:latest --cache-from tomsvo/fs2od:devel -t tomsvo/fs2od:latest -f Dockerfile .
-    - docker push tomsvo/fs2od:latest
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_BRANCH}"
   only:
     - master
 
 buildImageDevel:
-  stage: prepareImageDevel
+  stage: build
   script:
-    - docker pull tomsvo/fs2od:devel || true
-    - docker build --cache-from tomsvo/fs2od:devel -t tomsvo/fs2od:devel -f Dockerfile .
-    - docker push tomsvo/fs2od:devel
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_BRANCH}"
   only:
     - devel
