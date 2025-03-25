@@ -17,6 +17,7 @@ import shares
 import spaces
 import storages
 import tokens
+from dareg import Dareg
 from settings import Settings
 from utils import Logger, Utils
 
@@ -270,6 +271,8 @@ def register_space(directory: os.DirEntry) -> bool:
     is_ok = actions_logger.log_post(share["shareId"], only_check=True)
     if not is_ok: return False
 
+    share_id = share["shareId"]
+
     if Settings.get().config["dareg"]["enabled"]:
         dareg.update_dataset(space_id, token["token"], share["publicUrl"])
 
@@ -283,7 +286,7 @@ def register_space(directory: os.DirEntry) -> bool:
     # add Share description
     actions_logger.log_pre("share_update", "")
     response = shares.updateShare(
-        shid=share["shareId"],
+        shid=share_id,
         description=share_description
     )
     is_ok = actions_logger.log_post(response.ok, only_check=True)
@@ -326,6 +329,16 @@ def register_space(directory: os.DirEntry) -> bool:
     #     filesystem.chmod_recursive(yml_metadata, Settings.get().config["initialPOSIXlikePermissions"])
 
     send_email_about_creation(directory, yml_access_info_file)
+
+    dareg_client = Dareg(Settings.get().DAREG)
+    ## hopefully this :)
+    actions_logger.log_pre("dareg_register_new", "")
+    # TEMPORARY
+    yml_file = filesystem.get_trigger_metadata_file(directory)
+    yml_content = filesystem.load_yaml(yml_file)
+    status = dareg_client.register_dataset(dataset_name, share_description, yml_content, file_id, share_id, space_id)
+    is_ok = actions_logger.log_post(status, only_check=True)
+    if not is_ok: return False
 
     path = base_path + os.sep + directory.name
     Logger.log(3, "Processing of %s done." % path)

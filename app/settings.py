@@ -62,6 +62,30 @@ class Messaging:
         return messaging
 
 
+# TEMPORARY
+class DaregCreds:
+    def __init__(self):
+        self.enabled: bool = False
+        self.host: str = ""
+        self.token: str = ""
+        self.project: str = ""
+
+    @staticmethod
+    def create(config: dict) -> DaregCreds:
+        creds = DaregCreds()
+
+        dareg_credentials_config = config["dareg"]
+
+        creds.enabled = dareg_credentials_config["enabled_new"]
+
+        if creds.enabled:
+            creds.host = dareg_credentials_config["host"]
+            creds.token = dareg_credentials_config["token"]
+            creds.project = dareg_credentials_config["project"]
+
+        return creds
+
+
 class Settings:
     """
     Singleton class to serve the global configuration.
@@ -92,7 +116,6 @@ class Settings:
         self.ONEPROVIDERS_STORAGE_IDS: List[List[str]] = []
         self.DATA_REPLICATION_ENABLED: bool = False
         self.DATA_REPLICATION_REPLICAS: int = 0
-        self.DAREG_ENABLED: bool = False
         self.MIN_ONEDATA_NAME_LENGTH: int = 2
         self.MAX_ONEDATA_NAME_LENGTH: int = 50
         self.TIME_UNTIL_REMOVED: str = "never"
@@ -102,6 +125,11 @@ class Settings:
         self.USE_SEPARATE_METADATA_FILE: bool = False
         self.SEPARATE_METADATA_FILENAME: str = ""
         self.SEPARATE_METADATA_STORE_ACCESS: bool = True
+        self.DAREG_ENABLED: bool = False
+        # self.DAREG_API_ENDPOINT: str = ""
+        # self.DAREG_API_TOKEN: str = ""
+        # self.DAREG_PROJECT: str = ""
+        self.DAREG: DaregCreds = DaregCreds()
         if Settings.__instance is not None:
             raise Exception(
                 "This class is a singleton! Created once, otherwise use Settings.get_instance()"
@@ -202,6 +230,8 @@ class Settings:
         self.SEPARATE_METADATA_STORE_ACCESS: bool = self.config["fs2odMetadataFile"]["storeAccessInfo"]
         if not self.USE_SEPARATE_METADATA_FILE:
             self.SEPARATE_METADATA_STORE_ACCESS = False
+
+        self.DAREG: DaregCreds = DaregCreds.create(self.config)
 
     @staticmethod
     def _failed(message):
@@ -395,6 +425,10 @@ class Settings:
         self.config["dareg"]["host"] = self._add_protocol_to_host_if_missing(self.config["dareg"]["host"])
         self._test_existence(self.config["dareg"], "token", "a_secret_token")
         self._test_existence(self.config["dareg"], "origin_instance_pk", 1)
+
+        self._test_existence(self.config["dareg"], "enabled_new", False)
+        if self.config["dareg"]["enabled_new"]:
+            self._test_existence(self.config["dareg"], "project")
 
         self._test_existence(self.config, "restAccess")
         self._test_existence(self.config["restAccess"], "onezone")
