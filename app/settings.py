@@ -77,7 +77,7 @@ class DaregCreds:
 
         dareg_credentials_config = config["dareg"]
 
-        creds.enabled = dareg_credentials_config["enabled_new"]
+        creds.enabled = dareg_credentials_config["enabled"]
 
         if creds.enabled:
             creds.host = dareg_credentials_config["host"]
@@ -430,10 +430,8 @@ class Settings:
         dareg_host += "/datasets/shadow"
         self.config["dareg"]["host"] = dareg_host
         self._test_existence(self.config["dareg"], "token", "a_secret_token")
-        self._test_existence(self.config["dareg"], "origin_instance_pk", 1)
 
-        self._test_existence(self.config["dareg"], "enabled_new", False)
-        if self.config["dareg"]["enabled_new"]:
+        if self.config["dareg"]["enabled"]:
             self._test_existence(self.config["dareg"], "project")
             self._test_existence(self.config["dareg"], "schema")
 
