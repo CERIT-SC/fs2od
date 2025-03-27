@@ -333,10 +333,7 @@ def register_space(directory: os.DirEntry) -> bool:
     dareg_client = Dareg(Settings.get().DAREG)
     ## hopefully this :)
     actions_logger.log_pre("dareg_register_new", "")
-    # TEMPORARY
-    yml_file = filesystem.get_trigger_metadata_file(directory)
-    yml_content = filesystem.load_yaml(yml_file)
-    status = dareg_client.register_dataset(dataset_name, share_description, yml_content, file_id, share_id, space_id)
+    status = dareg_client.register_dataset(dataset_name, share_description, {},file_id, share_id, space_id)
     is_ok = actions_logger.log_post(status, only_check=True)
     if not is_ok: return False
 

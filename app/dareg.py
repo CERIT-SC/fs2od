@@ -32,11 +32,13 @@ class Dareg:
         body = {
             "name": space_name,
             "description": space_name,
-            "metadata": "{}",
+            "metadata": metadata,
             "onedata_file_id": file_id,
             "onedata_share_id": share_id,
             "onedata_dataset_id": dataset_id,
-            "project": self.project
+            "project": self.project,
+            "schema": self.schema,
+            "status": "new"
         }
         auth = f"Token {self.token}"
 
