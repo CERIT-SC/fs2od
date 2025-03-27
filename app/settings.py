@@ -423,12 +423,8 @@ class Settings:
         self._test_existence(self.config, "dareg", dict())
         self._test_existence(self.config["dareg"], "enabled", False)
         self._test_existence(self.config["dareg"], "host", "https://dareg.example.com")
-        dareg_host = self.config["dareg"]["host"]
         # test if http/s
-        dareg_host = self._add_protocol_to_host_if_missing(dareg_host)
-        dareg_host = dareg_host.removesuffix("/").removesuffix("/datasets/shadow")
-        dareg_host += "/datasets/shadow"
-        self.config["dareg"]["host"] = dareg_host
+        self.config["dareg"]["host"] = self._add_protocol_to_host_if_missing(self.config["dareg"]["host"])
         self._test_existence(self.config["dareg"], "token", "a_secret_token")
 
         if self.config["dareg"]["enabled"]:
