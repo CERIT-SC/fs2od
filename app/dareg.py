@@ -58,6 +58,11 @@ class Dareg:
 
 
 def register_dataset(space_id, name, path, invite_token=None, public_URL=None):
+    return True
+
+
+def register_dataset_deprecated(space_id, name, path, invite_token=None, public_URL=None):
+
     """
     Register a dataset to datasets register.
     """
@@ -83,6 +88,10 @@ def register_dataset(space_id, name, path, invite_token=None, public_URL=None):
 
 
 def update_dataset(space_id, invite_token=None, public_URL=None):
+    return True
+
+
+def update_dataset_deprecated(space_id, invite_token=None, public_URL=None):
     """
     Update the dataset.
     """
@@ -102,6 +111,10 @@ def update_dataset(space_id, invite_token=None, public_URL=None):
 
 
 def log(space_id, type, message):
+    return True
+
+
+def log_deprecated(space_id, type, message):
     """
     Log a record to dataset.
     """
@@ -126,6 +139,10 @@ def log(space_id, type, message):
 
 
 def get_index() -> bytes:
+    pass
+
+
+def get_index_deprecated() -> bytes:
     # TODO: change to get congig, something in json
     """
     Get index only for checking if online.
