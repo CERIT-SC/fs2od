@@ -13,6 +13,7 @@ class Dareg:
         self.host: str = creds.host
         self.token: str = creds.token
         self.project: str = creds.project
+        self.schema: str = creds.schema
 
     # Temporary: attributes are passed separately
     # def register_dataset(self) -> bool:

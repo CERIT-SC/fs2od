@@ -116,6 +116,7 @@ dareg:
   origin_instance_pk: 1
   # Project ID of the fs2od instance in dareg
   project: ""
+  schema: ""
 
 # REST API access (hostnames and tokens) to Onedata services
 # API token to Oneprovider must contain access to Onepanel in the same time

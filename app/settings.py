@@ -69,6 +69,7 @@ class DaregCreds:
         self.host: str = ""
         self.token: str = ""
         self.project: str = ""
+        self.schema: str = ""
 
     @staticmethod
     def create(config: dict) -> DaregCreds:
@@ -82,6 +83,7 @@ class DaregCreds:
             creds.host = dareg_credentials_config["host"]
             creds.token = dareg_credentials_config["token"]
             creds.project = dareg_credentials_config["project"]
+            creds.schema = dareg_credentials_config["schema"]
 
         return creds
 
@@ -421,14 +423,19 @@ class Settings:
         self._test_existence(self.config, "dareg", dict())
         self._test_existence(self.config["dareg"], "enabled", False)
         self._test_existence(self.config["dareg"], "host", "https://dareg.example.com")
+        dareg_host = self.config["dareg"]["host"]
         # test if http/s
-        self.config["dareg"]["host"] = self._add_protocol_to_host_if_missing(self.config["dareg"]["host"])
+        dareg_host = self._add_protocol_to_host_if_missing(dareg_host)
+        dareg_host = dareg_host.removesuffix("/").removesuffix("/datasets/shadow")
+        dareg_host += "/datasets/shadow"
+        self.config["dareg"]["host"] = dareg_host
         self._test_existence(self.config["dareg"], "token", "a_secret_token")
         self._test_existence(self.config["dareg"], "origin_instance_pk", 1)
 
         self._test_existence(self.config["dareg"], "enabled_new", False)
         if self.config["dareg"]["enabled_new"]:
             self._test_existence(self.config["dareg"], "project")
+            self._test_existence(self.config["dareg"], "schema")
 
         self._test_existence(self.config, "restAccess")
         self._test_existence(self.config["restAccess"], "onezone")
