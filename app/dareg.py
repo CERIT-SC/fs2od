@@ -30,8 +30,8 @@ class Dareg:
 
         body = {
             "name": space_name,
-            "description": description,
-            "metadata": metadata, # //json
+            "description": space_name,
+            "metadata": "{}",
             "onedata_file_id": file_id,
             "onedata_share_id": share_id,
             "onedata_dataset_id": dataset_id,
