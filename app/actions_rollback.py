@@ -55,10 +55,6 @@ def action_space(space_name: str, space_id: str) -> bool:
     response = spaces.removeSpace(space_id)
     Logger.log(3, f"rollback - space with id {space_id} removed: {response.ok}")
 
-    if Settings.get().config["dareg"]["enabled"]:
-        dareg.log(space_id, "error", "removed")
-
-    time.sleep(2 * Settings.get().config["sleepFactor"])
     return response.ok
 
 

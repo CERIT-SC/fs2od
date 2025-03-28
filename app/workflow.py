@@ -63,9 +63,6 @@ def _add_support_from_all(support_token: str, space_id: str) -> None:
         )
         time.sleep(2 * Settings.get().config["sleepFactor"])
 
-        if Settings.get().config["dareg"]["enabled"] and result_support:
-            dareg.log(space_id, "info", "supported")
-
 
 def _add_qos_requirement(space_id: str, replicas_number: int):
     """
@@ -138,9 +135,6 @@ def register_space(directory: os.DirEntry) -> bool:
     is_ok = actions_logger.log_post(space_id)
     if not is_ok: return False
 
-    if Settings.get().config["dareg"]["enabled"] and space_id:
-        dareg.register_dataset(space_id, dataset_name, base_path)
-
     time.sleep(1 * Settings.get().config["sleepFactor"])
 
     # Create support token
@@ -158,8 +152,6 @@ def register_space(directory: os.DirEntry) -> bool:
     is_ok = actions_logger.log_post(storage_id)
     if not is_ok: return False
 
-    if Settings.get().config["dareg"]["enabled"] and storage_id:
-        dareg.log(space_id, "info", "created storage %s" % storage_id)
     time.sleep(3 * Settings.get().config["sleepFactor"])
 
     if not space_id or not support_token:
@@ -177,9 +169,6 @@ def register_space(directory: os.DirEntry) -> bool:
     is_ok = actions_logger.log_post(result_support, only_check=True)
     if not is_ok: return False
 
-    if Settings.get().config["dareg"]["enabled"] and result_support:
-        dareg.log(space_id, "info", "supported")
-
     if Settings.get().DATA_REPLICATION_ENABLED:
         Logger.log(
             3, "Setting up replication of space %s" % space_id
@@ -196,8 +185,6 @@ def register_space(directory: os.DirEntry) -> bool:
     is_ok = actions_logger.log_post(gid)
     if not is_ok: return False
 
-    if Settings.get().config["dareg"]["enabled"] and gid:
-        dareg.log(space_id, "info", "created group %s" % gid)
     time.sleep(1 * Settings.get().config["sleepFactor"])
 
     actions_logger.log_pre("token", dataset_name)
@@ -209,8 +196,6 @@ def register_space(directory: os.DirEntry) -> bool:
     is_ok = actions_logger.log_post(token)
     if not is_ok: return False
 
-    if Settings.get().config["dareg"]["enabled"] and token:
-        dareg.log(space_id, "info", "created invite token")
     time.sleep(1 * Settings.get().config["sleepFactor"])
 
     # add the space to the user group
@@ -230,8 +215,6 @@ def register_space(directory: os.DirEntry) -> bool:
     is_ok = actions_logger.log_post(response.ok, only_check=True)
     if not is_ok: return False
 
-    if Settings.get().config["dareg"]["enabled"] and response:
-        dareg.log(space_id, "info", "group added to space")
     time.sleep(1 * Settings.get().config["sleepFactor"])
 
     actions_logger.log_pre("information", yml_access_info_file)
@@ -272,9 +255,6 @@ def register_space(directory: os.DirEntry) -> bool:
     if not is_ok: return False
 
     share_id = share["shareId"]
-
-    if Settings.get().config["dareg"]["enabled"]:
-        dareg.update_dataset(space_id, token["token"], share["publicUrl"])
 
     time.sleep(Settings.get().config["sleepFactor"])
 
@@ -333,17 +313,12 @@ def register_space(directory: os.DirEntry) -> bool:
     dareg_client = Dareg(Settings.get().DAREG)
     ## hopefully this :)
     actions_logger.log_pre("dareg_register_new", "")
-    # TEMPORARY
-    yml_file = filesystem.get_trigger_metadata_file(directory)
-    yml_content = filesystem.load_yaml(yml_file)
-    status = dareg_client.register_dataset(dataset_name, share_description, yml_content, file_id, share_id, space_id)
+    status = dareg_client.register_dataset(dataset_name, share_description, {},file_id, share_id, space_id)
     is_ok = actions_logger.log_post(status, only_check=True)
     if not is_ok: return False
 
     path = base_path + os.sep + directory.name
     Logger.log(3, "Processing of %s done." % path)
-    if Settings.get().config["dareg"]["enabled"]:
-        dareg.log(space_id, "info", "processing done")
     time.sleep(3 * Settings.get().config["sleepFactor"])
 
     actions_logger.finish_actions_log()

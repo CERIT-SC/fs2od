@@ -108,14 +108,12 @@ managerGroupId: ""
 dareg:
   # Enable storing information about datasets to dareg
   enabled: False
-  enabled_new: False
   host: ""
   # Authorization token (API token)
   token: ""
-  # ID of the fs2od instance in dareg
-  origin_instance_pk: 1
   # Project ID of the fs2od instance in dareg
   project: ""
+  schema: ""
 
 # REST API access (hostnames and tokens) to Onedata services
 # API token to Oneprovider must contain access to Onepanel in the same time

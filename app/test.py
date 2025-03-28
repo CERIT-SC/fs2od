@@ -630,7 +630,8 @@ def _test_dareg() -> int:
     if not Settings.get().DAREG_ENABLED:
         return 0
 
-    if dareg.get_index() == b"":
+    dareg_client = dareg.Dareg(Settings.get().DAREG)
+    if dareg_client.get_index() == b"":
         Logger.log(1, f"DAREG does not return any answer.")
         return 1
 
