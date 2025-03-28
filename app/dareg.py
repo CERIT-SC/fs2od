@@ -46,7 +46,7 @@ class Dareg:
             "Authorization": auth,
         }
 
-        r = request(method="POST", url=self.host + "datasets/shadow", json=body, headers=headers)
+        r = request(method="POST", url=self.host + "datasets/shadow/", json=body, headers=headers)
         # debug_print(r)
         Logger.log(5, "Response content:", pretty_print=r.content)
 
