@@ -19,12 +19,12 @@ class Dareg:
     # def register_dataset(self) -> bool:
     def register_dataset(self, space_name: str, description: str,
                          metadata: dict, file_id: str, share_id: str,
-                         dataset_id: str) -> bool:
+                         space_id: str) -> bool:
         """
         Registers a dataset to a new interface of DAREG
         """
         Logger.log(4, f"Dareg.register_dataset({space_name},file_id={file_id}, "
-                      f"share_id={share_id}, dataset_id={dataset_id}, "
+                      f"share_id={share_id}, space_id={space_id}, "
                       f"description=[redacted], metadata=[redacted])")
         if not self.enabled:
             return True
@@ -33,9 +33,10 @@ class Dareg:
             "name": space_name,
             "description": space_name,
             "metadata": metadata,
+            "onedata_space_id": space_id,
             "onedata_file_id": file_id,
             "onedata_share_id": share_id,
-            "onedata_dataset_id": dataset_id,
+            "onedata_dataset_id": space_id, # TODO: add right dataset_id
             "project": self.project,
             "schema": self.schema,
             "status": "new"
